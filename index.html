@@ -143,7 +143,7 @@ th{font-weight:700;color:var(--muted);font-size:11px;text-transform:uppercase;le
 .quick{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .quick button{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 6px;font-size:13px;font-weight:600;text-align:left;line-height:1.2;min-width:0}
 .quick button small{display:block;font-weight:400;color:var(--muted);font-size:11px;margin-top:2px}
-.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.actions{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .actions button{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:12px 4px;font-weight:700;font-size:14px;display:flex;flex-direction:column;align-items:center;gap:4px}
 .actions svg{width:22px;height:22px}
 .cnt{display:flex;align-items:center;gap:6px}
@@ -285,9 +285,52 @@ body.noscroll{overflow:hidden}
 .mrow .low{color:var(--warn);font-weight:700}.mrow .ok{color:var(--done);font-weight:700}
 #muscleList{display:flex;flex-direction:column;gap:8px}
 #streakLine .pill{font-size:13px}
+
+/* Icons */
+.hi{width:20px;height:20px;vertical-align:-4px;margin-right:8px;color:var(--accent);flex:none}
+h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix(in srgb,var(--accent) 14%,transparent);box-sizing:content-box;vertical-align:-7px}
+.tag{display:inline-flex;align-items:center;gap:4px}
+.tag svg{width:14px;height:14px}
+.item .ic{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);flex:none}
+.item .ic svg{width:17px;height:17px}
+.item.isdone .ic{background:color-mix(in srgb,var(--done) 14%,transparent);color:var(--done)}
+.wi{display:flex;gap:10px;align-items:center;min-width:0}
+.syncl{display:inline-flex;align-items:center}.syncl .hi{margin-right:4px;width:16px;height:16px}
+.syncl.spin .hi{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.actions button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.actions button{font-size:13px}
+/* Intro */
+.intro{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--accent) 18%,var(--bg)),var(--bg) 70%);animation:introOut .5s ease 1.5s forwards}
+.introIn{display:flex;flex-direction:column;align-items:center;gap:10px}
+.introDb{width:150px;color:var(--accent);animation:dbIn .7s var(--ease) both,dbLift 1s ease-in-out .7s;filter:drop-shadow(0 10px 18px color-mix(in srgb,var(--accent) 40%,transparent))}
+.introT{font-family:var(--display);font-size:34px;font-weight:700;letter-spacing:.02em;animation:rise .5s var(--ease) .35s both}
+.introS{font-size:14px;color:var(--muted);animation:rise .5s var(--ease) .5s both}
+@keyframes dbIn{from{opacity:0;transform:rotate(-35deg) scale(.4)}to{opacity:1;transform:rotate(-12deg) scale(1)}}
+@keyframes dbLift{0%{transform:rotate(-12deg)}40%{transform:rotate(-12deg) translateY(-14px)}70%{transform:rotate(-12deg) translateY(2px)}100%{transform:rotate(-12deg)}}
+@keyframes introOut{to{opacity:0;visibility:hidden}}
+@media (prefers-reduced-motion: reduce){.intro{display:none}}
+/* Unterwegs */
+.chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0;scrollbar-width:none;flex:none}
+.chips button{flex:none;border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:7px 12px;font-weight:700;font-size:13px}
+.chips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.ff{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.ff:first-child{border-top:0}
+.ff .fit{font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;margin-left:6px}
+.fit.ok{background:color-mix(in srgb,var(--done) 16%,transparent);color:var(--done)}
+.fit.no{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
+.ff.top .nm::before{content:"★ ";color:var(--accent)}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-machine" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18M19 3v18M3 21h4M17 21h4M5 5h14"/><rect x="9" y="12" width="6" height="7" rx="1"/><path d="M9 14.5h6M9 17h6M12 5v7"/></symbol><symbol id="i-cable" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18M3 21h4M5 4h11"/><circle cx="16" cy="6.5" r="2.2"/><path d="M17.6 8.2l2.4 7.8"/><path d="M17.5 16.5h5"/></symbol><symbol id="i-dumbbell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11M3.5 9v6M17.5 6.5v11M20.5 9v6M6.5 12h11"/></symbol><symbol id="i-barbell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20M5.5 8v8M8 6v12M18.5 8v8M16 6v12"/></symbol><symbol id="i-smith" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3v18M20 3v18M2 21h20M2 9h20"/><path d="M7 6.5v5M17 6.5v5"/></symbol><symbol id="i-body" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.5" r="2"/><path d="M12 7v7l-3 7M12 14l3 7M5.5 10.5L12 8.5l6.5 2"/></symbol><symbol id="i-bike" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5l4-7.5h5.5l3.5 7.5M9.5 9l2.5 7.5h1.5M13.5 5.5h2.5"/></symbol><symbol id="i-run" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="14.5" cy="4" r="2"/><path d="M8 21l3-6 3 2v5M6 11l3-3 4 1 2 3 3 1M11 15l2-6"/></symbol><symbol id="i-walk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M10 21l2-7 3 3v4M9 11l2-3h3l2 4M12 14l1-6"/></symbol><symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"/></symbol><symbol id="i-pill" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 3.8a4.5 4.5 0 0 1 6.4 0l3.3 3.3a4.5 4.5 0 0 1 0 6.4l-6.7 6.7a4.5 4.5 0 0 1-6.4 0l-3.3-3.3a4.5 4.5 0 0 1 0-6.4z"/><path d="M7.2 7.2l9.6 9.6"/></symbol><symbol id="i-bowl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18a9 7.5 0 0 1-18 0z"/><path d="M8.5 8c0-1.5 1.5-1.5 1.5-3M13.5 8c0-1.5 1.5-1.5 1.5-3"/></symbol><symbol id="i-shake" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7h11l-1.6 14H8.1z"/><path d="M6 7l1-3h10l1 3M7.2 12h9.6"/></symbol><symbol id="i-cup" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17M8 2.5v3M12 2.5v3M3 21h15"/></symbol><symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5z"/></symbol><symbol id="i-steps" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 3.5c1.8 0 2.8 1.8 2.8 4.5s-1 4.5-2.8 4.5S4.7 10.7 4.7 8s1-4.5 2.8-4.5zM5.5 15.5h4M16.5 8.5c1.8 0 2.8 1.8 2.8 4.5s-1 4.5-2.8 4.5-2.8-1.8-2.8-4.5 1-4.5 2.8-4.5zM14.5 20.5h4"/></symbol><symbol id="i-apple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5c-3.5-2-8-.5-8 4.5 0 4.5 3 9 6 9 1 0 1.4-.5 2-.5s1 .5 2 .5c3 0 6-4.5 6-9 0-5-4.5-6.5-8-4.5z"/><path d="M12 7.5c0-2 1-4 3-4.5"/></symbol><symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol><symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 6-7"/></symbol><symbol id="i-tape" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="6"/><circle cx="9" cy="12" r="1.5"/><path d="M15 12v6h6M17 18v-2M19 18v-2"/></symbol><symbol id="i-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 9a5 4 0 0 1 8 0M12 9l1.5-2"/></symbol><symbol id="i-cart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2.5l2.2 11h10.6l2.2-8H6.6"/><circle cx="9" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></symbol><symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5zM4 19.5A1.5 1.5 0 0 0 5.5 21H20v-3"/><path d="M8 7h8M8 10.5h6"/></symbol><symbol id="i-watch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="3.5"/><path d="M9 6l.8-3.5h4.4L15 6M9 18l.8 3.5h4.4L15 18M12 9.5V12l1.5 1.5"/></symbol><symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16.5 9.5"/></symbol><symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0"/></symbol><symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/></symbol><symbol id="i-plane" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 13.5l7-1.5 4.5-7.5c.6-1 2.2-.6 2 .6L15 12l5.5 1.2c.8.2.8 1.4 0 1.6L15 16l1 5.4c.2 1.2-1.4 1.6-2 .6L9.5 15l-7-1.5z"/></symbol><symbol id="i-thermo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14.5V5a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0z"/><path d="M12 9v7"/></symbol><symbol id="i-muscle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19c0-4 1.5-8 3.5-10.5L9 5l3.5-1.5L14 6l-3 2 1 3.5c2.5-1 5.5-.5 7 1.5s1 6.5-3 7H4z"/></symbol><symbol id="i-burger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5C4 7 7.5 4.5 12 4.5S20 7 20 10.5z"/><path d="M3 14h18M5 14l1.5 2 1.5-2 1.5 2 1.5-2 1.5 2 1.5-2 1.5 2 1.5-2M4.5 17h15a0 0 0 0 1 0 0 2.5 2.5 0 0 1-2.5 2.5H7A2.5 2.5 0 0 1 4.5 17z"/></symbol><symbol id="i-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4 0-7-2.8-7-6.5 0-3.8 3-5.5 3.5-9.5 2.5 1.5 3.5 3.5 3.5 5.5 1-1 1.5-2 1.5-3.5 2.5 2 5.5 4.5 5.5 7.5 0 3.7-3 6.5-7 6.5z"/></symbol><symbol id="i-sync" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.3-4.5L4 8.5M4 13a8 8 0 0 0 14.3 4.5L20 15.5"/><path d="M4 4v4.5h4.5M20 20v-4.5h-4.5"/></symbol><symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-8-4.6-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.4 12 20 12 20z"/><path d="M4 12h4l1.5-2.5 2.5 5 1.5-2.5H20"/></symbol><symbol id="i-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol></svg>
+<div class="intro" id="intro" aria-hidden="true">
+  <div class="introIn">
+    <svg class="introDb" viewBox="0 0 120 60"><g fill="currentColor"><rect x="4" y="16" width="10" height="28" rx="3"/><rect x="15" y="8" width="12" height="44" rx="3.5"/><rect x="93" y="8" width="12" height="44" rx="3.5"/><rect x="106" y="16" width="10" height="28" rx="3"/><rect x="27" y="26" width="66" height="8" rx="3"/></g></svg>
+    <div class="introT">Winterplan</div>
+    <div class="introS" id="introS">Stark durch den Winter</div>
+  </div>
+</div>
 <div class="wrap">
   <header class="head">
     <div>
@@ -312,6 +355,7 @@ body.noscroll{overflow:hidden}
     </div>
     <div class="card focus" id="nextCard"></div>
     <div class="card" id="vitCard" hidden>
+      <div class="between"><h3><svg class="hi"><use href="#i-heart"/></svg>Von der Uhr</h3><button class="link syncl" id="vitSync"><svg class="hi"><use href="#i-sync"/></svg>Abgleichen</button></div>
       <div class="stat">
         <div><span class="label">Schritte heute</span><span class="big" id="vitSteps">-</span><div class="bar p"><i id="vitStepsBar"></i></div></div>
         <div><span class="label">Schlaf letzte Nacht</span><span class="big" id="vitSleep">-</span><span class="note" id="vitSleepNote"></span></div>
@@ -323,11 +367,11 @@ body.noscroll{overflow:hidden}
       </div>
     </div>
     <div class="card">
-      <h3>Tagesablauf</h3>
+      <h3><svg class="hi"><use href="#i-clock"/></svg>Tagesablauf</h3>
       <ul class="list" id="schedule"></ul>
     </div>
     <div class="card">
-      <div class="between"><h3>Koffein</h3><span class="mid" id="cafNow"></span></div>
+      <div class="between"><h3><svg class="hi"><use href="#i-cup"/></svg>Koffein</h3><span class="mid" id="cafNow"></span></div>
       <div class="note" id="cafInfo"></div>
       <details class="cafset"><summary>Mein Kaffeevollautomat <span class="note">Stärke und Tasse</span></summary><div id="cafCoffee" style="display:flex;flex-direction:column;gap:6px;margin-top:6px"></div><div class="note" style="margin-top:6px">Stärke 1 ca. 70 mg, 2 ca. 90 mg, 3 ca. 110 mg. Große Tasse etwa 20 % mehr. Grobe Schätzung, je nach Bohne.</div></details>
       <div class="caf" id="cafBtns"></div>
@@ -344,7 +388,7 @@ body.noscroll{overflow:hidden}
       </details>
     </div>
     <div class="card">
-      <h3>Gewohnheiten</h3>
+      <h3><svg class="hi"><use href="#i-check"/></svg>Gewohnheiten</h3>
       <ul class="list" id="habits"></ul>
     </div>
   </section>
@@ -352,12 +396,12 @@ body.noscroll{overflow:hidden}
   <!-- WOCHE -->
   <section id="p-woche" class="wrap" hidden>
     <div class="card">
-      <h3>Schichten</h3>
+      <h3><svg class="hi"><use href="#i-cal"/></svg>Schichten</h3>
       <div class="note">Ganze Woche mit einem Tipp setzen. Samstag und Sonntag werden dabei frei. Einzelne Tage kannst du danach ändern.</div>
       <div id="weekList"></div>
     </div>
     <div class="card">
-      <h3>Urlaub eintragen</h3>
+      <h3><svg class="hi"><use href="#i-plane"/></svg>Urlaub eintragen</h3>
       <div class="grid2">
         <label class="f">Von<input type="date" id="vacFrom"></label>
         <label class="f">Bis<input type="date" id="vacTo"></label>
@@ -366,7 +410,7 @@ body.noscroll{overflow:hidden}
       <div class="note">Im Urlaub richtet sich der Tagesablauf nach deiner Aufstehzeit. Die stellst du morgens bei Heute ein.</div>
     </div>
     <div class="card">
-      <h3>Krank</h3>
+      <h3><svg class="hi"><use href="#i-thermo"/></svg>Krank</h3>
       <div class="note">Krank sein kostet keine Serie. Die Trainingserinnerung schweigt an diesen Tagen.</div>
       <div class="grid2">
         <label class="f">Von<input type="date" id="sickFrom"></label>
@@ -376,7 +420,7 @@ body.noscroll{overflow:hidden}
       <div id="sickList" class="row"></div>
     </div>
     <div class="card">
-      <h3>Erinnerungen</h3>
+      <h3><svg class="hi"><use href="#i-bell"/></svg>Erinnerungen</h3>
       <div id="notifStatus" class="note"></div>
       <div id="toggles"></div>
       <div class="row">
@@ -401,12 +445,16 @@ body.noscroll{overflow:hidden}
       <div id="unitList"></div>
       <div class="row" id="unitBtns"></div>
     </div>
+    <div class="card" id="actCard" hidden>
+      <h3><svg class="hi"><use href="#i-run"/></svg>Aktivitäten von der Uhr</h3>
+      <ul class="list" id="actList"></ul>
+    </div>
     <div class="card">
-      <h3>Kraft Fortschritt</h3>
+      <h3><svg class="hi"><use href="#i-chart"/></svg>Kraft Fortschritt</h3>
       <div id="progList"></div>
     </div>
     <div class="card">
-      <h3>Sätze pro Muskel <span class="note">letzte 7 Tage</span></h3>
+      <h3><svg class="hi"><use href="#i-muscle"/></svg>Sätze pro Muskel <span class="note">letzte 7 Tage</span></h3>
       <div id="muscleList"></div>
     </div>
     <div class="card">
@@ -447,14 +495,15 @@ body.noscroll{overflow:hidden}
       <div class="actions">
         <button id="aScan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7V4h3M21 7V4h-3M3 17v3h3M21 17v3h-3M7 8v8M10 8v8M13 8v8M17 8v8"/></svg>Scannen</button>
         <button id="aSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg>Suchen</button>
+        <button id="aOut"><svg viewBox="0 0 24 24"><use href="#i-burger"/></svg>Unterwegs</button>
         <button id="aManual"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Eigenes</button>
       </div>
       <div class="card">
-        <h3>Baukasten</h3>
+        <h3><svg class="hi"><use href="#i-bowl"/></svg>Baukasten</h3>
         <div class="quick" id="quick"></div>
       </div>
       <div class="card">
-        <div class="between"><h3>Heute gegessen</h3><span class="note" id="freeInfo"></span></div>
+        <div class="between"><h3><svg class="hi"><use href="#i-apple"/></svg>Heute gegessen</h3><span class="note" id="freeInfo"></span></div>
         <ul class="list" id="foodLog"></ul>
       </div>
       <div class="card" id="recentCard">
@@ -467,12 +516,12 @@ body.noscroll{overflow:hidden}
     </div>
     <div id="f-cart" class="wrap" hidden>
       <div class="card">
-        <h3>Was kochst du diese Woche?</h3>
+        <h3><svg class="hi"><use href="#i-book"/></svg>Was kochst du diese Woche?</h3>
         <div class="note">Anzahl festlegen, die Einkaufsliste rechnet sich automatisch zusammen.</div>
         <ul class="list" id="cartPlan"></ul>
       </div>
       <div class="card">
-        <div class="between"><h3>Einkaufsliste</h3><div class="row nowrap"><button class="link" id="cartShare">Teilen</button><button class="link" id="cartReset">Haken weg</button></div></div>
+        <div class="between"><h3><svg class="hi"><use href="#i-cart"/></svg>Einkaufsliste</h3><div class="row nowrap"><button class="link" id="cartShare">Teilen</button><button class="link" id="cartReset">Haken weg</button></div></div>
         <div id="cartList"></div>
         <div class="row nowrap">
           <input type="text" id="cartAdd" placeholder="Eigenes hinzufügen, z. B. Kaffee" aria-label="Eigener Eintrag">
@@ -485,7 +534,7 @@ body.noscroll{overflow:hidden}
   <!-- KÖRPER -->
   <section id="p-koerper" class="wrap" hidden>
     <div class="card">
-      <h3>Gewicht eintragen</h3>
+      <h3><svg class="hi"><use href="#i-scale"/></svg>Gewicht eintragen</h3>
       <div class="note">Morgens, nüchtern, nach dem Klo. Bewertet wird nur der Wochenschnitt.</div>
       <div class="row nowrap">
         <input type="number" class="num" id="wInput" step="0.05" min="40" max="200" inputmode="decimal" placeholder="z. B. 85,4" aria-label="Gewicht in kg" style="max-width:140px">
@@ -504,13 +553,13 @@ body.noscroll{overflow:hidden}
       <div class="note" id="chartNote"></div>
     </div>
     <div class="card">
-      <div class="between"><h3>Körpermaße</h3><span class="pill" id="measDue"></span></div>
+      <div class="between"><h3><svg class="hi"><use href="#i-tape"/></svg>Körpermaße</h3><span class="pill" id="measDue"></span></div>
       <div id="measTable"></div>
       <button class="btn" id="measAdd">Maße eintragen</button>
       <div class="note">Morgens nüchtern, entspannt stehen, Maßband waagerecht. Oberarm angespannt an der dicksten Stelle.</div>
     </div>
     <div class="card" id="hcCard">
-      <div class="between"><h3>Garmin und Waage</h3><span class="pill" id="hcPill">nicht verbunden</span></div>
+      <div class="between"><h3><svg class="hi"><use href="#i-watch"/></svg>Garmin und Waage</h3><span class="pill" id="hcPill">nicht verbunden</span></div>
       <div class="note" id="hcText"></div>
       <div class="row">
         <button class="btn" id="hcConnect">Verbinden</button>
@@ -578,6 +627,7 @@ body.noscroll{overflow:hidden}
 <div class="toast" id="toast" hidden></div>
 <div class="scanmodal" id="scanModal" hidden><video id="scanVideo" playsinline muted></video><div class="msg">Barcode in den Rahmen halten</div><div class="frame"></div><button class="btn" id="scanCancel">Abbrechen</button></div>
 
+<script src="cap.js"></script>
 <script src="zxing.min.js"></script>
 
 <script src="fb.js"></script>
@@ -755,6 +805,15 @@ function dayDiff(a,b){ return Math.round((parseKey(b)-parseKey(a))/86400000); }
 let toastT=null;
 function toast(t, undo){ const e=$("toast"); e.textContent=t; if(undo){ const b=el("button","tbtn","Rückgängig"); b.addEventListener("click",()=>{ e.hidden=true; undo(); toast("Wiederhergestellt"); }); e.append(b); } e.hidden=false; e.classList.remove("pop"); void e.offsetWidth; e.classList.add("pop"); clearTimeout(toastT); toastT=setTimeout(()=>{ e.hidden=true; }, undo?5000:2600); }
 
+
+// ---------- Icons
+const EQ_ICON={M:"machine",K:"cable",KH:"dumbbell",LH:"barbell",MP:"smith",KG:"body",RAD:"bike"};
+const EQ_LABEL={M:"Maschine",K:"Kabel",KH:"Kurzhantel",LH:"Langhantel",MP:"Multipresse",KG:"Körper",RAD:"Cardio"};
+const KEY_ICON={wake:"sun",suppM:"pill",suppE:"pill",fr:"bowl",b1:"bowl",b2:"bowl",ab:"bowl",sn:"apple",sh:"shake",gym:"dumbbell",caf:"cup",wind:"moon",sleep:"moon",steps:"steps"};
+function svgUse(name){ const NS="http://www.w3.org/2000/svg", sv=document.createElementNS(NS,"svg"), u=document.createElementNS(NS,"use"); u.setAttribute("href","#i-"+name); sv.append(u); sv.setAttribute("aria-hidden","true"); return sv; }
+function icoEl(name){ const s=el("span","ic"); s.append(svgUse(name||"check")); return s; }
+function tagEl(code){ const t=el("span","tag"); t.append(svgUse(EQ_ICON[code]||"dumbbell"), document.createTextNode(EQ_LABEL[code]||code)); return t; }
+
 // ---------- Plugins und Speicher
 const Cap = window.Capacitor;
 const isNative = !!(Cap && Cap.isNativePlatform && Cap.isNativePlatform());
@@ -805,10 +864,13 @@ async function save(){
   if(Prefs){ try{ await Prefs.set({key:"winterplan", value:json}); }catch(e){} }
 }
 async function load(){
-  let raw = null;
-  if(Prefs){ try{ const r = await Prefs.get({key:"winterplan"}); raw = r && r.value; }catch(e){} }
-  if(!raw){ try{ raw = localStorage.getItem("winterplan"); }catch(e){} }
-  if(raw){ try{ state = normalize(JSON.parse(raw)); }catch(e){} }
+  // Beide Speicher lesen und den neueren nehmen, damit alte Stände nie neuere überschreiben
+  const cands=[];
+  if(Prefs){ try{ const r = await Prefs.get({key:"winterplan"}); if(r && r.value) cands.push(r.value); }catch(e){} }
+  try{ const l = localStorage.getItem("winterplan"); if(l) cands.push(l); }catch(e){}
+  let best=null, bu=-1, bn=-1;
+  cands.forEach(raw=>{ try{ const o=JSON.parse(raw), u=o.updatedAt||0, n=raw.length; if(u>bu || (u===bu && n>bn)){ best=o; bu=u; bn=n; } }catch(e){} });
+  if(best) state = normalize(best);
 }
 const dayChecks = k => state.checks[k] || (state.checks[k] = {});
 const dayFood = k => state.food[k] || (state.food[k] = []);
@@ -968,7 +1030,8 @@ function renderHeute(k, ph){
       if(isMeal){ const m=MEALS[it.key]; tx.append(el("div","sub",m.kcal+" kcal · P "+m.p+" · K "+m.c+" · F "+m.f)); }
       if(it.key==="gym" && sh!=="urlaub") tx.append(el("div","sub", nextSlot()==="P" ? "Laut Reihenfolge Pause" : "Einheit "+nextSlot()));
       if(it.key==="steps" && state.hc.on){ const st=state.hc.steps[k]; tx.append(el("div","sub", st!=null ? "Uhr: "+de(st)+" Schritte, wird automatisch abgehakt" : "wird automatisch abgehakt, sobald die Uhr 8.000 meldet")); }
-      li.append(el("span","t",it.t), tx, tickBtn(on, ()=>{ if(isMeal) setMeal(k,it.key,!on); else if(it.key==="steps") c["h_steps"]=!on; else c[id]=!on; persist(); render(); }, it.label));
+      const wrap=el("div","wi"); wrap.append(icoEl(KEY_ICON[it.key]), tx);
+      li.append(el("span","t",it.t), wrap, tickBtn(on, ()=>{ if(isMeal) setMeal(k,it.key,!on); else if(it.key==="steps") c["h_steps"]=!on; else c[id]=!on; persist(); render(); }, it.label));
       ul.appendChild(li);
     });
     if(next){
@@ -1240,6 +1303,16 @@ function muscleSets(){
   Object.entries(state.lifts).forEach(([name,L])=>{ const pk=exByName(name).pk; if(!pk) return; const g=MUSCLES.find(m=>m[1].includes(pk)); if(!g) return; L.filter(s=>s.d>=from).forEach(s=>{ cnt[g[0]]=(cnt[g[0]]||0)+s.s.length; }); });
   return cnt;
 }
+
+const ACT_TYPES={56:["Laufen","run"],57:["Laufband","run"],79:["Gehen","walk"],37:["Wandern","walk"],8:["Radfahren","bike"],9:["Rad drinnen","bike"],70:["Krafttraining","dumbbell"],81:["Gewichtheben","dumbbell"],25:["Crosstrainer","bike"],68:["Treppen","steps"],69:["Stairmaster","steps"],54:["Rudergerät","body"],36:["HIIT","flame"],73:["Schwimmen","body"],74:["Schwimmen","body"],83:["Yoga","body"],0:["Training","heart"]};
+function renderActs(){
+  const a=(state.hc.acts||[]); $("actCard").hidden=!a.length; if(!a.length) return;
+  const ul=$("actList"); ul.innerHTML="";
+  a.slice(0,8).forEach(x=>{ const t=ACT_TYPES[x.type]||[x.title||"Training","heart"], s=new Date(x.s), min=Math.round((new Date(x.e)-s)/60000);
+    const li=el("li","item nt"); const w=el("div","wi"); const tx=el("div","txt"); tx.append(el("span",null,t[0]+(x.title&&x.title!==t[0]?" · "+x.title:"")));
+    tx.append(el("div","sub num",s.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})+" "+hm(s)+" · "+min+" Min."+(x.km?" · "+String(x.km).replace(".",",")+" km":"")+(x.km&&min&&/run|walk/.test(t[1])?" · "+Math.floor(min/x.km)+":"+pad(Math.round((min/x.km%1)*60))+" /km":"")+(x.kcal?" · "+x.kcal+" kcal":"")));
+    w.append(icoEl(t[1]), tx); li.append(w); ul.append(li); });
+}
 function renderMuscles(){
   const box=$("muscleList"); box.innerHTML=""; const c=muscleSets(), any=Object.keys(c).length;
   if(!any){ box.append(el("div","note","Zeigt, wie viele harte Sätze jeder Muskel in den letzten 7 Tagen bekommen hat. Füllt sich, sobald du Sätze einträgst.")); return; }
@@ -1282,7 +1355,7 @@ function renderTraining(k, ph){
       const pat=PAT[pk], L=liftInfo(o[0]);
       const r=el("div","ex"), left=el("div");
       left.append(el("div","nm",o[0]));
-      const h=el("div","hint"); h.append(el("span","tag",o[1]), document.createTextNode(o[3]||pat.n)); left.append(h);
+      const h=el("div","hint"); h.append(tagEl(o[1]), document.createTextNode(o[3]||pat.n)); left.append(h);
       if(state.exNotes[o[0]]) left.append(el("div","hint","📝 "+state.exNotes[o[0]]));
       if(L){ const s=L[0]; const line=el("div","last"); line.textContent="Zuletzt "+fmtDate(s.d)+": "+s.s.map(x=>fmtW(x[0])+"×"+x[1]).join("  ")+" "+s.u;
         if(L[1]){ const b0=sessBest(s,o), b1=sessBest(L[1],o); if(b0>b1*1.005){ line.append(" "); line.append(el("span","up","▲ stärker")); } }
@@ -1308,7 +1381,7 @@ function renderTraining(k, ph){
   if(!items.length) log.textContent="Noch nichts eingetragen.";
   else { const t=el("table"), tb=el("tbody"); items.forEach(e=>{ const tr=el("tr"); tr.append(el("td","num",fmtDate(e.d)), el("td",null,e.u==="P"?"Pause":UNITS[e.u].t), el("td","r num",[e.min?e.min+" Min.":"", e.rpe?"RPE "+e.rpe:""].filter(Boolean).join(" · "))); tb.appendChild(tr); }); t.appendChild(tb); log.appendChild(t); }
   $("undoTrain").hidden = !items.length;
-  renderProgress(); renderMuscles();
+  renderProgress(); renderMuscles(); renderActs();
 }
 function insertLift(name, entry){
   const arr=(state.lifts[name]||[]).filter(s=>s.d!==entry.d); arr.push(entry); arr.sort((a,b)=>b.d.localeCompare(a.d)); state.lifts[name]=arr.slice(0,80);
@@ -1370,7 +1443,7 @@ function openSwap(u,i,hand){
     opts.forEach((o,idx)=>{
       const ok=usable(o,hand), r=el("div","opt"+(idx===cur?" cur":"")+(ok?"":" off"));
       const l=el("div"); l.append(el("div","nm",o[0]));
-      const h=el("div","note"); h.append(el("span","tag",o[1]), document.createTextNode(!ok ? (o[2]>hand ? "ab Hand Stufe "+o[2] : "Gerät ausgeschaltet") : (o[3]||""))); l.append(h);
+      const h=el("div","note"); h.append(tagEl(o[1]), document.createTextNode(!ok ? (o[2]>hand ? "ab Hand Stufe "+o[2] : "Gerät ausgeschaltet") : (o[3]||""))); l.append(h);
       const L=liftInfo(o[0]); const stt = L ? "Zuletzt "+L[0].s.map(x=>fmtW(x[0])+"×"+x[1]).join(", ")+" "+L[0].u : startText(o,hand); if(stt) l.append(el("div","note num",stt));
       const b=el("button","btn small"+(idx===cur?"":" ghost"), idx===cur?"Aktiv":"Nehmen"); b.disabled=!ok||idx===cur;
       b.addEventListener("click",()=>{ state.swap[u+i]=idx; liveSwapped(u,i,o); persist(); closeSheet(); render(); toast(o[0]+" gewählt"); });
@@ -1484,7 +1557,7 @@ function renderLive(){
   const ph=phase(planWeek(run.d));
   run.ex.forEach((x,xi)=>{
     const card=el("div","card lex"+((x.sets?x.sets.every(s=>s.done):x.done)?" exdone":""));
-    const top=el("div","between"); const nm=el("div"); nm.append(el("div","nm",x.name)); const hint=el("div","hint"); hint.append(el("span","tag",x.o[1]), document.createTextNode(x.sr)); nm.append(hint);
+    const top=el("div","between"); const nm=el("div"); nm.append(el("div","nm",x.name)); const hint=el("div","hint"); hint.append(tagEl(x.o[1]), document.createTextNode(x.sr)); nm.append(hint);
     const sw=el("button","link","Tauschen"); sw.addEventListener("click",()=>openSwap(run.u,x.i,ph.hand)); top.append(nm, sw); card.append(top);
     if(state.exNotes[x.name]) card.append(el("div","hint","📝 "+state.exNotes[x.name]));
     if(x.cardio){ const r=el("div","between"); r.append(el("span","note","Locker, Puls so dass du noch reden kannst.")); r.append(tickBtn(x.done,()=>{ x.done=!x.done; persist(); renderLive(); },"Cardio erledigt")); card.append(r); body.append(card); return; }
@@ -1609,6 +1682,49 @@ function renderLog(k){
     li.append(tx,b); rc.appendChild(li);
   });
 }
+
+// ---------- Unterwegs: Fast Food und Snacks (Werte ca., je Portion)
+const FASTFOOD = [
+  ["McDonald's","Hamburger",259,13,31,9],["McDonald's","Cheeseburger",307,16,31,13],["McDonald's","Double Cheeseburger",460,27,32,24],
+  ["McDonald's","6 Chicken McNuggets + Süßsauer",316,15,27,15],["McDonald's","9 Chicken McNuggets",401,23,26,23],["McDonald's","Chickenburger",293,12,35,11],
+  ["McDonald's","McChicken Classic",451,18,45,21],["McDonald's","Big Mac",545,27,44,28],["McDonald's","Hamburger Royal TS",536,30,38,29],["McDonald's","Pommes klein",231,3,29,11],
+  ["Burger King","Hamburger",260,13,30,10],["Burger King","Whopper Jr.",330,15,30,17],["Burger King","6 Chicken Nuggets",270,14,17,16],["Burger King","Whopper",630,28,49,35],["Burger King","Long Chicken",575,21,51,31],
+  ["KFC","1 Stück Original Recipe",250,20,8,15],["KFC","3 Hot Wings",230,14,8,16],["KFC","Zinger Burger",450,26,45,18],["KFC","Twister",500,22,48,24],
+  ["Subway","Chicken Teriyaki 15 cm",330,26,44,4],["Subway","Turkey 15 cm",280,19,42,4],["Subway","Steak und Cheese 15 cm",360,25,42,10],["Subway","Chicken Teriyaki 30 cm",660,52,88,8],
+  ["Döner","Dürüm Hähnchen",650,42,60,25],["Döner","Dönerteller Hähnchen mit Salat, ohne Pommes",550,50,20,30],["Döner","Döner im Brot",700,35,70,30],["Döner","Lahmacun mit Salat",400,18,55,12],
+  ["Bäcker","Putenbrust Brötchen",300,18,40,6],["Bäcker","Käsebrötchen",330,15,40,12],["Bäcker","Laugenbrezel",220,6,44,2],["Bäcker","Mettbrötchen",360,18,30,18],
+  ["Supermarkt","Skyr 450 g",290,50,18,1],["Supermarkt","Magerquark 250 g + Banane",275,31,37,1],["Supermarkt","Protein Pudding",150,20,12,2],["Supermarkt","Hähnchen Aufschnitt 100 g + Brötchen",290,26,36,4],["Supermarkt","Protein Drink 330 ml",200,25,15,4],
+  ["Tankstelle","Beef Jerky 50 g",130,22,6,2],["Tankstelle","Protein Riegel",200,20,18,7],["Tankstelle","Belegtes Sandwich Huhn",350,20,38,12]
+];
+const FF_TIPS = {"McDonald's":"Cola Zero statt Cola, Pommes weglassen oder klein, Süßsauer statt Mayo.","Burger King":"Ohne Mayo bestellen spart 100 kcal, Getränk zero.","KFC":"Lieber Original Stücke statt panierter Burger, Krautsalat statt Pommes.","Subway":"Doppelt Fleisch geht für mehr Eiweiß, Sauce: Sweet Onion oder Senf, kein Käse.","Döner":"Teller mit Salat und ohne Pommes, Sauce extra und nur die Hälfte.","Bäcker":"Belegt mit Pute oder Ei, kein Croissant.","Supermarkt":"Skyr und Quark sind die Eiweiß Retter für unterwegs.","Tankstelle":"Jerky und Riegel als Notlösung, Getränk zero."};
+function openOut(k){
+  const list=dayFood(k), T={kcal:0,p:0}; list.forEach(f=>{ T.kcal+=f.kcal||0; T.p+=f.p||0; });
+  const leftK=Math.max(0,(P().kcal||2400)-T.kcal), leftP=Math.max(0,(P().p||150)-T.p);
+  let chain=null;
+  openSheet(p=>{
+    sheetHead(p,"Unterwegs essen");
+    p.append(el("div","note","Noch offen heute: "+de(leftK)+" kcal und "+de(leftP)+" g Eiweiß. Oben stehen die Sachen mit dem meisten Eiweiß, die noch reinpassen."));
+    const chips=el("div","chips"), box=el("div"), tip=el("div","alert");
+    const chains=["Alle"].concat([...new Set(FASTFOOD.map(x=>x[0]))]);
+    const draw=()=>{
+      chips.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", (b.textContent===(chain||"Alle"))?"true":"false"));
+      box.innerHTML=""; tip.hidden=!chain; if(chain) tip.textContent="Tipp: "+FF_TIPS[chain];
+      const items=FASTFOOD.filter(x=>!chain||x[0]===chain).map(x=>({ch:x[0],n:x[1],kcal:x[2],p:x[3],c:x[4],f:x[5]}));
+      items.forEach(i=>{ i.fit=i.kcal<=leftK+50; i.score=(i.fit?1000:0)+i.p/i.kcal*1000; });
+      items.sort((a,b)=>b.score-a.score);
+      let show=items; if(!chain){ const per={}; show=items.filter(i=>{ per[i.ch]=(per[i.ch]||0)+1; return per[i.ch]<=2; }); }
+      show.forEach((i,ix)=>{
+        const r=el("div","ff"+(ix<3&&i.fit?" top":"")); const l=el("div"); const nm=el("div","nm"); nm.append(document.createTextNode((chain?"":i.ch+": ")+i.n)); nm.append(el("span","fit "+(i.fit?"ok":"no"), i.fit?"passt":"zu viel")); l.append(nm, el("div","macros",macroTxt(i)+" · "+Math.round(i.p/i.kcal*100)+" g Eiweiß je 100 kcal"));
+        const b=el("button","btn small ghost","+"); b.setAttribute("aria-label",i.n+" eintragen"); b.addEventListener("click",()=>{ closeSheet(); addFood(k,{n:i.ch+": "+i.n, kcal:i.kcal, p:i.p, c:i.c, f:i.f, out:true}); });
+        r.append(l,b); box.append(r);
+      });
+    };
+    chains.forEach(c=>{ const b=el("button",null,c); b.addEventListener("click",()=>{ chain = c==="Alle"?null:c; draw(); }); chips.append(b); });
+    p.append(chips, tip, box, el("div","note","Werte sind ca. Angaben je Portion, die Ketten ändern Rezepte ab und zu. Getränke immer zero."));
+    draw();
+  });
+}
+
 function addFood(k,f){
   dayFood(k).push(Object.assign({t:Date.now()},f));
   toast(f.free && freeCount(k)>2 ? "Das ist schon die "+freeCount(k)+". freie Mahlzeit diese Woche" : f.n+" eingetragen");
@@ -1888,7 +2004,7 @@ $("measAdd").addEventListener("click",()=>{
 });
 
 // ---------- Health Connect (Garmin, Renpho)
-const HC_READ=["Weight","BodyFat","Steps","SleepSession","RestingHeartRate","HeartRateVariabilityRmssd"];
+const HC_READ=["Weight","BodyFat","Steps","SleepSession","RestingHeartRate","HeartRateVariabilityRmssd","ExerciseSession","Distance","ActiveCaloriesBurned"];
 let hcAvail=null, hcBusy=false;
 let hcInfo={};
 const androidVer = () => { const m=(navigator.userAgent||"").match(/Android\s([\d.]+)/); return m ? m[1] : null; };
@@ -1930,11 +2046,17 @@ async function hcSync(quiet){
   try{ const fs=await hcReadAll("BodyFat", new Date(now.getTime()-60*86400000), now); if(fs.length){ const last=fs.reduce((a,b)=>a.time>b.time?a:b); const pct=last.percentage && (last.percentage.value!=null?last.percentage.value:last.percentage); if(pct!=null){ state.hc.fat={v:Math.round(Number(pct)*10)/10, d:tKey(last.time)}; got.push("Körperfett"); } } }catch(e){}
   try{ for(let i=0;i<3;i++){ const d=addDays(calToday(),-i), s0=parseKey(d), s1=new Date(s0.getTime()+86400000); const st=await hcReadAll("Steps", s0, i===0?now:s1); const by={}; st.forEach(r=>{ const o=(r.metadata&&r.metadata.dataOrigin)||"x"; by[o]=(by[o]||0)+(Number(r.count)||0); }); const best=Math.max(0,...Object.values(by)); state.hc.steps[d]=best; if(best>=8000) dayChecks(d)["h_steps"]=true; if(st.length && i===0) got.push("Schritte"); } }catch(e){}
   try{ const sl=await hcReadAll("SleepSession", new Date(now.getTime()-15*86400000), now); const by={};
-    sl.forEach(x=>{ let mins=(new Date(x.endTime)-new Date(x.startTime))/60000; if(Array.isArray(x.stages)){ mins-=x.stages.filter(z=>/awake|out_of_bed/i.test(String(z.stage))).reduce((a,z)=>a+(new Date(z.endTime)-new Date(z.startTime))/60000,0); } if(mins<90) return; const d=tKey(x.endTime); by[d]=(by[d]||0)+mins; });
+    sl.forEach(x=>{ let mins=(new Date(x.endTime)-new Date(x.startTime))/60000; if(Array.isArray(x.stages)){ mins-=x.stages.filter(z=>[1,3,7].includes(Number(z.stage)) || /awake|out_of_bed/i.test(String(z.stage))).reduce((a,z)=>a+(new Date(z.endTime)-new Date(z.startTime))/60000,0); } if(mins<90) return; const d=tKey(x.endTime); by[d]=(by[d]||0)+mins; });
     Object.entries(by).forEach(([d,m])=>{ state.hc.sleep[d]=Math.round(m); }); if(sl.length) got.push("Schlaf"); }catch(e){}
   const daily=async(type,field,key)=>{ try{ const rs=await hcReadAll(type, new Date(now.getTime()-15*86400000), now); const by={}; rs.forEach(x=>{ const v=Number(x[field]); if(!isFinite(v)||v<=0) return; const d=tKey(x.time); (by[d]=by[d]||[]).push(v); }); Object.entries(by).forEach(([d,a])=>{ state.hc[key][d]=Math.round(Math.min(...a)*10)/10; }); return rs.length; }catch(e){ return 0; } };
   if(await daily("RestingHeartRate","beatsPerMinute","rhr")) got.push("Ruhepuls");
   if(await daily("HeartRateVariabilityRmssd","heartRateVariabilityMillis","hrv")) got.push("HRV");
+  try{ const from=new Date(now.getTime()-30*86400000), ss=await hcReadAll("ExerciseSession", from, now);
+    if(ss.length){ let ds=[], cs=[]; try{ ds=await hcReadAll("Distance", from, now); }catch(e){} try{ cs=await hcReadAll("ActiveCaloriesBurned", from, now); }catch(e){}
+      const inS=(x,a,b)=>new Date(x.startTime)>=a && new Date(x.endTime)<=b;
+      state.hc.acts = ss.map(x=>{ const a=new Date(x.startTime), b=new Date(x.endTime); const m=ds.filter(z=>inS(z,a,b)).reduce((t,z)=>t+(z.distance&&z.distance.value||0),0), kc=cs.filter(z=>inS(z,a,b)).reduce((t,z)=>t+(z.energy&&z.energy.value||0),0);
+        return {s:x.startTime, e:x.endTime, type:Number(x.exerciseType)||0, title:x.title||"", km:Math.round(m/10)/100, kcal:Math.round(kc), src:(x.metadata&&x.metadata.dataOrigin)||""}; }).sort((p,q)=>q.s.localeCompare(p.s)).slice(0,30);
+      got.push("Aktivitäten"); } }catch(e){}
   calcReady();
   ["steps","sleep","rhr","hrv"].forEach(t=>Object.keys(state.hc[t]||{}).forEach(d=>{ if(dayDiff(d,calToday())>30) delete state.hc[t][d]; }));
   hcReadAll = origDo;
@@ -2001,7 +2123,7 @@ function renderHC(){
   { const tb=el("table"), body=el("tbody"); base.forEach(([a,b])=>{ const tr=el("tr"); tr.append(el("td",null,a), el("td","r macros",b)); body.append(tr); }); tb.append(body); box.append(tb); }
   if(!dg && HC) box.append(el("div","note","Nach dem ersten Abgleich stehen hier auch die gefundenen Daten je Art."));
   if(dg){
-    const names={Weight:"Gewicht",BodyFat:"Körperfett",Steps:"Schritte",SleepSession:"Schlaf",RestingHeartRate:"Ruhepuls",HeartRateVariabilityRmssd:"HRV"};
+    const names={Weight:"Gewicht",BodyFat:"Körperfett",Steps:"Schritte",SleepSession:"Schlaf",RestingHeartRate:"Ruhepuls",HeartRateVariabilityRmssd:"HRV",ExerciseSession:"Aktivitäten",Distance:"Strecke",ActiveCaloriesBurned:"Kalorien"};
     const rows=[["Health Connect",String(dg.avail||"-")],["Freigaben",(dg.granted&&dg.granted.length)?dg.granted.join(", "):"keine"]];
     HC_READ.forEach(tp=>rows.push([names[tp], dg.err[tp] ? "Fehler: "+dg.err[tp] : (dg.n[tp]||0)+" Einträge"]));
     rows.push(["Quellen", Object.keys(dg.src).length ? Object.keys(dg.src).map(x=>x.replace(/^com\./,"")).join(", ") : "keine"]);
@@ -2155,6 +2277,10 @@ document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("clic
 document.querySelectorAll("#foodSeg button").forEach(b=>b.addEventListener("click",()=>{ foodView=b.dataset.v; render(); }));
 $("aScan").addEventListener("click",()=>scan(activeDay()));
 $("aSearch").addEventListener("click",()=>openSearch(activeDay()));
+$("aOut").addEventListener("click",()=>openOut(activeDay()));
+$("vitSync").addEventListener("click",async()=>{ const b=$("vitSync"); b.classList.add("spin"); try{ await hcSyncNow(); }finally{ b.classList.remove("spin"); } });
+setTimeout(()=>{ const i=$("intro"); if(i) i.remove(); },2200);
+{ const M=["Stark durch den Winter","Jeder Satz zählt","Heute besser als gestern","Dranbleiben schlägt alles","Sommer wird im Winter gemacht"]; $("introS").textContent=M[new Date().getDate()%M.length]; }
 $("aManual").addEventListener("click",()=>openManual(activeDay()));
 $("cartAddBtn").addEventListener("click",()=>{ const v=$("cartAdd").value.trim(); if(!v) return; if(!state.cart.custom.includes(v)) state.cart.custom.push(v); $("cartAdd").value=""; persist(); render(); });
 $("cartAdd").addEventListener("keydown",e=>{ if(e.key==="Enter") $("cartAddBtn").click(); });
