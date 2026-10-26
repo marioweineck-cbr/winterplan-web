@@ -103,6 +103,7 @@ ul.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
 .ex .hint{font-size:13px;color:var(--muted)}
 .ex .last{font-size:13px;font-family:var(--mono);color:var(--ink)}
 .ex .up{color:var(--done);font-weight:700}
+td.up{color:var(--done);font-weight:600}
 .exR{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
 .tag{display:inline-block;font-size:11px;font-weight:700;padding:1px 6px;border-radius:5px;border:1px solid var(--line);color:var(--muted);margin-right:4px}
 .opt{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
@@ -158,7 +159,7 @@ summary .note{font-weight:400}
 ol.steps{margin:6px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px}
 .cat{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700;margin-top:8px}
 .macros{font-size:12px;color:var(--muted);font-family:var(--mono)}
-.caf{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.caf{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:6px}
 .caf button{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 4px;font-size:13px;font-weight:600;line-height:1.2}
 .caf button small{display:block;font-weight:400;color:var(--muted);font-size:11px}
 .setrow{display:grid;grid-template-columns:28px 1fr 1fr;gap:8px;align-items:center}
@@ -280,6 +281,10 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
       <div class="row" id="unitBtns"></div>
     </div>
     <div class="card">
+      <h3>Kraft Fortschritt</h3>
+      <div id="progList"></div>
+    </div>
+    <div class="card">
       <details>
         <summary>Schulter Aufwärmen <span class="note">vor A, C und E</span></summary>
         <ul class="list" id="warmup"></ul>
@@ -385,11 +390,12 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
       <div class="row">
         <button class="btn" id="hcConnect">Verbinden</button>
         <button class="btn ghost" id="hcSync" hidden>Jetzt abgleichen</button>
+        <button class="btn ghost" id="hcForce" hidden>Trotzdem verbinden</button>
         <button class="link" id="hcSettings" hidden>Health Connect öffnen</button>
       </div>
       <details>
         <summary>Technische Infos <span class="note">zum Fehler suchen</span></summary>
-        <div id="hcDiag" class="note">Erst nach dem ersten Abgleich verfügbar.</div>
+        <div id="hcDiag" class="note"></div>
       </details>
       <details>
         <summary>So richtest du es ein</summary>
@@ -454,6 +460,7 @@ const MEALS = {
 };
 const QUICK = [
   {n:"Protein Porridge", kcal:520, p:40, c:68, f:9},
+  {n:"Snack vor dem Training", kcal:265, p:28, c:37, f:1},
   {n:"Bolognese Box", kcal:640, p:46, c:72, f:19},
   {n:"Teriyaki Box", kcal:610, p:57, c:78, f:7},
   {n:"Chili Box", kcal:600, p:41, c:74, f:15},
@@ -480,7 +487,7 @@ const TPL = {
 const CAT = {steps:"steps", suppM:"supp", suppE:"supp", fr:"essen", b1:"essen", b2:"essen", ab:"essen", sn:"essen", sh:"essen", gym:"gym", caf:"koffein", wind:"schlaf", sleep:"schlaf"};
 const CATS = [["essen","Essen"],["gym","Training"],["koffein","Koffeinstopp"],["schlaf","Licht dimmen und Schlafen"],["supp","Supplements morgens und abends"],["steps","Schritte Check in der Freizeit"],["meas","Körpermaße nehmen"],["plan","Abends: Schicht für morgen fehlt"]];
 const HABITS = [["steps","8.000 Schritte geschafft"],["water","Viel Wasser getrunken"],["tv","Ohne Fernseher eingeschlafen"]];
-const CAF_DRINKS = [["Kaffee",80],["Monster 0,5 l",160],["Espresso",65],["Cola 0,5 l",50],["Energy 0,25 l",80],["Pre Workout",200]];
+const CAF_DRINKS = [["Kaffee",100,"Vollautomat"],["Monster 0,5 l",160],["Red Bull 0,25 l",80],["Cola 0,5 l",50]];
 const CAF_HALF = 5; // Stunden
 const STEP_GOAL = 8000;
 const SUPP_DEFAULT = [
@@ -845,13 +852,45 @@ function renderCaf(k){
   if(bed && bed>now){ const atBed=cafLevel(bed); info += atBed>50 ? " Zur Schlafenszeit ("+hm(bed)+") wären es noch "+de(atBed)+" mg, das bremst den Schlaf." : " Zur Schlafenszeit passt es."; }
   $("cafInfo").textContent=info;
   const cb=$("cafBtns"); cb.innerHTML="";
-  CAF_DRINKS.forEach(([n,mg])=>{ const b=el("button"); b.append(document.createTextNode(n)); b.append(el("small",null,mg+" mg"));
-    b.addEventListener("click",()=>{ const atBed = bed && bed>new Date() ? cafLevelAtWith(bed,mg) : 0; state.caf.unshift({n,mg,t:Date.now()}); state.caf=state.caf.filter(c=>Date.now()-c.t<48*3600000); persist(); render(); toast(atBed>50 ? n+" eingetragen. Achtung, wird knapp für den Schlaf" : n+" eingetragen"); }); cb.append(b); });
+  const addCaf=(n,mg,t)=>{ const atBed = bed && bed>new Date() ? cafLevel(bed)+mg*Math.pow(0.5,(bed-t)/3600000/CAF_HALF) : 0; state.caf.unshift({n,mg,t}); state.caf.sort((a,b)=>b.t-a.t); state.caf=state.caf.filter(c=>Date.now()-c.t<48*3600000); persist(); render(); toast(atBed>50 ? n+" eingetragen. Achtung, wird knapp für den Schlaf" : n+" eingetragen um "+hm(new Date(t))+" Uhr"); };
+  CAF_DRINKS.forEach(([n,mg,sub])=>{ const b=el("button"); b.append(document.createTextNode(n)); b.append(el("small",null,(sub?sub+" · ":"")+mg+" mg"));
+    b.addEventListener("click",()=>addCaf(n,mg,Date.now())); cb.append(b); });
+  const own=el("button"); own.append(document.createTextNode("Eigenes")); own.append(el("small",null,"mit Uhrzeit")); own.addEventListener("click",()=>openCaf(null)); cb.append(own);
   const ul=$("cafLog"); ul.innerHTML="";
-  state.caf.filter(c=>Date.now()-c.t<24*3600000).slice(0,6).forEach(c=>{
-    const li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span",null,c.n)); tx.append(el("div","sub",hm(new Date(c.t))+" Uhr · "+c.mg+" mg"));
-    const x=el("button","x","×"); x.setAttribute("aria-label","entfernen"); x.addEventListener("click",()=>{ state.caf=state.caf.filter(z=>z!==c); persist(); render(); });
-    li.append(tx,x); ul.append(li);
+  const list=state.caf.filter(c=>Date.now()-c.t<24*3600000).slice(0,8);
+  list.forEach(c=>{
+    const li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span",null,c.n)); tx.append(el("div","sub",(keyOf(new Date(c.t))===calToday()?"":"gestern ")+hm(new Date(c.t))+" Uhr · "+c.mg+" mg"));
+    const ed=el("button","link","Ändern"); ed.addEventListener("click",()=>openCaf(c));
+    li.append(tx,ed); ul.append(li);
+  });
+  if(list.length) ul.append(el("li","note","Später getrunken oder falsche Zeit? Auf Ändern tippen."));
+}
+function openCaf(c){
+  openSheet(p=>{
+    sheetHead(p, c ? "Eintrag ändern" : "Koffein eintragen");
+    const d0 = c ? new Date(c.t) : new Date();
+    const g=el("div","grid2");
+    const [l1,iN]=field("Getränk","text", c?c.n:"Kaffee");
+    const [l2,iM]=field("Koffein in mg","number", c?c.mg:100); iM.className="num"; iM.inputMode="numeric";
+    g.append(l1,l2); p.append(g);
+    const quick=el("div","row"); CAF_DRINKS.forEach(([n,mg])=>{ const b=el("button","btn small ghost",n); b.addEventListener("click",()=>{ iN.value=n; iM.value=mg; }); quick.append(b); }); p.append(quick);
+    const g2=el("div","grid2");
+    const [l3,iT]=field("Uhrzeit","time", pad(d0.getHours())+":"+pad(d0.getMinutes()));
+    const ls=el("label","f","Tag"), sel=el("select"); [["0","Heute"],["1","Gestern"]].forEach(([v,t])=>{ const o=el("option",null,t); o.value=v; sel.append(o); });
+    sel.value = keyOf(d0)===calToday() ? "0" : "1"; ls.append(sel); g2.append(l3,ls); p.append(g2);
+    p.append(el("div","note","Kaffee aus dem Vollautomaten hat je Tasse etwa 80 bis 120 mg, ein doppelter eher 150 mg."));
+    const sv=el("button","btn wide", c?"Speichern":"Eintragen");
+    sv.addEventListener("click",()=>{
+      const mg=Math.round(num(iM.value)), tm=toMin(iT.value), n=iN.value.trim()||"Koffein";
+      if(!(mg>0) || tm==null){ toast("Bitte mg und Uhrzeit eintragen"); return; }
+      const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-Number(sel.value)); const t=d.getTime()+tm*60000;
+      if(t>Date.now()+60000){ toast("Die Uhrzeit liegt in der Zukunft"); return; }
+      if(c){ c.n=n; c.mg=mg; c.t=t; } else state.caf.unshift({n,mg,t});
+      state.caf.sort((a,b)=>b.t-a.t); state.caf=state.caf.filter(x=>Date.now()-x.t<48*3600000);
+      closeSheet(); persist(); render(); toast(n+" um "+iT.value+" Uhr gespeichert");
+    });
+    p.append(sv);
+    if(c){ const del=el("button","link","Eintrag löschen"); del.addEventListener("click",()=>{ state.caf=state.caf.filter(z=>z!==c); closeSheet(); persist(); render(); }); p.append(del); }
   });
 }
 function renderSleepCalc(){
@@ -924,11 +963,83 @@ function startText(o, hand){
   return "Alpha: "+h.last+" ("+h.when+") · Start "+st;
 }
 function stepFor(o,u){ return u==="lb" ? 5 : (o[1]==="KH" ? 2 : 2.5); }
+function nextTarget(o,sr,L){
+  const r=parseSR(sr); if(!r || !L) return null; const s=L[0], u=s.u;
+  const w=Math.max(...s.s.map(x=>x[0])), top=s.s.filter(x=>x[0]===w);
+  if(top.length>=Math.min(r.sets,2) && top.every(x=>x[1]>=r.hi)) return {w:w+stepFor(o,u), reps:Array(r.sets).fill(r.lo), u, kind:"up"};
+  if(s.s.some(x=>x[1]<r.lo-1)) return {w, reps:Array(r.sets).fill(r.lo), u, kind:"hold"};
+  const reps=[]; for(let i=0;i<r.sets;i++){ const base=(top[i]||top[top.length-1])[1]; reps.push(Math.min(r.hi, Math.max(r.lo, base+1))); }
+  return {w, reps, u, kind:"reps"};
+}
 function suggest(o,sr,L){
-  const r=parseSR(sr); if(!r || !L) return null; const s=L[0];
-  if(s.s.length>=Math.min(r.sets,2) && s.s.every(x=>x[1]>=r.hi)){ const w=Math.max(...s.s.map(x=>x[0])); return "Alle Sätze oben am Ziel: nächstes Mal "+fmtAmt(w+stepFor(o,s.u))+" "+s.u; }
-  if(s.s.some(x=>x[1]<r.lo-1)) return "Ein Satz deutlich unter "+r.lo+" Wdh: Gewicht halten, längere Pause.";
-  return "Gewicht halten, Wiederholungen steigern.";
+  const t=nextTarget(o,sr,L); if(!t) return null;
+  const txt="Nächstes Mal: "+fmtAmt(t.w)+" "+t.u+" × "+t.reps.join(" · ");
+  return t.kind==="up" ? txt+" (Gewicht rauf)" : t.kind==="hold" ? txt+" (Gewicht halten, längere Pause)" : txt;
+}
+// ---------- Kraft Fortschritt
+const LB=0.45359237;
+function conv(v,from,to){ return from===to ? v : from==="lb" ? v*LB : v/LB; }
+function sessBest(s){ return Math.max(...s.s.map(x=>e1rm(x[0],x[1]))); }
+function srFor(name){ for(const u in UNITS){ for(const [pk,sr] of UNITS[u].s){ if(PAT[pk] && options(pk).some(o=>o[0]===name) && parseSR(sr)) return {sr, o:options(pk).find(o=>o[0]===name)}; } } return {sr:"3 × 8 bis 12", o:[name,"KH",1,""]}; }
+function liftSeries(name){
+  const L=liftInfo(name); if(!L) return null; const u=L[0].u;
+  return {u, pts:L.slice().reverse().map(s=>[s.d, conv(sessBest(s),s.u,u)])};
+}
+function alphaBest(name,u){ const h=HIST()[name]; if(!h) return null; const m=String(h.last).match(/([\d.,]+)\s*(kg|lb)\s*×\s*(\d+)/); if(!m) return null; return {v:conv(e1rm(num(m[1]),+m[3]),m[2],u), txt:h.last, when:h.when}; }
+function liftRate(ser, old){
+  const p=ser.pts, n=p.length, cur=p[n-1][1];
+  let rate = old && cur<old.v*0.92 ? 0.02 : 0.01, src="Schätzung";
+  if(n>=3 && dayDiff(p[0][0],p[n-1][0])>=14){
+    const xs=p.map(([d])=>dayDiff(p[0][0],d)/7), ys=p.map(x=>x[1]), mx=xs.reduce((a,b)=>a+b)/n, my=ys.reduce((a,b)=>a+b)/n;
+    const sl=xs.reduce((a,x,i)=>a+(x-mx)*(ys[i]-my),0)/Math.max(1e-9,xs.reduce((a,x)=>a+(x-mx)**2,0));
+    rate=Math.max(0, Math.min(0.03, sl/cur)); src="dein Verlauf";
+  }
+  return {rate, src, cur};
+}
+function wFor(e,reps,o,u){ const st=stepFor(o,u); return Math.max(st, Math.round(e/(1+reps/30)/st)*st); }
+function drawLift(svg, ser, old, rate){
+  const W=340, H=170, L=36, R=10, T=12, B=24, NS="http://www.w3.org/2000/svg"; svg.innerHTML="";
+  const mk=(n,a)=>{ const e=document.createElementNS(NS,n); for(const k in a) e.setAttribute(k,a[k]); svg.appendChild(e); return e; };
+  const p=ser.pts, last=p[p.length-1], endD=addDays(last[0],28), x0=p[0][0], span=Math.max(7,dayDiff(x0,endD));
+  const proj=last[1]*(1+rate*4);
+  const vals=p.map(x=>x[1]).concat([proj], old?[old.v]:[]);
+  let lo=Math.min(...vals), hi=Math.max(...vals); const pad0=Math.max(2,(hi-lo)*0.15); lo=Math.floor(lo-pad0); hi=Math.ceil(hi+pad0);
+  const X=d=>L+(dayDiff(x0,d)/span)*(W-L-R), Y=v=>T+(hi-v)/(hi-lo)*(H-T-B);
+  const raw=(hi-lo)/4, mag=Math.pow(10,Math.floor(Math.log10(raw))), stepY=[1,2,2.5,5,10].map(m=>m*mag).find(x=>x>=raw)||raw;
+  for(let v=Math.ceil(lo/stepY)*stepY; v<=hi; v+=stepY){ mk("line",{x1:L,x2:W-R,y1:Y(v),y2:Y(v),stroke:"var(--line)","stroke-width":1}); mk("text",{x:L-6,y:Y(v)+4,"text-anchor":"end","font-size":10,fill:"var(--muted)"}).textContent=Math.round(v); }
+  [x0, last[0], endD].forEach((d,i)=>mk("text",{x:Math.min(W-R-14,Math.max(L+14,X(d))),y:H-7,"text-anchor":"middle","font-size":10,fill:"var(--muted)"}).textContent= i===2?"+4 Wo":fmtDate(d));
+  if(old){ mk("line",{x1:L,x2:W-R,y1:Y(old.v),y2:Y(old.v),stroke:"var(--muted)","stroke-width":1.2,"stroke-dasharray":"2 3"}); mk("text",{x:L+4,y:Y(old.v)-4,"font-size":10,fill:"var(--muted)"}).textContent="Bestwert früher"; }
+  mk("path",{d:"M"+X(last[0]).toFixed(1)+" "+Y(last[1]).toFixed(1)+" L"+X(endD).toFixed(1)+" "+Y(proj).toFixed(1),stroke:"var(--done)","stroke-width":2,"stroke-dasharray":"5 4",fill:"none"});
+  mk("circle",{cx:X(endD),cy:Y(proj),r:3.5,fill:"none",stroke:"var(--done)","stroke-width":2});
+  if(p.length>1) mk("path",{d:p.map(([d,v],i)=>(i?"L":"M")+X(d).toFixed(1)+" "+Y(v).toFixed(1)).join(" "),fill:"none",stroke:"var(--accent)","stroke-width":2,"stroke-linejoin":"round"});
+  p.forEach(([d,v],i)=>mk("circle",{cx:X(d),cy:Y(v),r:i===p.length-1?4:2.5,fill:"var(--accent)"}));
+}
+function progressBlock(p, name, sr, o){
+  const ser=liftSeries(name); if(!ser) return;
+  const r=parseSR(sr)||{sets:3,lo:8,hi:12}, old=alphaBest(name,ser.u), {rate,src,cur}=liftRate(ser,old), u=ser.u, L=liftInfo(name);
+  p.append(el("div","cat","Fortschritt"));
+  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg"); svg.setAttribute("viewBox","0 0 340 170"); svg.setAttribute("class","chart"); svg.setAttribute("role","img"); svg.setAttribute("aria-label","Kraftverlauf "+name); p.append(svg); drawLift(svg, ser, old, rate);
+  p.append(el("div","note","Orange: geschätzte Maximalkraft je Training. Grün gestrichelt: so geht es weiter, wenn du dranbleibst."+(old?" Grau: dein Bestwert aus Alpha ("+old.txt+", "+old.when+").":"")));
+  const t=nextTarget(o,sr,L), rows=[];
+  if(t) rows.push(["Nächstes Training", fmtAmt(t.w)+" "+u+" × "+t.reps.join(" · ")]);
+  const mid=Math.round((r.lo+r.hi)/2);
+  rows.push(["In 1 Woche", fmtAmt(wFor(cur*(1+rate),mid,o,u))+" "+u+" × "+mid]);
+  rows.push(["In 4 Wochen", fmtAmt(wFor(cur*(1+rate*4),mid,o,u))+" "+u+" × "+mid]);
+  if(old && old.v>cur) { const wk=rate>0 ? Math.ceil(Math.log(old.v/cur)/Math.log(1+rate)) : null; rows.push(["Alter Bestwert", wk && wk<60 ? "in ca. "+wk+" Wochen wieder erreicht" : "noch weiter weg"]); }
+  const tb=el("table"), body=el("tbody"); rows.forEach(([a,b])=>{ const tr=el("tr"); tr.append(el("td",null,a), el("td","r num",b)); body.append(tr); }); tb.append(body); p.append(tb);
+  p.append(el("div","note","Steigerung gerechnet mit "+String(Math.round(rate*1000)/10).replace(".",",")+" % pro Woche ("+src+"). In der Diät ist Kraft halten schon gut, alles darüber ist Bonus."));
+}
+function openProgress(name){ const {sr,o}=srFor(name); openSheet(p=>{ sheetHead(p,name); progressBlock(p,name,sr,o); const b=el("button","btn wide ghost","Sätze eintragen"); b.addEventListener("click",()=>openLog(o,sr,calToday())); p.append(b); }); }
+function renderProgress(){
+  const box=$("progList"); box.innerHTML="";
+  const names=Object.keys(state.lifts||{}).filter(n=>state.lifts[n]&&state.lifts[n].length).sort((a,b)=>state.lifts[b][0].d.localeCompare(state.lifts[a][0].d));
+  if(!names.length){ box.append(el("div","note","Sobald du Sätze einträgst, siehst du hier je Übung deinen Verlauf und was als Nächstes drin ist.")); return; }
+  const tb=el("table"), body=el("tbody");
+  names.forEach(n=>{ const ser=liftSeries(n), f=ser.pts[0][1], c=ser.pts[ser.pts.length-1][1], ch=(c/f-1)*100;
+    const tr=el("tr"); tr.style.cursor="pointer"; const nm=el("td"); nm.append(el("button","link",n)); nm.firstChild.style.textAlign="left";
+    tr.append(nm, el("td","r num","~"+de(c)+" "+ser.u), el("td","r num"+(ch>0.5?" up":""), ser.pts.length<2?"neu":(ch>=0?"+":"")+String(Math.round(ch*10)/10).replace(".",",")+" %"));
+    tr.addEventListener("click",()=>openProgress(n)); body.append(tr); });
+  tb.append(body); box.append(tb, el("div","note","Mitte: geschätzte Maximalkraft. Rechts: seit dem ersten Eintrag. Tippe auf eine Übung für Diagramm und Ziele."));
 }
 function renderTraining(k, ph){
   const seq=$("seq"); seq.innerHTML=""; const cur = state.train.idx % SEQ.length;
@@ -969,6 +1080,7 @@ function renderTraining(k, ph){
   if(!items.length) log.textContent="Noch nichts eingetragen.";
   else { const t=el("table"), tb=el("tbody"); items.forEach(e=>{ const tr=el("tr"); tr.append(el("td","num",fmtDate(e.d)), el("td",null,e.u==="P"?"Pause":UNITS[e.u].t)); tb.appendChild(tr); }); t.appendChild(tb); log.appendChild(t); }
   $("undoTrain").hidden = !items.length;
+  renderProgress();
 }
 function openLog(o,sr,k){
   const r=parseSR(sr), L=liftInfo(o[0]), h=HIST()[o[0]];
@@ -1003,6 +1115,7 @@ function openLog(o,sr,k){
       const t=el("table"), tb=el("tbody");
       L.slice(0,8).forEach(s=>{ const best=s.s.reduce((a,x)=>e1rm(x[0],x[1])>e1rm(a[0],a[1])?x:a); const tr=el("tr"); tr.append(el("td","num",fmtDate(s.d)), el("td","num",s.s.map(x=>fmtAmt(x[0])+"×"+x[1]).join("  ")), el("td","r num","~"+de(e1rm(best[0],best[1]))+" "+s.u)); tb.append(tr); });
       t.append(tb); p.append(t, el("div","note","Rechts: geschätztes Maximalgewicht für 1 Wiederholung. Steigt die Zahl, wirst du stärker."));
+      progressBlock(p, o[0], sr, o);
     }
     setTimeout(()=>{ const f=rows.find(([a,b])=>!b.value); if(f) f[1].focus(); },60);
   });
@@ -1358,7 +1471,9 @@ $("measAdd").addEventListener("click",()=>{
 // ---------- Health Connect (Garmin, Renpho)
 const HC_READ=["Weight","BodyFat","Steps","SleepSession"];
 let hcAvail=null, hcBusy=false;
-async function hcCheck(){ if(!HC){ hcAvail="NoApp"; return; } try{ const r=await HC.checkAvailability(); hcAvail=r.availability; }catch(e){ hcAvail="NotSupported"; } }
+let hcInfo={};
+const androidVer = () => { const m=(navigator.userAgent||"").match(/Android\s([\d.]+)/); return m ? m[1] : null; };
+async function hcCheck(){ hcInfo.checkErr=null; if(!HC){ hcAvail="NoApp"; return; } try{ const r=await HC.checkAvailability(); hcAvail=r.availability; }catch(e){ hcAvail="Fehler"; hcInfo.checkErr=String(e && (e.message||e)).slice(0,160); } hcInfo.checkAt=new Date().toISOString(); }
 let hcReadAll = async function(type, from, to){
   let out=[], token, n=0;
   do{ const r=await HC.readRecords({type, timeRangeFilter:{type:"between", startTime:from.toISOString(), endTime:to.toISOString()}, pageSize:500, pageToken:token}); out=out.concat(r.records||[]); token=r.pageToken; n++; }while(token && n<10);
@@ -1385,11 +1500,18 @@ async function hcSync(quiet){
   hcReadAll = origDo;
   state.hc.last=new Date().toISOString(); state.hc.got=got; state.hc.diag=diag; hcBusy=false; persist(); render();
 }
-async function hcConnect(){
+async function hcConnect(force){
+  if(!HC){ toast("Verbinden geht nur in der App auf dem Handy. Die Werte kommen danach per Sync auch hierher."); return; }
   await hcCheck();
-  if(hcAvail!=="Available"){ if(hcAvail==="NotInstalled"){ toast("Health Connect fehlt, bitte aus dem Play Store installieren"); try{ await HC.openHealthConnectSetting(); }catch(e){} } else toast("Health Connect geht nur in der installierten App auf Android"); render(); return; }
-  try{ const r=await HC.requestHealthPermissions({read:HC_READ, write:[], history:true}); if(r.grantedPermissions && r.grantedPermissions.length){ state.hc.on=true; persist(); toast("Verbunden, gleiche ab …"); await hcSync(); } else toast("Keine Freigabe erteilt"); }
-  catch(e){ toast("Verbinden hat nicht geklappt"); }
+  if(hcAvail!=="Available" && !force){
+    if(hcAvail==="NotInstalled"){ toast("Health Connect muss aktualisiert oder installiert werden"); try{ await HC.openHealthConnectSetting(); }catch(e){} }
+    else toast("Health Connect meldet: "+hcAvail+". Details unter Technische Infos");
+    render(); return;
+  }
+  try{ const r=await HC.requestHealthPermissions({read:HC_READ, write:[], history:true});
+    hcInfo.req=(r.grantedPermissions||[]).map(x=>String(x).split(".").pop()).join(", ")||"nichts erlaubt"; hcInfo.reqErr=null;
+    if(r.grantedPermissions && r.grantedPermissions.length){ state.hc.on=true; persist(); toast("Verbunden, gleiche ab …"); await hcSync(); } else toast("Keine Freigabe erteilt. Öffne Health Connect und erlaube dem Winterplan den Zugriff"); }
+  catch(e){ hcInfo.reqErr=String(e && (e.message||e)).slice(0,160); toast("Verbinden hat nicht geklappt. Details unter Technische Infos"); }
   render();
 }
 const fmtMin = m => Math.floor(m/60)+" Std. "+pad(Math.round(m%60))+" Min.";
@@ -1403,13 +1525,21 @@ function renderVitals(){
 function renderHC(){
   const on=state.hc.on;
   $("hcPill").textContent = on ? "verbunden" : "nicht verbunden"; $("hcConnect").textContent = on ? "Freigaben ändern" : "Verbinden";
-  $("hcSync").hidden=!on; $("hcSettings").hidden = !HC;
+  $("hcSync").hidden=!on || !HC; $("hcSettings").hidden = !HC;
   let t="Über Health Connect holt sich die App Gewicht und Körperfett von deiner Waage sowie Schritte und Schlaf von deiner Uhr.";
   if(on && state.hc.last){ const d=new Date(state.hc.last); t="Zuletzt abgeglichen "+d.toLocaleDateString("de-DE")+" "+hm(d)+". Gefunden: "+((state.hc.got&&state.hc.got.length)? state.hc.got.join(", ") : "noch keine Daten. Prüfe, ob Garmin und Renpho an Health Connect senden")+"."; }
-  if(hcAvail==="NotInstalled") t="Health Connect ist nicht installiert. Ab Android 14 ist es eingebaut, sonst gibt es die App im Play Store.";
-  if(hcAvail==="NotSupported") t="Health Connect wird auf diesem Gerät nicht unterstützt.";
+  if(hcAvail==="NotInstalled") t="Health Connect muss installiert oder aktualisiert werden. Ab Android 14 ist es eingebaut, sonst gibt es die App im Play Store.";
+  if(hcAvail==="NotSupported") t="Health Connect meldet, dass es auf diesem Gerät nicht geht. Probier trotzdem verbinden und schick mir die Technischen Infos.";
+  if(!HC){ t = on ? "Garmin und Waage laufen über die App auf dem Handy. Die Werte kommen per Sync hierher"+(state.hc.last?", zuletzt "+new Date(state.hc.last).toLocaleDateString("de-DE")+" "+hm(new Date(state.hc.last)):"")+"." : "Verbinden geht nur in der App auf dem Handy (Health Connect gibt es nur auf Android). Wenn du dort verbunden und angemeldet bist, siehst du Gewicht, Schritte und Schlaf auch hier."; $("hcPill").textContent = on ? "über Handy" : "nur am Handy"; }
+  $("hcConnect").hidden = !HC; $("hcForce").hidden = !HC || hcAvail==="Available" || hcAvail==null;
   $("hcText").textContent=t;
   const dg=state.hc.diag, box=$("hcDiag"); box.innerHTML="";
+  const base=[["Läuft als", HC ? "App auf dem Handy" : (isNative ? "App ohne Health Connect Modul" : "Browser")],["Android", androidVer()||"nicht erkannt"],["Health Connect Status", HC ? String(hcAvail==null?"noch nicht geprüft":hcAvail) : "im Browser nicht verfügbar"]];
+  if(hcInfo.checkErr) base.push(["Prüfung Fehler",hcInfo.checkErr]);
+  if(hcInfo.req) base.push(["Letzte Freigabe",hcInfo.req]);
+  if(hcInfo.reqErr) base.push(["Freigabe Fehler",hcInfo.reqErr]);
+  { const tb=el("table"), body=el("tbody"); base.forEach(([a,b])=>{ const tr=el("tr"); tr.append(el("td",null,a), el("td","r macros",b)); body.append(tr); }); tb.append(body); box.append(tb); }
+  if(!dg && HC) box.append(el("div","note","Nach dem ersten Abgleich stehen hier auch die gefundenen Daten je Art."));
   if(dg){
     const names={Weight:"Gewicht",BodyFat:"Körperfett",Steps:"Schritte",SleepSession:"Schlaf"};
     const rows=[["Health Connect",String(dg.avail||"-")],["Freigaben",(dg.granted&&dg.granted.length)?dg.granted.join(", "):"keine"]];
@@ -1424,7 +1554,8 @@ function renderHC(){
     if(tip) box.append(el("div","alert",tip));
   }
 }
-$("hcConnect").addEventListener("click", hcConnect);
+$("hcConnect").addEventListener("click", ()=>hcConnect(false));
+$("hcForce").addEventListener("click", ()=>hcConnect(true));
 $("hcSync").addEventListener("click", ()=>hcSync(false));
 $("hcSettings").addEventListener("click", async ()=>{ try{ await HC.openHealthConnectSetting(); }catch(e){ toast("Konnte Health Connect nicht öffnen"); } });
 
@@ -1591,7 +1722,7 @@ document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ refresh
   }
   render(); scheduleAll();
   initCloud();
-  await hcCheck(); hcSync(true);
+  await hcCheck(); render(); hcSync(true);
   setInterval(render, 60000);
 })();
 })();
