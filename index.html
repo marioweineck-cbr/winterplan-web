@@ -1,0 +1,1600 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Winterplan</title>
+<style>
+/* Layout: App mit festem Kopf, Inhalt in ruhigen Karten, Reiterleiste unten wie bei nativen Android Apps. */
+:root{
+  --bg:#EEF1F4; --panel:#FFFFFF; --ink:#16212B; --muted:#5E6B76; --line:#DCE1E6;
+  --accent:#D9792A; --accent-ink:#FFFFFF; --done:#2F8F7A; --warn:#B8432F; --soft:#F7EADD;
+  --carb:#3C6FA8; --fat:#B58B1E;
+  --f:#D9792A; --s:#3C6FA8; --n:#5B4C9A; --x:#2F8F7A; --u:#C2477E;
+  --display:"Roboto Condensed","sans-serif-condensed","Arial Narrow",Arial,sans-serif;
+  --body:Roboto,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Roboto Mono","Droid Sans Mono",ui-monospace,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#10161C; --panel:#18212A; --ink:#E6ECF1; --muted:#98A5B0; --line:#29343E;
+  --accent:#E8904A; --accent-ink:#1A1208; --done:#4DB59C; --warn:#E07A66; --soft:#2C2218;
+  --carb:#6E9ED6; --fat:#D9B24A;
+  --f:#E8904A; --s:#6E9ED6; --n:#9A8BDB; --x:#4DB59C; --u:#E07AAE; color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent;
+  padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));
+  padding-top:calc(12px + env(safe-area-inset-top,0px));padding-bottom:calc(86px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:.01em;line-height:1.15}
+h1{font-size:28px;font-weight:700}
+h2{font-size:20px;font-weight:700}
+h3{font-size:17px;font-weight:700}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.label{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700}
+.note{font-size:14px;color:var(--muted)}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.head .sub{font-size:13px;color:var(--muted)}
+.headR{display:flex;align-items:center;gap:8px}
+.gear{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--panel);display:grid;place-items:center;padding:0;flex:none}
+.gear svg{width:20px;height:20px}
+.pill{font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--soft);color:var(--ink);white-space:nowrap}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card.focus{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.nowrap{flex-wrap:nowrap}
+.between{display:flex;justify-content:space-between;align-items:center;gap:8px}
+button{font-family:var(--body);cursor:pointer;color:inherit}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:disabled{opacity:.5}
+.btn{font-weight:700;font-size:15px;padding:11px 14px;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.small{padding:6px 10px;font-size:13px;border-radius:8px}
+.btn.wide{width:100%}
+.link{background:none;border:0;padding:4px 0;color:var(--accent);font-weight:700;font-size:14px;text-align:left}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px}
+.seg button{border:0;background:transparent;border-radius:7px;padding:8px 2px;font-weight:700;font-size:14px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.shifts{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.shifts button{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 2px;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
+.shifts b{font-family:var(--display);font-size:19px;line-height:1}
+.shifts span{font-size:10px;color:var(--muted);white-space:nowrap}
+.shifts button[aria-pressed="true"]{border-width:2px;border-color:currentColor;background:var(--panel)}
+[data-k="frueh"][aria-pressed="true"]{color:var(--f)}
+[data-k="spaet"][aria-pressed="true"]{color:var(--s)}
+[data-k="nacht"][aria-pressed="true"]{color:var(--n)}
+[data-k="frei"][aria-pressed="true"]{color:var(--x)}
+[data-k="urlaub"][aria-pressed="true"]{color:var(--u)}
+ul.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.item{display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.item:first-child{border-top:0}
+.item.nt{grid-template-columns:1fr auto}
+.item .t{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.item .txt{min-width:0}
+.item .sub{font-size:13px;color:var(--muted)}
+.item.isnext .t{color:var(--accent);font-weight:700}
+.item.isdone .txt{color:var(--muted)}
+.item.isdone .txt > span{text-decoration:line-through}
+.tick{width:32px;height:32px;border-radius:8px;border:2px solid var(--line);background:transparent;display:grid;place-items:center;padding:0;color:#fff}
+.tick[aria-pressed="true"]{background:var(--done);border-color:var(--done)}
+.tick svg{width:16px;height:16px}
+.x{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:18px;line-height:1;padding:0;flex:none}
+.stat{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stat > div,.stat4 > div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.big{font-family:var(--mono);font-size:20px;font-variant-numeric:tabular-nums}
+.mid{font-family:var(--mono);font-size:15px;font-variant-numeric:tabular-nums}
+.bar{height:8px;border-radius:4px;background:var(--bg);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.bar.p i{background:var(--done)} .bar.c i{background:var(--carb)} .bar.fa i{background:var(--fat)}
+.alert{font-size:14px;padding:9px 11px;border-radius:10px;background:var(--soft)}
+.alert.bad{background:transparent;border:1px solid var(--warn)}
+.alert.ok{background:transparent;border:1px solid var(--done)}
+.seq{display:flex;gap:4px}
+.seq span{font-family:var(--display);font-weight:700;font-size:15px;flex:1;height:32px;display:grid;place-items:center;border-radius:8px;border:1px solid var(--line);color:var(--muted)}
+.seq span.cur{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.seq span.past{color:var(--done);border-color:var(--done)}
+.ex{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:11px 0;border-top:1px solid var(--line);align-items:start}
+.ex:first-of-type{border-top:0}
+.ex .nm{font-weight:600}
+.ex .sr{font-family:var(--mono);font-size:13px;white-space:nowrap;text-align:right}
+.ex .hint{font-size:13px;color:var(--muted)}
+.ex .last{font-size:13px;font-family:var(--mono);color:var(--ink)}
+.ex .up{color:var(--done);font-weight:700}
+.exR{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:1px 6px;border-radius:5px;border:1px solid var(--line);color:var(--muted);margin-right:4px}
+.opt{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.opt:first-child{border-top:0}
+.opt.cur .nm{color:var(--accent)}
+.opt.off{opacity:.5}
+input[type=number],input[type=text],input[type=search],input[type=time],input[type=date],textarea,select{font-family:var(--body);font-size:16px;padding:10px 11px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%;min-width:0}
+input.num{font-family:var(--mono)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:700;min-width:0}
+textarea{font-family:var(--mono);font-size:12px;min-height:90px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{text-align:left;padding:7px 0;border-top:1px solid var(--line);vertical-align:middle}
+tr:first-child td{border-top:0}
+th{font-weight:700;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;border-top:0}
+.r{text-align:right}
+.chart{width:100%;height:auto;display:block}
+.wk{display:flex;flex-direction:column;gap:6px;padding-top:10px;border-top:1px solid var(--line)}
+.wk:first-child{border-top:0;padding-top:0}
+.wkbtns{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.wkbtns button{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:6px 2px;font-size:13px;font-weight:700}
+.wday{display:grid;grid-template-columns:64px 1fr;gap:8px;align-items:center;padding:4px 0}
+.wday .d{font-size:12px;color:var(--muted)}
+.wday .d b{display:block;font-family:var(--display);font-size:15px;color:var(--ink)}
+.wday.today .d b{color:var(--accent)}
+.wday .shifts button{padding:6px 1px}
+.wday .shifts b{font-size:14px}
+.toggle{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.toggle:first-child{border-top:0}
+.toggle .tt{min-width:0}
+.sw{width:48px;height:28px;border-radius:14px;border:1px solid var(--line);background:var(--bg);position:relative;padding:0;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--muted);transition:left .15s}
+.sw[aria-checked="true"]{background:var(--done);border-color:var(--done)}
+.sw[aria-checked="true"]::after{left:23px;background:#fff}
+.quick{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.quick button{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 6px;font-size:13px;font-weight:600;text-align:left;line-height:1.2;min-width:0}
+.quick button small{display:block;font-weight:400;color:var(--muted);font-size:11px;margin-top:2px}
+.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.actions button{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:12px 4px;font-weight:700;font-size:14px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.actions svg{width:22px;height:22px}
+.cnt{display:flex;align-items:center;gap:6px}
+.cnt button{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--bg);font-size:18px;padding:0}
+.cnt span{min-width:20px;text-align:center;font-family:var(--mono)}
+details{border-top:1px solid var(--line);padding-top:8px}
+details:first-of-type{border-top:0;padding-top:0}
+summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:700;padding:4px 0}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:var(--mono);color:var(--muted);font-size:18px}
+details[open] summary::after{content:"\2212"}
+summary .note{font-weight:400}
+ol.steps{margin:6px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.cat{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700;margin-top:8px}
+.macros{font-size:12px;color:var(--muted);font-family:var(--mono)}
+.caf{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.caf button{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 4px;font-size:13px;font-weight:600;line-height:1.2}
+.caf button small{display:block;font-weight:400;color:var(--muted);font-size:11px}
+.setrow{display:grid;grid-template-columns:28px 1fr 1fr;gap:8px;align-items:center}
+.setrow .n{font-family:var(--mono);color:var(--muted);text-align:center}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--panel);border-top:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(5,1fr);padding-bottom:env(safe-area-inset-bottom,0px);
+  padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+nav.tabs button{border:0;background:transparent;padding:8px 2px 9px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:700;color:var(--muted)}
+nav.tabs svg{width:22px;height:22px}
+nav.tabs button[aria-selected="true"]{color:var(--accent)}
+.sheet{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet .pane{background:var(--panel);width:100%;max-width:620px;max-height:90vh;overflow:auto;border-radius:16px 16px 0 0;
+  padding:16px max(16px,env(safe-area-inset-left,0px)) calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:50;background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:10px;font-size:14px;max-width:90vw}
+.scanmodal{position:fixed;inset:0;z-index:60;background:#000;display:flex;flex-direction:column;justify-content:space-between;align-items:center;
+  padding:calc(24px + env(safe-area-inset-top,0px)) 16px calc(28px + env(safe-area-inset-bottom,0px))}
+.scanmodal video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.scanmodal > *:not(video){position:relative}
+.scanmodal .msg{background:rgba(0,0,0,.6);color:#fff;padding:9px 14px;border-radius:10px;font-size:15px;font-weight:600}
+.scanmodal .frame{width:min(78vw,320px);height:min(46vw,190px);border:3px solid #E8904A;border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.35)}
+.scanmodal .btn{min-width:180px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <div>
+      <div class="label" id="dateLabel"></div>
+      <h1 id="pageTitle">Heute</h1>
+    </div>
+    <div class="headR">
+      <div style="text-align:right">
+        <div class="num sub" id="weekLabel"></div>
+        <span class="pill" id="phasePill"></span>
+      </div>
+      <button class="gear" id="openSettings" aria-label="Einstellungen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    </div>
+  </header>
+
+  <!-- HEUTE -->
+  <section id="p-heute" class="wrap">
+    <div class="card">
+      <div class="between"><h3 id="shiftTitle">Schicht heute</h3><span class="note" id="phaseFood"></span></div>
+      <div id="shiftPick"></div>
+      <div class="row" id="wakeRow"></div>
+    </div>
+    <div class="card focus" id="nextCard"></div>
+    <div class="card" id="vitCard" hidden>
+      <div class="stat">
+        <div><span class="label">Schritte heute</span><span class="big" id="vitSteps">-</span><div class="bar p"><i id="vitStepsBar"></i></div></div>
+        <div><span class="label">Schlaf letzte Nacht</span><span class="big" id="vitSleep">-</span><span class="note" id="vitSleepNote"></span></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Tagesablauf</h3>
+      <ul class="list" id="schedule"></ul>
+    </div>
+    <div class="card">
+      <div class="between"><h3>Koffein</h3><span class="mid" id="cafNow"></span></div>
+      <div class="note" id="cafInfo"></div>
+      <div class="caf" id="cafBtns"></div>
+      <ul class="list" id="cafLog"></ul>
+    </div>
+    <div class="card">
+      <details>
+        <summary>Schlafrechner <span class="note">wann ins Bett, wann essen</span></summary>
+        <div class="grid2" style="margin-top:6px">
+          <label class="f">Morgen aufstehen um<input type="time" id="slWake"></label>
+          <label class="f">Schlafziel in Std.<input type="number" class="num" id="slGoal" step="0.5" min="5" max="11"></label>
+        </div>
+        <div id="slOut" style="margin-top:8px;display:flex;flex-direction:column;gap:8px"></div>
+      </details>
+    </div>
+    <div class="card">
+      <h3>Gewohnheiten</h3>
+      <ul class="list" id="habits"></ul>
+    </div>
+  </section>
+
+  <!-- WOCHE -->
+  <section id="p-woche" class="wrap" hidden>
+    <div class="card">
+      <h3>Schichten</h3>
+      <div class="note">Ganze Woche mit einem Tipp setzen. Samstag und Sonntag werden dabei frei. Einzelne Tage kannst du danach ändern.</div>
+      <div id="weekList"></div>
+    </div>
+    <div class="card">
+      <h3>Urlaub eintragen</h3>
+      <div class="grid2">
+        <label class="f">Von<input type="date" id="vacFrom"></label>
+        <label class="f">Bis<input type="date" id="vacTo"></label>
+      </div>
+      <button class="btn" id="vacAdd">Urlaub eintragen</button>
+      <div class="note">Im Urlaub richtet sich der Tagesablauf nach deiner Aufstehzeit. Die stellst du morgens bei Heute ein.</div>
+    </div>
+    <div class="card">
+      <h3>Erinnerungen</h3>
+      <div id="notifStatus" class="note"></div>
+      <div id="toggles"></div>
+      <div class="row">
+        <button class="btn" id="notifAllow">Benachrichtigungen erlauben</button>
+        <button class="btn ghost" id="notifTest">Test in 10 Sekunden</button>
+      </div>
+      <div class="alert" id="exactHint" hidden>Damit Erinnerungen auf die Minute kommen, in den Einstellungen „Wecker und Erinnerungen“ erlauben. <button class="link" id="exactBtn">Einstellung öffnen</button></div>
+    </div>
+  </section>
+
+  <!-- TRAINING -->
+  <section id="p-training" class="wrap" hidden>
+    <div class="card focus">
+      <div class="seq" id="seq"></div>
+      <div id="trainWarn"></div>
+      <div>
+        <div class="label">Als Nächstes</div>
+        <h2 id="unitTitle"></h2>
+        <div class="note" id="unitNote"></div>
+      </div>
+      <div id="unitList"></div>
+      <div class="row" id="unitBtns"></div>
+    </div>
+    <div class="card">
+      <details>
+        <summary>Schulter Aufwärmen <span class="note">vor A, C und E</span></summary>
+        <ul class="list" id="warmup"></ul>
+      </details>
+      <details>
+        <summary>Meine Geräte</summary>
+        <div class="note">Was dir zur Verfügung steht. Alternativen ohne diese Geräte werden ausgeblendet.</div>
+        <div id="equipToggles"></div>
+      </details>
+      <details>
+        <summary>Letzte Einheiten</summary>
+        <div id="trainLog" class="note"></div>
+        <button class="link" id="undoTrain">Letzten Eintrag zurücknehmen</button>
+      </details>
+    </div>
+  </section>
+
+  <!-- ESSEN -->
+  <section id="p-essen" class="wrap" hidden>
+    <div class="seg" id="foodSeg">
+      <button data-v="log" aria-pressed="true">Tagebuch</button>
+      <button data-v="rez" aria-pressed="false">Rezepte</button>
+      <button data-v="cart" aria-pressed="false">Einkauf</button>
+    </div>
+    <div id="f-log" class="wrap">
+      <div class="card">
+        <div class="stat4">
+          <div><span class="label">kcal</span><span class="mid" id="mK"></span><div class="bar"><i id="bK"></i></div></div>
+          <div><span class="label">Eiweiß</span><span class="mid" id="mP"></span><div class="bar p"><i id="bP"></i></div></div>
+          <div><span class="label">Kohlenh.</span><span class="mid" id="mC"></span><div class="bar c"><i id="bC"></i></div></div>
+          <div><span class="label">Fett</span><span class="mid" id="mF"></span><div class="bar fa"><i id="bF"></i></div></div>
+        </div>
+        <div class="note" id="macroLeft"></div>
+      </div>
+      <div class="actions">
+        <button id="aScan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7V4h3M21 7V4h-3M3 17v3h3M21 17v3h-3M7 8v8M10 8v8M13 8v8M17 8v8"/></svg>Scannen</button>
+        <button id="aSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg>Suchen</button>
+        <button id="aManual"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Eigenes</button>
+      </div>
+      <div class="card">
+        <h3>Baukasten</h3>
+        <div class="quick" id="quick"></div>
+      </div>
+      <div class="card">
+        <div class="between"><h3>Heute gegessen</h3><span class="note" id="freeInfo"></span></div>
+        <ul class="list" id="foodLog"></ul>
+      </div>
+      <div class="card" id="recentCard">
+        <h3>Zuletzt verwendet</h3>
+        <ul class="list" id="recent"></ul>
+      </div>
+    </div>
+    <div id="f-rez" class="wrap" hidden>
+      <div class="card" id="recipes"></div>
+    </div>
+    <div id="f-cart" class="wrap" hidden>
+      <div class="card">
+        <h3>Was kochst du diese Woche?</h3>
+        <div class="note">Anzahl festlegen, die Einkaufsliste rechnet sich automatisch zusammen.</div>
+        <ul class="list" id="cartPlan"></ul>
+      </div>
+      <div class="card">
+        <div class="between"><h3>Einkaufsliste</h3><button class="link" id="cartReset">Haken zurücksetzen</button></div>
+        <div id="cartList"></div>
+        <div class="row nowrap">
+          <input type="text" id="cartAdd" placeholder="Eigenes hinzufügen, z. B. Kaffee" aria-label="Eigener Eintrag">
+          <button class="btn small" id="cartAddBtn">Dazu</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KÖRPER -->
+  <section id="p-koerper" class="wrap" hidden>
+    <div class="card">
+      <h3>Gewicht eintragen</h3>
+      <div class="note">Morgens, nüchtern, nach dem Klo. Bewertet wird nur der Wochenschnitt.</div>
+      <div class="row nowrap">
+        <input type="number" class="num" id="wInput" step="0.05" min="40" max="200" inputmode="decimal" placeholder="z. B. 85,4" aria-label="Gewicht in kg" style="max-width:140px">
+        <span class="note">kg</span>
+        <button class="btn" id="wSave">Speichern</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="stat">
+        <div><span class="label">Schnitt 7 Tage</span><span class="big" id="avgNow">-</span></div>
+        <div><span class="label">Zur Vorwoche</span><span class="big" id="avgDiff">-</span></div>
+      </div>
+      <div class="note" id="fatLine" hidden></div>
+      <div id="wHint"></div>
+      <svg class="chart" id="wChart" viewBox="0 0 340 170" role="img" aria-label="Gewichtsverlauf"></svg>
+      <div class="note" id="chartNote"></div>
+    </div>
+    <div class="card">
+      <div class="between"><h3>Körpermaße</h3><span class="pill" id="measDue"></span></div>
+      <div id="measTable"></div>
+      <button class="btn" id="measAdd">Maße eintragen</button>
+      <div class="note">Morgens nüchtern, entspannt stehen, Maßband waagerecht. Oberarm angespannt an der dicksten Stelle.</div>
+    </div>
+    <div class="card" id="hcCard">
+      <div class="between"><h3>Garmin und Waage</h3><span class="pill" id="hcPill">nicht verbunden</span></div>
+      <div class="note" id="hcText"></div>
+      <div class="row">
+        <button class="btn" id="hcConnect">Verbinden</button>
+        <button class="btn ghost" id="hcSync" hidden>Jetzt abgleichen</button>
+        <button class="link" id="hcSettings" hidden>Health Connect öffnen</button>
+      </div>
+      <details>
+        <summary>Technische Infos <span class="note">zum Fehler suchen</span></summary>
+        <div id="hcDiag" class="note">Erst nach dem ersten Abgleich verfügbar.</div>
+      </details>
+      <details>
+        <summary>So richtest du es ein</summary>
+        <ol class="steps">
+          <li>In der <b>Garmin Connect</b> App in den Einstellungen Health Connect suchen und einschalten (ab Android 14).</li>
+          <li>In der <b>Renpho</b> App bei den verbundenen Apps Health Connect einschalten und Gewicht freigeben.</li>
+          <li>Hier auf <b>Verbinden</b> tippen und Gewicht, Körperfett, Schritte und Schlaf erlauben. Auch „frühere Daten“ erlauben.</li>
+          <li>Danach gleicht die App bei jedem Öffnen automatisch ab.</li>
+        </ol>
+      </details>
+    </div>
+    <div class="card">
+      <details>
+        <summary>Alle Gewichtseinträge</summary>
+        <div id="wList" class="note"></div>
+      </details>
+      <details>
+        <summary>Daten sichern</summary>
+        <div class="note">Vor Handywechsel oder Neuinstallieren: Text kopieren und speichern. Zum Laden einfügen und auf Laden tippen.</div>
+        <textarea id="backup" aria-label="Sicherung"></textarea>
+        <div class="row">
+          <button class="btn ghost small" id="bkCopy">Anzeigen und kopieren</button>
+          <button class="btn ghost small" id="bkLoad">Laden</button>
+        </div>
+        <div class="note" id="bkMsg"></div>
+      </details>
+    </div>
+  </section>
+</div>
+
+<nav class="tabs" role="tablist" aria-label="Bereiche">
+  <button role="tab" aria-selected="true" data-tab="heute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>Heute</button>
+  <button role="tab" aria-selected="false" data-tab="woche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Woche</button>
+  <button role="tab" aria-selected="false" data-tab="training"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 10v4M6 7v10M18 7v10M21 10v4M6 12h12"/></svg>Training</button>
+  <button role="tab" aria-selected="false" data-tab="essen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 3v8a2 2 0 0 0 2 2v8M11 3v8M7 7h4M17 3c-2 2-2 6 0 9v9"/></svg>Essen</button>
+  <button role="tab" aria-selected="false" data-tab="koerper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 18l5-6 4 3 7-9"/><path d="M15 6h5v5"/></svg>Körper</button>
+</nav>
+
+<div class="sheet" id="sheet" hidden><div class="pane" id="pane"></div></div>
+<div class="toast" id="toast" hidden></div>
+<div class="scanmodal" id="scanModal" hidden><video id="scanVideo" playsinline muted></video><div class="msg">Barcode in den Rahmen halten</div><div class="frame"></div><button class="btn" id="scanCancel">Abbrechen</button></div>
+
+<script src="zxing.min.js"></script>
+
+<script src="fb.js"></script>
+<script>
+(function(){
+"use strict";
+const CHECK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
+const SHIFT_NAMES = {frueh:"Frühschicht", spaet:"Spätschicht", nacht:"Nachtschicht", frei:"Frei", urlaub:"Urlaub"};
+const SHIFT_BTNS = [["frueh","F","6 bis 14"],["spaet","S","14 bis 22"],["nacht","N","22 bis 6"],["frei","Frei","frei"],["urlaub","U","Urlaub"]];
+const TITLES = {heute:"Heute", woche:"Woche", training:"Training", essen:"Essen", koerper:"Körper"};
+
+// ---------- Baukasten und Essen (kcal, Eiweiß p, Kohlenhydrate c, Fett f)
+const MEALS = {
+  fr:{name:"Frühstück: Protein Porridge", kcal:520, p:40, c:68, f:9},
+  b1:{name:"Meal Prep Box", kcal:600, p:50, c:70, f:12},
+  b2:{name:"Meal Prep Box", kcal:600, p:50, c:70, f:12},
+  ab:{name:"Quark mit Obst", kcal:270, p:31, c:33, f:1},
+  sn:{name:"Obst und Schoki", kcal:200, p:3, c:30, f:8},
+  sh:{name:"Whey Shake", kcal:120, p:24, c:2, f:2}
+};
+const QUICK = [
+  {n:"Protein Porridge", kcal:520, p:40, c:68, f:9},
+  {n:"Bolognese Box", kcal:640, p:46, c:72, f:19},
+  {n:"Teriyaki Box", kcal:610, p:57, c:78, f:7},
+  {n:"Chili Box", kcal:600, p:41, c:74, f:15},
+  {n:"Curry Box", kcal:570, p:55, c:64, f:10},
+  {n:"Gyros Bowl", kcal:580, p:57, c:72, f:7},
+  {n:"Paprika Pfanne", kcal:580, p:50, c:76, f:9},
+  {n:"Burger Bowl", kcal:530, p:48, c:61, f:10},
+  {n:"Protein Lasagne", kcal:570, p:52, c:43, f:21},
+  {n:"Pizza Wrap", kcal:340, p:28, c:35, f:10},
+  {n:"Quark mit Obst", kcal:270, p:31, c:33, f:1},
+  {n:"2 Protein Waffeln", kcal:340, p:28, c:34, f:9},
+  {n:"Whey Shake", kcal:120, p:24, c:2, f:2},
+  {n:"Obst und Schoki", kcal:200, p:3, c:30, f:8},
+  {n:"Freie Mahlzeit", kcal:900, p:35, c:100, f:40, free:true}
+];
+// Tagesablauf: [Minuten nach dem Aufstehen, Text, Schlüssel]
+const TPL = {
+  frueh:[[0,"Aufstehen, Licht an","wake"],[10,"","suppM"],[15,"Protein Porridge (oder mitnehmen, 9 Uhr essen)","fr"],[300,"Box auf der Arbeit","b1"],[420,"Snack: Obst und Schoki","sn"],[480,"Letzter Kaffee oder Monster","caf"],[570,"Zweite Box","b2"],[630,"Zum Gym laufen und trainieren","gym"],[720,"Shake nach dem Training","sh"],[750,"","steps"],[780,"Quark mit Obst","ab"],[900,"Licht dimmen, kein TV im Bett","wind"],[915,"","suppE"],[960,"Schlafen","sleep"]],
+  spaet:[[0,"Aufstehen, 10 Min. Tageslicht","wake"],[10,"","suppM"],[30,"Protein Porridge","fr"],[120,"Zum Gym laufen und trainieren","gym"],[210,"Shake nach dem Training","sh"],[270,"Box","b1"],[300,"","steps"],[480,"Letzter Kaffee oder Monster","caf"],[600,"Zweite Box auf der Arbeit","b2"],[720,"Snack: Obst und Schoki","sn"],[870,"Zuhause: kleiner Quark","ab"],[915,"Licht dimmen, kein TV im Bett","wind"],[930,"","suppE"],[960,"Schlafen","sleep"]],
+  nacht:[[0,"Aufstehen, Tageslicht","wake"],[10,"","suppM"],[15,"Protein Porridge","fr"],[90,"Zum Gym laufen und trainieren","gym"],[180,"Shake nach dem Training","sh"],[240,"Box","b1"],[330,"","steps"],[360,"Snack: Obst und Schoki","sn"],[600,"Zweite Box auf der Arbeit","b2"],[600,"Letzter Kaffee oder Monster","caf"],[780,"Kleiner Skyr oder Quark","ab"],[930,"Sonnenbrille, kein großes Essen","wind"],[935,"","suppE"],[960,"Schlafen, komplett verdunkelt","sleep"]],
+  frei:[[0,"Aufstehen (max. 1 bis 2 Std. anders als sonst)","wake"],[10,"","suppM"],[30,"Protein Porridge","fr"],[120,"Training oder 45 Min. Spaziergang","gym"],[210,"Shake, falls trainiert","sh"],[240,"Box","b1"],[420,"Letzter Kaffee oder Monster","caf"],[450,"Snack: Obst und Schoki","sn"],[480,"","steps"],[600,"Zweite Box oder freie Mahlzeit","b2"],[720,"Quark mit Obst","ab"],[810,"Licht dimmen, kein TV im Bett","wind"],[825,"","suppE"],[870,"Schlafen","sleep"]],
+  urlaub:[[0,"Aufstehen, kurz Tageslicht","wake"],[10,"","suppM"],[45,"Frühstück, gern entspannt (Eiweiß zuerst)","fr"],[240,"Mittagessen, auswärts geht auch: viel Eiweiß, wenig Frittiertes","b1"],[360,"Snack oder Eis, wenn du Lust hast","sn"],[420,"Letzter Kaffee oder Monster","caf"],[480,"Aktiv sein: Training, Schwimmen oder lange Runde gehen","gym"],[540,"","steps"],[600,"Abendessen","b2"],[780,"Wenn noch Hunger: Quark","ab"],[840,"Licht dimmen","wind"],[855,"","suppE"],[900,"Schlafen","sleep"]]
+};
+const CAT = {steps:"steps", suppM:"supp", suppE:"supp", fr:"essen", b1:"essen", b2:"essen", ab:"essen", sn:"essen", sh:"essen", gym:"gym", caf:"koffein", wind:"schlaf", sleep:"schlaf"};
+const CATS = [["essen","Essen"],["gym","Training"],["koffein","Koffeinstopp"],["schlaf","Licht dimmen und Schlafen"],["supp","Supplements morgens und abends"],["steps","Schritte Check in der Freizeit"],["meas","Körpermaße nehmen"],["plan","Abends: Schicht für morgen fehlt"]];
+const HABITS = [["steps","8.000 Schritte geschafft"],["water","Viel Wasser getrunken"],["tv","Ohne Fernseher eingeschlafen"]];
+const CAF_DRINKS = [["Kaffee",80],["Monster 0,5 l",160],["Espresso",65],["Cola 0,5 l",50],["Energy 0,25 l",80],["Pre Workout",200]];
+const CAF_HALF = 5; // Stunden
+const STEP_GOAL = 8000;
+const SUPP_DEFAULT = [
+  {id:"kreatin", n:"Kreatin 5 g", t:"M", on:true},
+  {id:"vitd", n:"Vitamin D3/K2", t:"M", on:true},
+  {id:"omega", n:"Omega 3", t:"M", on:true},
+  {id:"bor", n:"Bor und MSM", t:"M", on:true},
+  {id:"zink", n:"Zink", t:"E", on:true},
+  {id:"magnesium", n:"Magnesium Glycinat", t:"E", on:true},
+  {id:"ashwa", n:"Ashwagandha", t:"E", on:true}
+];
+const MEAS = [["bauch","Bauch (Nabel)"],["taille","Taille"],["brust","Brust"],["armL","Oberarm links"],["armR","Oberarm rechts"],["bein","Oberschenkel"]];
+
+// ---------- Übungen
+const EQUIP = [["M","Maschinen"],["K","Kabelzug"],["KH","Kurzhanteln"],["LH","Langhantel"],["MP","Multipresse"],["RAD","Cardio Geräte"]];
+const PAT = {
+  schraeg:{n:"Obere Brust drücken", o:[["Schrägbank Maschine","M",1,"Griffpolster nutzen"],["Schrägbankdrücken Multipresse","MP",1,"Griffpolster, Stange locker umfassen"],["Fliegende vom Kabel, von unten","K",1,"kaum Last auf der Hand"],["Schrägbankdrücken Kurzhanteln","KH",2,"neutraler Griff schont die Hand"],["Schrägbankdrücken Langhantel","LH",3,""]]},
+  flach:{n:"Brust drücken", o:[["Brustpresse Maschine","M",1,"Griffpolster nutzen"],["Brustpresse am Kabel","K",1,"einarmig geht auch"],["Bankdrücken Multipresse","MP",1,"Griffpolster"],["Bankdrücken Kurzhanteln","KH",2,"neutraler Griff"],["Liegestütze an Griffen","KG",2,"Handgelenk bleibt gerade"],["Bankdrücken Langhantel","LH",3,""]]},
+  fly:{n:"Brust zusammenführen", o:[["Butterfly Maschine","M",1,""],["Cable Crossover","K",1,""],["Fliegende Kurzhanteln","KH",2,"leicht anfangen"]]},
+  rudBrust:{n:"Rudern mit Brust aufgelegt", o:[["Rudern mit Brustauflage Maschine","M",1,"Zughilfen"],["T-Bar Rudern","M",1,"Zughilfen"],["Kabelrudern sitzend","K",1,"Zughilfen"],["Kurzhantel Rudern einarmig","KH",2,"Zughilfe"],["Langhantel Rudern","LH",3,"Zughilfen"]]},
+  latEng:{n:"Latzug eng", o:[["Latzug eng neutral","K",1,"Zughilfen"],["Latzug einarmig am Kabel","K",1,"Zughilfe"],["Klimmzug Maschine mit Unterstützung","M",1,"Zughilfen"],["Pulldown Maschine","M",1,"Zughilfen"]]},
+  latWeit:{n:"Latzug weit", o:[["Latzug weit","K",1,"Zughilfen"],["Pulldown Maschine","M",1,"Zughilfen"],["Klimmzug Maschine mit Unterstützung","M",1,"Zughilfen"],["Klimmzüge","KG",3,"erst wenn Greifen voll geht"]]},
+  rudKabel:{n:"Rudern", o:[["Kabelrudern eng","K",1,"Zughilfen"],["Rudermaschine","M",1,"Zughilfen"],["Kurzhantel Rudern einarmig","KH",2,"Zughilfe"],["Langhantel Rudern","LH",3,"Zughilfen"]]},
+  seit:{n:"Seitheben", o:[["Seitheben am Kabel einarmig","K",1,""],["Seitheben Maschine","M",1,""],["Seitheben Kurzhanteln","KH",1,"bis ca. 10 kg"]]},
+  face:{n:"Hintere Schulter", o:[["Face Pulls am Seil","K",1,"leicht, Schulterblätter zuerst"],["Reverse Butterfly","M",1,""],["Vorgebeugtes Seitheben","KH",1,"leicht"]]},
+  triOver:{n:"Trizeps über Kopf", o:[["Trizeps Überkopf am Seil","K",1,""],["Trizeps Maschine","M",1,""],["Trizeps Überkopf Kurzhantel","KH",2,"beidhändig halten"]]},
+  triPush:{n:"Trizepsdrücken", o:[["Trizepsdrücken am Seil","K",1,""],["Trizepsdrücken an der Stange","K",1,""],["Dip Maschine","M",1,"aufrecht sitzen, schont die Schulter"],["Kickbacks Kurzhantel","KH",1,"leicht"]]},
+  bizeps:{n:"Bizeps Curls", o:[["Bizeps Curls am Kabel","K",1,""],["Bizeps Maschine","M",1,""],["Kurzhantel Curls","KH",1,"bis ca. 10 kg in Stufe 1"],["SZ Curls","LH",2,""]]},
+  hammer:{n:"Hammer Curls", o:[["Hammer Curls am Seil","K",1,""],["Hammer Curls Kurzhantel","KH",1,"bis ca. 10 kg in Stufe 1"]]},
+  preacher:{n:"Preacher Curls", o:[["Preacher Curls Maschine","M",1,""],["Preacher Curls am Kabel","K",1,""],["Scottcurls SZ","LH",2,""],["Scottcurls Kurzhantel einarmig","KH",2,""]]},
+  bayes:{n:"Bizeps gedehnt", o:[["Bayesian Curls am Kabel","K",1,"Arm hinter dem Körper"],["Schrägbank Curls Kurzhantel","KH",1,"leicht"]]},
+  schulter:{n:"Schulterdrücken", o:[["Schulterpresse Maschine, neutraler Griff","M",1,"nur schmerzfrei"],["Schulterdrücken Multipresse","MP",1,"nur schmerzfrei"],["Landmine Press","LH",2,"schulterfreundlich"],["Schulterdrücken Kurzhanteln","KH",2,"nur schmerzfrei"],["Mehr Seitheben statt Drücken","K",1,"wenn Überkopf zwickt"]]},
+  quad:{n:"Kniebeuge", o:[["Hackenschmidt","M",1,""],["Pendulum Squat","M",1,""],["Kniebeuge an der Multipresse","MP",1,""],["Goblet Squat","KH",2,""],["Kniebeuge Langhantel","LH",3,""]]},
+  presse:{n:"Beinpresse", o:[["Beinpresse","M",1,""],["Beinpresse einbeinig","M",1,""],["Hackenschmidt","M",1,""]]},
+  strecker:{n:"Beinstrecker", o:[["Beinstrecker","M",1,""],["Beinstrecker einbeinig","M",1,""],["Sissy Squat","KG",1,"an etwas festhalten"]]},
+  beugerSitz:{n:"Beinbeuger", o:[["Beinbeuger sitzend","M",1,""],["Beinbeuger liegend","M",1,""],["Beinbeuger stehend einbeinig","M",1,""],["Beinbeuger am Kabel","K",1,""]]},
+  beugerLieg:{n:"Beinbeuger", o:[["Beinbeuger liegend","M",1,""],["Beinbeuger sitzend","M",1,""],["Beinbeuger am Kabel","K",1,""]]},
+  wadeSteh:{n:"Waden stehend", o:[["Wadenheben stehend Maschine","M",1,""],["Wadenheben an der Beinpresse","M",1,""],["Wadenheben Multipresse","MP",1,""]]},
+  wadeSitz:{n:"Waden sitzend", o:[["Wadenheben sitzend Maschine","M",1,""],["Wadenheben an der Beinpresse","M",1,""]]},
+  bauch:{n:"Bauch", o:[["Bauchmaschine","M",1,""],["Kabelcrunch","K",1,""],["Beinheben am Dipständer","KG",1,"auf Unterarmen abstützen"],["Crunches am Boden","KG",1,""]]},
+  hinge:{n:"Po und hintere Kette", o:[["Hip Thrust Maschine","M",1,""],["Hip Thrust Multipresse","MP",1,"Polster auf der Hüfte"],["Rückenstrecker 45° mit Scheibe","KG",1,"Scheibe vor der Brust"],["Rumänisches Kreuzheben Kurzhanteln","KH",2,"Zughilfen"],["Rumänisches Kreuzheben Langhantel","LH",2,"Zughilfen"]]},
+  einbein:{n:"Einbeinig", o:[["Bulgarische Kniebeuge Multipresse","MP",1,""],["Bulgarische Kniebeuge ohne Gewicht","KG",1,""],["Ausfallschritte an der Multipresse","MP",1,""],["Bulgarische Kniebeuge Kurzhanteln","KH",2,"Zughilfen"],["Ausfallschritte gehend Kurzhanteln","KH",2,"Zughilfen"]]},
+  hyper:{n:"Unterer Rücken", o:[["Hyperextensions","KG",1,"Scheibe vor der Brust"],["Rückenstrecker Maschine","M",1,""]]},
+  adduktor:{n:"Adduktoren", o:[["Adduktoren Maschine","M",1,""],["Adduktion am Kabel","K",1,""]]},
+  cardio:{n:"Cardio", o:[["Rad","RAD",1,"15 bis 20 Min., locker"],["Laufband schräg gehen","RAD",1,"15 bis 20 Min."],["Stairmaster","RAD",1,"10 bis 15 Min."],["Draußen zügig gehen","KG",1,"20 bis 30 Min."]]}
+};
+const UNITS = {
+  A:{t:"A: Oberkörper, Fokus Brust", s:[["schraeg","3 × 6 bis 10"],["flach","3 × 8 bis 12"],["rudBrust","3 × 8 bis 12"],["latEng","2 × 8 bis 12"],["fly","2 × 12 bis 15"],["seit","3 × 12 bis 20"],["triOver","2 × 10 bis 15"]]},
+  B:{t:"B: Beine, Fokus vorne", s:[["quad","3 × 6 bis 10"],["presse","3 × 10 bis 15"],["strecker","3 × 12 bis 15"],["beugerSitz","3 × 10 bis 12"],["wadeSteh","3 × 10 bis 15"],["bauch","3 × 10 bis 15"],["cardio","15 bis 20 Min."]]},
+  C:{t:"C: Oberkörper, Fokus Rücken und Bizeps", s:[["latWeit","3 × 6 bis 10"],["rudKabel","3 × 8 bis 12"],["schraeg","3 × 8 bis 12"],["face","3 × 12 bis 15"],["bizeps","3 × 8 bis 12"],["hammer","2 × 10 bis 12"],["cardio","15 bis 20 Min."]]},
+  D:{t:"D: Beine, Fokus Po und Beinbeuger", s:[["hinge","3 × 8 bis 12"],["beugerLieg","3 × 10 bis 12"],["einbein","3 × 8 bis 12"],["hyper","2 × 10 bis 15"],["adduktor","2 × 12 bis 15"],["wadeSitz","3 × 12 bis 20"],["bauch","3 × 10 bis 15"]]},
+  E:{t:"E: Arme, Schultern, Brust leicht", s:[["schulter","3 × 8 bis 12"],["seit","3 × 12 bis 20"],["triPush","3 × 8 bis 12"],["preacher","3 × 8 bis 12"],["triOver","2 × 10 bis 15"],["bayes","2 × 10 bis 15"],["fly","2 × 12 bis 15"],["cardio","15 bis 20 Min."]]}
+};
+const DEFAULT_PICK = {"A0":[1,3,3],"A2":[0,0,0],"C2":[0,3,3],"D0":[0,4,4],"D2":[0,3,3],"E0":[0,0,0]};
+const SEQ = ["A","B","P","C","D","E","P"];
+const WARM = ["3 Min. Rad","Face Pulls leicht: 1 × 15","Wall Slides: 1 × 10","Schulterblatt Liegestütze an der Wand: 1 × 12","Y Heben auf der Schrägbank: 1 × 12","Brustmuskel dehnen im Türrahmen: 2 × 30 Sek."];
+
+// ---------- Rezepte: Zutat [Menge, Einheit, Name, Kategorie], Makros pro Portion
+const RECIPES = [
+  {id:"bolo", n:"Protein Bolognese", por:6, box:true, kcal:640, p:46, c:72, f:19,
+   z:[[1000,"g","Rinderhack (max. 10 % Fett)","Fleisch"],[2,"Stk","Zwiebeln","Gemüse"],[2,"Zehen","Knoblauch","Gemüse"],[2,"Stk","Zucchini","Gemüse"],[2,"Stk","Paprika","Gemüse"],[1000,"g","Passierte Tomaten","Vorrat"],[70,"g","Tomatenmark","Vorrat"],[480,"g","Nudeln","Vorrat"]],
+   st:["Hack in 1 EL Öl scharf anbraten.","Zwiebeln, Knoblauch, Zucchini und Paprika fein reiben oder würfeln und mitbraten.","Tomaten und Tomatenmark dazu, mit Salz, Pfeffer, Oregano, Basilikum und Paprikapulver würzen.","30 Minuten köcheln lassen, das Gemüse zerfällt fast komplett.","Pro Box 80 g Nudeln roh kochen und mit einem Sechstel der Sauce mischen."]},
+  {id:"teri", n:"Teriyaki Hähnchen mit Reis", por:5, box:true, kcal:610, p:57, c:78, f:7,
+   z:[[1000,"g","Hähnchenbrust oder Schenkel ohne Haut","Fleisch"],[150,"g","Skyr","Kühlregal"],[6,"EL","Sojasauce","Vorrat"],[2,"EL","Honig","Vorrat"],[1,"TL","Ingwer","Gemüse"],[2,"Zehen","Knoblauch","Gemüse"],[2,"TL","Speisestärke","Vorrat"],[400,"g","Reis","Vorrat"],[1250,"g","TK Brokkoli oder Gemüsemix","TK"]],
+   st:["Hähnchen würfeln und mindestens 2 Std. oder über Nacht in Skyr, 1 EL Öl, Knoblauch, Paprika und Salz marinieren.","Im Airfryer bei 200 °C nur 10 bis 12 Minuten garen.","Reis kochen, Gemüse dämpfen.","Sojasauce, Honig, Ingwer, Knoblauch und 250 ml Wasser aufkochen, mit angerührter Stärke andicken.","Hähnchen und Gemüse in der Sauce schwenken, Sauce mit in die Box. Aufwärmen mit Deckel und einem Schluck Wasser."]},
+  {id:"chili", n:"Chili con Carne mit Reis", por:6, box:true, kcal:600, p:41, c:74, f:15,
+   z:[[800,"g","Rinderhack (max. 10 % Fett)","Fleisch"],[2,"Dosen","Kidneybohnen","Vorrat"],[1,"Dose","Mais","Vorrat"],[2,"Stk","Paprika","Gemüse"],[2,"Stk","Zwiebeln","Gemüse"],[2,"Dosen","Gehackte Tomaten","Vorrat"],[2,"EL","Tomatenmark","Vorrat"],[420,"g","Reis","Vorrat"]],
+   st:["Hack anbraten, Zwiebeln und Paprika dazu.","Tomaten, Tomatenmark, Bohnen und Mais dazugeben.","Mit Chili, Kreuzkümmel, Paprikapulver, Salz und etwas Kakao würzen.","20 bis 30 Minuten köcheln.","Pro Box 70 g Reis roh kochen. Lässt sich super einfrieren."]},
+  {id:"curry", n:"Hähnchen Curry mit Reis", por:5, box:true, kcal:570, p:55, c:64, f:10,
+   z:[[1000,"g","Hähnchenbrust","Fleisch"],[400,"ml","Kokosmilch light","Vorrat"],[300,"g","TK Erbsen","TK"],[2,"Stk","Paprika","Gemüse"],[1,"Stk","Zwiebeln","Gemüse"],[2,"EL","Currypulver oder Paste","Vorrat"],[350,"g","Reis","Vorrat"]],
+   st:["Zwiebel und Paprika anbraten, Hähnchenwürfel dazu.","Curry kurz mitrösten, mit Kokosmilch ablöschen.","Erbsen dazu, 10 Minuten köcheln lassen.","Reis kochen und auf 5 Boxen verteilen."]},
+  {id:"gyros", n:"Gyros Bowl mit Skyr Tzatziki", por:5, box:true, kcal:580, p:57, c:72, f:7,
+   z:[[1000,"g","Schweineschnitzel oder Hähnchenbrust","Fleisch"],[3,"EL","Gyrosgewürz","Vorrat"],[2,"Stk","Zwiebeln","Gemüse"],[500,"g","Skyr","Kühlregal"],[1,"Stk","Gurke","Gemüse"],[2,"Zehen","Knoblauch","Gemüse"],[400,"g","Reis","Vorrat"]],
+   st:["Fleisch in dünne Streifen schneiden, mit Gyrosgewürz und 1 EL Öl mischen, gern über Nacht.","Mit den Zwiebelringen in der Pfanne oder im Airfryer bei 200 °C ca. 12 Minuten braten.","Tzatziki: Gurke reiben und ausdrücken, mit Skyr, Knoblauch und Salz verrühren.","Reis kochen. Tzatziki separat in kleine Dosen, dann wird nichts matschig."]},
+  {id:"paprika", n:"Hähnchen Paprika Pfanne", por:5, box:true, kcal:580, p:50, c:76, f:9,
+   z:[[1000,"g","Hähnchenbrust","Fleisch"],[4,"Stk","Paprika","Gemüse"],[2,"Stk","Zwiebeln","Gemüse"],[400,"g","Passierte Tomaten","Vorrat"],[100,"g","Frischkäse light","Kühlregal"],[400,"g","Reis","Vorrat"]],
+   st:["Hähnchen würfeln, scharf anbraten, mit Paprikapulver edelsüß und geräuchert würzen.","Paprika und Zwiebeln in Streifen dazu, 5 Minuten mitbraten.","Tomaten und Frischkäse einrühren, 10 Minuten köcheln.","Mit Reis auf 5 Boxen verteilen."]},
+  {id:"burger", n:"Burger Bowl", por:5, box:true, kcal:530, p:48, c:61, f:10,
+   z:[[1000,"g","Rinderhack (5 % Fett)","Fleisch"],[1,"Stk","Eisbergsalat","Gemüse"],[4,"Stk","Tomaten","Gemüse"],[1,"Glas","Gewürzgurken","Vorrat"],[1,"Stk","Zwiebeln","Gemüse"],[300,"g","Skyr","Kühlregal"],[3,"EL","Ketchup light","Vorrat"],[2,"EL","Senf","Vorrat"],[350,"g","Reis","Vorrat"]],
+   st:["Hack krümelig anbraten, mit Salz, Pfeffer, Knoblauch und etwas Senf würzen.","Burgersauce: Skyr, Ketchup, Senf, gehackte Gewürzgurken und etwas Gurkenwasser verrühren.","Reis kochen. Hack und Reis in die Boxen, Salat, Tomaten und Sauce frisch dazu."]},
+  {id:"lasagne", n:"Protein Lasagne", por:6, box:true, kcal:570, p:52, c:43, f:21,
+   z:[[750,"g","Rinderhack (max. 10 % Fett)","Fleisch"],[250,"g","Lasagneplatten","Vorrat"],[1000,"g","Passierte Tomaten","Vorrat"],[500,"g","Hüttenkäse","Kühlregal"],[250,"g","Magerquark","Kühlregal"],[2,"Stk","Eier","Kühlregal"],[100,"g","Geriebener Käse light","Kühlregal"],[2,"Stk","Zucchini","Gemüse"],[2,"Stk","Zwiebeln","Gemüse"]],
+   st:["Hack mit Zwiebeln und geriebener Zucchini anbraten, Tomaten dazu, kräftig würzen, 15 Minuten köcheln.","Hüttenkäse, Quark und Eier verrühren, mit Salz, Pfeffer und Muskat würzen.","In die Form schichten: Sauce, Platten, Quarkmasse, wiederholen, oben Sauce und Käse.","Bei 180 °C ca. 40 Minuten backen, abkühlen lassen und in 6 Stücke schneiden."]},
+  {id:"wrap", n:"Pizza Wrap aus dem Airfryer", por:1, unit:"Wrap", kcal:340, p:28, c:35, f:10,
+   z:[[1,"Stk","Vollkorn Wrap","Vorrat"],[40,"g","Tomatensauce oder passierte Tomaten","Vorrat"],[50,"g","Mozzarella light oder Käse light","Kühlregal"],[50,"g","Hähnchenaufschnitt oder Kochschinken","Kühlregal"],[0.5,"Stk","Paprika","Gemüse"]],
+   st:["Wrap mit Tomatensauce bestreichen, mit Oregano würzen.","Belag und Käse drauf.","Im Airfryer bei 190 °C ca. 6 bis 8 Minuten, bis der Käse verlaufen ist."]},
+  {id:"porr", n:"Protein Porridge", por:1, kcal:520, p:40, c:68, f:9,
+   z:[[80,"g","Haferflocken","Vorrat"],[150,"ml","Milch","Kühlregal"],[200,"g","Skyr oder Magerquark","Kühlregal"],[125,"g","TK Himbeeren","TK"]],
+   st:["Haferflocken mit Wasser oder Milch kurz aufkochen oder 2 Min. in die Mikrowelle.","Etwas abkühlen lassen, Skyr unterrühren.","Himbeeren und Zimt drauf."]},
+  {id:"oats", n:"Overnight Oats", por:1, kcal:480, p:46, c:57, f:7,
+   z:[[60,"g","Haferflocken","Vorrat"],[200,"g","Skyr","Kühlregal"],[100,"ml","Milch","Kühlregal"],[100,"g","TK Beeren","TK"],[15,"g","Whey","Vorrat"]],
+   st:["Abends alles in eine Dose rühren.","Über Nacht in den Kühlschrank.","Morgens kalt essen oder kurz in die Mikrowelle. Perfekt zum Mitnehmen für die Frühschicht."]},
+  {id:"pfann", n:"Protein Pfannkuchen", por:1, kcal:480, p:41, c:45, f:15,
+   z:[[60,"g","Haferflocken","Vorrat"],[2,"Stk","Eier","Kühlregal"],[150,"g","Magerquark","Kühlregal"],[50,"ml","Milch","Kühlregal"]],
+   st:["Haferflocken fein mahlen, mit Eiern, Quark, Milch, etwas Backpulver und Zimt mixen.","Kurz quellen lassen.","In einer beschichteten Pfanne 2 bis 3 Pfannkuchen ausbacken. Mit Beeren und Skyr essen."]},
+  {id:"quark", n:"Quark mit Obst", por:1, kcal:270, p:31, c:33, f:1,
+   z:[[250,"g","Magerquark","Kühlregal"],[1,"Stk","Obst (Banane oder Apfel)","Gemüse"]],
+   st:["Quark mit etwas Wasser oder Milch cremig rühren.","Obst klein schneiden und drauf."]},
+  {id:"waff", n:"Protein Waffeln", por:4, unit:"Waffel", kcal:170, p:14, c:17, f:4,
+   z:[[100,"g","Haferflocken","Vorrat"],[250,"g","Magerquark","Kühlregal"],[2,"Stk","Eier","Kühlregal"],[1,"TL","Backpulver","Vorrat"]],
+   st:["Haferflocken im Mixer fein mahlen.","Mit Quark, Eiern, Backpulver, Zimt und etwas Süße mixen.","Im Waffeleisen backen. Mit Skyr und Himbeeren essen."]}
+];
+const CART_DEFAULT = {bolo:1, teri:1, chili:1, porr:7, quark:5, waff:1};
+const BASICS = [["Bananen oder Äpfel","Gemüse"],["Dunkle Schokolade","Vorrat"],["Whey (wenn leer)","Vorrat"],["Kreatin (wenn leer)","Vorrat"]];
+const CAT_ORDER = ["Fleisch","Kühlregal","TK","Gemüse","Vorrat","Eigenes"];
+const CAT_NAMES = {Gemüse:"Obst und Gemüse"};
+
+// ---------- Helfer
+const $ = id => document.getElementById(id);
+const el = (tag, cls, txt) => { const e=document.createElement(tag); if(cls) e.className=cls; if(txt!=null) e.textContent=txt; return e; };
+const pad = n => String(n).padStart(2,"0");
+const keyOf = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parseKey = k => { const [y,m,d]=k.split("-").map(Number); return new Date(y,m-1,d); };
+const addDays = (k,n) => { const d=parseKey(k); d.setDate(d.getDate()+n); return keyOf(d); };
+const fmtDate = k => { const d=parseKey(k); return pad(d.getDate())+"."+pad(d.getMonth()+1)+"."; };
+const hm = d => pad(d.getHours())+":"+pad(d.getMinutes());
+const kg = v => v.toFixed(2).replace(".",",");
+const de = v => Math.round(v).toLocaleString("de-DE");
+const fmtAmt = v => (Math.round(v*10)/10).toLocaleString("de-DE");
+const num = v => parseFloat(String(v).replace(",","."));
+const calToday = () => keyOf(new Date());
+const toMin = t => { if(!t) return null; const [h,m]=t.split(":").map(Number); return h*60+m; };
+const minTxt = m => { const x=((Math.round(m)%1440)+1440)%1440; return pad(Math.floor(x/60))+":"+pad(x%60); };
+function dayDiff(a,b){ return Math.round((parseKey(b)-parseKey(a))/86400000); }
+let toastT=null;
+function toast(t){ const e=$("toast"); e.textContent=t; e.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{ e.hidden=true; }, 2600); }
+
+// ---------- Plugins und Speicher
+const Cap = window.Capacitor;
+const isNative = !!(Cap && Cap.isNativePlatform && Cap.isNativePlatform());
+const plug = name => { try{ return Cap && Cap.registerPlugin ? Cap.registerPlugin(name) : null; }catch(e){ return null; } };
+const Prefs = isNative ? plug("Preferences") : null;
+const LN = isNative ? plug("LocalNotifications") : null;
+const HC = isNative ? plug("HealthConnect") : null;
+
+let state = normalize({});
+function marioProfile(){
+  return {setup:true, name:"Mario", sex:"m", age:22, height:180, weight:89.15, target:79, goal:"cut", act:1.55,
+    start:"2026-11-01", weeks:22, kcal:2400, p:180, c:260, f:70, injury:true, alpha:true, sleepGoal:8,
+    wake:{frueh:"05:00", spaet:"08:00", nacht:"15:00", frei:"09:00", urlaub:"09:00"}, measEvery:14};
+}
+function normalize(s){
+  s = s && typeof s==="object" ? s : {};
+  const existing = !!(s.train || s.shift);
+  s.shift = s.shift||{}; s.checks = s.checks||{}; s.weights = s.weights||{};
+  s.train = s.train||{idx:0,log:[]}; s.train.log = s.train.log||[]; s.train.idx = s.train.idx||0;
+  s.notif = s.notif || {on:true, cats:{}}; s.notif.cats = s.notif.cats || {};
+  ["essen","gym","koffein","schlaf","supp","steps","meas","plan"].forEach(c=>{ if(!(c in s.notif.cats)) s.notif.cats[c]=true; });
+  s.food = s.food || {}; s.myfoods = s.myfoods || [];
+  s.swap = s.swap || {}; s.equip = s.equip || {M:true,K:true,KH:true,LH:true,MP:true,RAD:true,KG:true};
+  s.cart = s.cart || {plan:Object.assign({},CART_DEFAULT), checked:{}, custom:[]};
+  s.hc = s.hc || {on:false, last:null, steps:{}, sleep:{}, fat:null}; s.hc.steps=s.hc.steps||{}; s.hc.sleep=s.hc.sleep||{};
+  s.wManual = s.wManual || {};
+  s.caf = s.caf || []; s.wake = s.wake || {}; s.meas = s.meas || [];
+  s.lifts = s.lifts || {}; s.customEx = s.customEx || {};
+  s.supps = s.supps || SUPP_DEFAULT.map(x=>Object.assign({},x));
+  s.myRecipes = s.myRecipes || []; s.updatedAt = s.updatedAt || 0;
+  if(!s.profile) s.profile = existing ? marioProfile() : {setup:false};
+  const p=s.profile; p.wake = p.wake || {frueh:"05:00", spaet:"08:00", nacht:"15:00", frei:"09:00", urlaub:"09:00"};
+  if(!p.wake.urlaub) p.wake.urlaub="09:00";
+  if(!p.sleepGoal) p.sleepGoal=8; if(!p.measEvery) p.measEvery=14; if(!p.weeks) p.weeks=22;
+  if(p.alpha && !s.alphaData && window.ALPHA_HIST) s.alphaData = {hist:window.ALPHA_HIST, weights:window.ALPHA_WEIGHTS||[]};
+  const cut = keyOf(new Date(Date.now()-200*86400000));
+  ["food","checks"].forEach(f=>Object.keys(s[f]).forEach(d=>{ if(d<cut) delete s[f][d]; }));
+  delete s.free;
+  return s;
+}
+let saveTimer = null;
+function persist(){ state.updatedAt = Date.now(); clearTimeout(saveTimer); saveTimer = setTimeout(save, 300); scheduleSoon(); cloudUpload(); }
+async function save(){
+  const json = JSON.stringify(state);
+  try{ localStorage.setItem("winterplan", json); }catch(e){}
+  if(Prefs){ try{ await Prefs.set({key:"winterplan", value:json}); }catch(e){} }
+}
+async function load(){
+  let raw = null;
+  if(Prefs){ try{ const r = await Prefs.get({key:"winterplan"}); raw = r && r.value; }catch(e){} }
+  if(!raw){ try{ raw = localStorage.getItem("winterplan"); }catch(e){} }
+  if(raw){ try{ state = normalize(JSON.parse(raw)); }catch(e){} }
+}
+const dayChecks = k => state.checks[k] || (state.checks[k] = {});
+const dayFood = k => state.food[k] || (state.food[k] = []);
+const P = () => state.profile;
+const HIST = () => (P().alpha && state.alphaData && state.alphaData.hist) || {};
+const startKey = () => P().start || calToday();
+
+// ---------- Plan und Phasen
+function planWeek(k){ const d = dayDiff(startKey(), k); return d<0 ? 0 : Math.floor(d/7)+1; }
+function weekRange(w){ const s=startKey(); return [addDays(s,(w-1)*7), addDays(s,(w-1)*7+6)]; }
+function phase(w){
+  const inj = P().injury, W = P().weeks||22;
+  const hand = !inj ? 3 : w<=4 ? 1 : w<=8 ? 2 : 3;
+  const kc = (P().kcal||2400).toLocaleString("de-DE")+" kcal";
+  if(w<=0) return {name:"Vorbereitung", food:"Startwerte messen", hand};
+  if(w<=2) return {name:"Einstieg", food:kc, hand};
+  if(w<=4) return {name:"Volle Sätze", food:kc, hand};
+  if(w===8) return {name:"Leichte Woche", food:P().goal==="cut" ? "Diet Break, ca. 500 kcal mehr" : kc, hand, deload:true};
+  if(w===16) return {name:"Leichte Woche", food:kc, hand, deload:true};
+  if(w<=W) return {name: w>W-6 ? "Endspurt" : "Aufbau", food:kc, hand};
+  return {name:"Neu entscheiden", food:"Ziele neu einstellen", hand};
+}
+
+// ---------- Tagesablauf
+function wakeFor(k, sh){ return state.wake[k] || P().wake[sh] || "07:00"; }
+function suppLabel(t){ const l=state.supps.filter(s=>s.on && s.t===t).map(s=>s.n); return l.length ? (t==="M"?"Supplements: ":"Supplements vor dem Schlafen: ")+l.join(", ") : null; }
+function timeline(k, sh){
+  const base = parseKey(k), w = toMin(wakeFor(k, sh)), out=[];
+  TPL[sh].forEach(([off,label,key],i)=>{
+    if(key==="suppM" || key==="suppE"){ label = suppLabel(key==="suppM"?"M":"E"); if(!label) return; }
+    if(key==="steps") label = "Schritte Check: "+STEP_GOAL.toLocaleString("de-DE")+" schon voll? Sonst 20 Minuten gehen";
+    const d = new Date(base); d.setHours(0, w+off, 0, 0);
+    out.push({t:hm(d), label, key, i, at:d});
+  });
+  return out;
+}
+function activeDay(){
+  const now = new Date(), k = calToday(), y = addDays(k,-1), sh = state.shift[y];
+  if(sh){ const tl = timeline(y, sh), sleep = tl[tl.length-1].at; if(now < new Date(sleep.getTime()+60*60000) && keyOf(sleep)!==y) return y; }
+  return k;
+}
+function bedtimeFor(k){ const sh=state.shift[k]; if(!sh) return null; const tl=timeline(k,sh); return tl[tl.length-1].at; }
+function stepsDone(k){ return !!dayChecks(k)["h_steps"] || (state.hc.steps[k]||0)>=STEP_GOAL; }
+function itemDone(k,it){ if(it.key in MEALS) return mealOn(k,it.key); if(it.key==="steps") return stepsDone(k); return !!dayChecks(k)[it.key+"@"+it.i]; }
+function mealOn(k,key){ return dayFood(k).some(f=>f.m===key); }
+function setMeal(k,key,on){
+  const list = dayFood(k), i = list.findIndex(f=>f.m===key);
+  if(on && i<0){ const m=MEALS[key]; list.push({n:m.name, kcal:m.kcal, p:m.p, c:m.c, f:m.f, m:key, t:Date.now()}); }
+  if(!on && i>=0) list.splice(i,1);
+}
+
+// ---------- Koffein
+function cafLevel(at){ const t=at.getTime(); return state.caf.reduce((s,c)=>{ const h=(t-c.t)/3600000; return h<0 ? s : s + c.mg*Math.pow(0.5, h/CAF_HALF); },0); }
+function cafBelow(limit){ const now=Date.now(), lv=cafLevel(new Date(now)); if(lv<=limit) return null; return new Date(now + CAF_HALF*3600000*Math.log2(lv/limit)); }
+function cafLevelAtWith(at,mg){ return cafLevel(at) + mg*Math.pow(0.5,(at.getTime()-Date.now())/3600000/CAF_HALF); }
+
+// ---------- Erinnerungen
+let schedTimer = null, notifPerm = "unbekannt", exactOk = true;
+function scheduleSoon(){ clearTimeout(schedTimer); schedTimer = setTimeout(scheduleAll, 800); }
+async function refreshPerm(){
+  if(!LN){ notifPerm = "nicht verfügbar"; return; }
+  try{ const p = await LN.checkPermissions(); notifPerm = p.display; }catch(e){ notifPerm = "unbekannt"; }
+  try{ const x = await LN.checkExactNotificationSetting(); exactOk = x.exact_alarm === "granted"; }catch(e){ exactOk = true; }
+}
+function measNextKey(){ const last = state.meas.length ? state.meas[0].d : null; return last ? addDays(last, P().measEvery||14) : calToday(); }
+async function scheduleAll(){
+  if(!LN) return;
+  try{ const pend = await LN.getPending(); if(pend && pend.notifications && pend.notifications.length) await LN.cancel({notifications: pend.notifications.map(n=>({id:n.id}))}); }catch(e){}
+  if(!state.notif.on || notifPerm!=="granted") return;
+  const now = new Date(), list = [], k0 = calToday(), nextU = nextSlot(), cats=state.notif.cats;
+  for(let d=-1; d<14; d++){
+    const k = addDays(k0,d), sh = state.shift[k];
+    if(!sh){
+      if(cats.plan && d>=0){ const at = parseKey(addDays(k,-1)); at.setHours(19,0,0,0); if(at > now) list.push({id:(d+2)*100+99, title:"Schicht für morgen fehlt", body:"Kurz eintragen, dann stimmen die Erinnerungen.", at}); }
+      continue;
+    }
+    const tl = timeline(k, sh);
+    tl.forEach(it=>{
+      const cat = CAT[it.key]; if(!cat || !cats[cat] || it.at <= now) return;
+      if(itemDone(k,it)) return;
+      let title = it.label, body = "";
+      if(it.key in MEALS) body = MEALS[it.key].kcal+" kcal · "+MEALS[it.key].p+" g Eiweiß";
+      if(it.key==="gym") body = sh==="urlaub" ? "Bewegung zählt, muss kein Gym sein" : (d<=0 && nextU!=="P" ? UNITS[nextU].t : "Training laut Reihenfolge");
+      if(it.key==="caf") body = "Danach kein Koffein mehr, damit du gut einschläfst.";
+      if(it.key==="steps"){ title="Schritte Check"; const st=state.hc.steps[k]; body = (st!=null && d===0 ? "Stand beim letzten Abgleich: "+de(st)+". " : "")+"Ziel "+STEP_GOAL.toLocaleString("de-DE")+". Noch nicht dran? Jetzt 20 Minuten gehen."; }
+      if(it.key==="wind") body = "Licht runter, Handy weg, Fernseher nicht als Einschlafhilfe.";
+      if(it.key==="sleep") body = SHIFT_NAMES[sh]+": ab ins Bett.";
+      if(it.key==="suppM"){ title="Supplements"; body=it.label.replace("Supplements: ",""); }
+      if(it.key==="suppE"){ title="Supplements vor dem Schlafen"; body=it.label.replace("Supplements vor dem Schlafen: ",""); }
+      list.push({id:(d+2)*100+it.i, title, body, at:it.at});
+    });
+    if(cats.meas && k===measNextKey()){ const at=new Date(tl[0].at.getTime()+20*60000); if(at>now) list.push({id:(d+2)*100+90, title:"Heute Körpermaße nehmen", body:"Bauch, Brust, Arme, Oberschenkel. Dauert 2 Minuten.", at}); }
+  }
+  if(!list.length) return;
+  try{ await LN.schedule({notifications: list.map(n=>({id:n.id, title:n.title, body:n.body, channelId:"plan", schedule:{at:n.at, allowWhileIdle:true}}))}); }catch(e){}
+}
+
+// ---------- UI Bausteine
+function tickBtn(on, onClick, label){ const b=el("button","tick"); b.setAttribute("aria-pressed", on?"true":"false"); b.setAttribute("aria-label", label); b.innerHTML = on?CHECK:""; b.addEventListener("click", onClick); return b; }
+function sw(on, fn, label){ const b=el("button","sw"); b.setAttribute("role","switch"); b.setAttribute("aria-checked",on?"true":"false"); b.setAttribute("aria-label",label); if(fn) b.addEventListener("click",fn); return b; }
+function toggleRow(box, label, on, fn, sub){ const r=el("div","toggle"); const t=el("div","tt"); t.append(el("div",null,label)); if(sub) t.append(el("div","note",sub)); const s=sw(on,fn,label); r.append(t, s); box.appendChild(r); return s; }
+function shiftPicker(k, small){
+  const wrap=el("div","shifts");
+  SHIFT_BTNS.forEach(([key,b,s])=>{
+    const btn=el("button"); btn.dataset.k=key; btn.setAttribute("aria-pressed", state.shift[k]===key?"true":"false"); btn.setAttribute("aria-label",SHIFT_NAMES[key]);
+    btn.innerHTML="<b>"+b+"</b>"+(small?"":"<span>"+s+"</span>");
+    btn.addEventListener("click",()=>{ if(state.shift[k]===key) delete state.shift[k]; else state.shift[k]=key; persist(); render(); });
+    wrap.appendChild(btn);
+  });
+  return wrap;
+}
+function openSheet(build, kind){ const p=$("pane"); p.innerHTML=""; p.dataset.kind=kind||""; build(p); $("sheet").hidden=false; p.scrollTop=0; }
+function closeSheet(){ $("sheet").hidden=true; $("pane").innerHTML=""; }
+$("sheet").addEventListener("click", e=>{ if(e.target.id==="sheet" && P().setup) closeSheet(); });
+function sheetHead(p, title, noClose){ const h=el("div","between"); h.append(el("h2",null,title)); if(!noClose){ const x=el("button","x","×"); x.setAttribute("aria-label","Schließen"); x.addEventListener("click",closeSheet); h.append(x); } p.append(h); }
+function field(label, type, value){ const l=el("label","f",label), i=el("input"); i.type=type; if(value!=null) i.value=value; if(type==="number"){ i.className="num"; i.inputMode="decimal"; } l.append(i); return [l,i]; }
+
+// ---------- Render
+let tab = "heute", foodView = "log";
+function render(){
+  const k = activeDay(), w = planWeek(k), ph = phase(w);
+  $("dateLabel").textContent = (P().name ? "Hi "+P().name+" · " : "") + parseKey(k).toLocaleDateString("de-DE",{weekday:"long", day:"numeric", month:"long"}) + (k!==calToday() ? " · Schicht läuft noch" : "");
+  $("weekLabel").textContent = w===0 ? "Start in "+dayDiff(k, startKey())+" Tagen" : "Woche "+w+" von "+(P().weeks||22);
+  $("phasePill").textContent = ph.name + (P().injury ? " · Hand Stufe "+ph.hand : "");
+  $("pageTitle").textContent = TITLES[tab];
+  if(tab==="heute"){ renderHeute(k, ph); renderVitals(); renderCaf(k); renderSleepCalc(); }
+  if(tab==="woche") renderWoche();
+  if(tab==="training") renderTraining(k, ph);
+  if(tab==="essen") renderEssen(k);
+  if(tab==="koerper"){ renderGewicht(calToday()); renderMeas(); renderHC(); }
+}
+function renderHeute(k, ph){
+  const sh = state.shift[k];
+  $("shiftTitle").textContent = sh ? SHIFT_NAMES[sh] : "Was steht heute an?";
+  $("phaseFood").textContent = ph.food;
+  const sp=$("shiftPick"); sp.innerHTML=""; sp.appendChild(shiftPicker(k,false));
+  const wr=$("wakeRow"); wr.innerHTML="";
+  if(sh){
+    const lab=el("label","f","Aufgestanden um"); lab.style.flex="1"; const inp=el("input"); inp.type="time"; inp.value=wakeFor(k,sh); lab.append(inp);
+    inp.addEventListener("change",()=>{ if(inp.value){ state.wake[k]=inp.value; persist(); render(); toast("Tagesablauf an "+inp.value+" angepasst"); } });
+    wr.append(lab);
+    if(state.wake[k]){ const r=el("button","link","Standard ("+P().wake[sh]+")"); r.addEventListener("click",()=>{ delete state.wake[k]; persist(); render(); }); wr.append(r); }
+  }
+  const ul=$("schedule"), nc=$("nextCard"); ul.innerHTML=""; nc.innerHTML="";
+  if(!sh){
+    nc.append(el("div","label","Als Nächstes"), el("h3",null,"Schicht oben antippen"), el("div","note","Dann siehst du deinen Ablauf mit Essen, Training, Supplements, Koffeinstopp und Schlafenszeit, und die Erinnerungen stellen sich darauf ein."));
+    ul.append(el("li","note","Noch nichts gewählt."));
+  } else {
+    const c=dayChecks(k); let next=null;
+    timeline(k, sh).forEach(it=>{
+      const isMeal = it.key in MEALS, id = it.key+"@"+it.i, on = itemDone(k,it);
+      const li=el("li","item"+(on?" isdone":""));
+      if(!on && !next){ next=it; li.classList.add("isnext"); }
+      const tx=el("div","txt"); tx.append(el("span",null,it.label));
+      if(isMeal){ const m=MEALS[it.key]; tx.append(el("div","sub",m.kcal+" kcal · P "+m.p+" · K "+m.c+" · F "+m.f)); }
+      if(it.key==="gym" && sh!=="urlaub") tx.append(el("div","sub", nextSlot()==="P" ? "Laut Reihenfolge Pause" : "Einheit "+nextSlot()));
+      if(it.key==="steps" && state.hc.on){ const st=state.hc.steps[k]; tx.append(el("div","sub", st!=null ? "Uhr: "+de(st)+" Schritte, wird automatisch abgehakt" : "wird automatisch abgehakt, sobald die Uhr 8.000 meldet")); }
+      li.append(el("span","t",it.t), tx, tickBtn(on, ()=>{ if(isMeal) setMeal(k,it.key,!on); else if(it.key==="steps") c["h_steps"]=!on; else c[id]=!on; persist(); render(); }, it.label));
+      ul.appendChild(li);
+    });
+    if(next){
+      nc.append(el("div","label","Als Nächstes · "+next.t+" Uhr"), el("h3",null,next.label));
+      let n=null;
+      if(next.key==="caf") n="Danach kein Koffein mehr, sonst dauert das Einschlafen wieder ewig.";
+      if(next.key==="gym") n= sh==="urlaub" ? "Bewegung zählt, muss kein Gym sein." : nextSlot()==="P" ? "Heute ist laut Reihenfolge Pause. Ein Spaziergang reicht." : UNITS[nextSlot()].t;
+      if(next.key in MEALS){ const m=MEALS[next.key]; n = m.kcal+" kcal · "+m.p+" g Eiweiß"; }
+      if(n) nc.append(el("div","note",n));
+    } else nc.append(el("div","label","Tag erledigt"), el("h3",null,"Alles abgehakt. Stark."));
+  }
+  const hu=$("habits"); hu.innerHTML=""; const c=dayChecks(k);
+  HABITS.forEach(([key,label])=>{
+    if(key==="steps" && state.hc.on) return;
+    const on=!!c["h_"+key], li=el("li","item nt"+(on?" isdone":""));
+    const tx=el("div","txt"); tx.append(el("span",null,label));
+    li.append(tx, tickBtn(on, ()=>{ c["h_"+key]=!on; persist(); render(); }, label)); hu.appendChild(li);
+  });
+}
+function renderCaf(k){
+  const now=new Date(), lv=cafLevel(now), bed=bedtimeFor(k);
+  $("cafNow").textContent = de(lv)+" mg";
+  let info = lv<15 ? "Kaum Koffein im Körper." : "Jetzt ca. "+de(lv)+" mg im Körper.";
+  const ok=cafBelow(50); if(ok) info+=" Unter 50 mg ab ca. "+hm(ok)+" Uhr.";
+  if(bed && bed>now){ const atBed=cafLevel(bed); info += atBed>50 ? " Zur Schlafenszeit ("+hm(bed)+") wären es noch "+de(atBed)+" mg, das bremst den Schlaf." : " Zur Schlafenszeit passt es."; }
+  $("cafInfo").textContent=info;
+  const cb=$("cafBtns"); cb.innerHTML="";
+  CAF_DRINKS.forEach(([n,mg])=>{ const b=el("button"); b.append(document.createTextNode(n)); b.append(el("small",null,mg+" mg"));
+    b.addEventListener("click",()=>{ const atBed = bed && bed>new Date() ? cafLevelAtWith(bed,mg) : 0; state.caf.unshift({n,mg,t:Date.now()}); state.caf=state.caf.filter(c=>Date.now()-c.t<48*3600000); persist(); render(); toast(atBed>50 ? n+" eingetragen. Achtung, wird knapp für den Schlaf" : n+" eingetragen"); }); cb.append(b); });
+  const ul=$("cafLog"); ul.innerHTML="";
+  state.caf.filter(c=>Date.now()-c.t<24*3600000).slice(0,6).forEach(c=>{
+    const li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span",null,c.n)); tx.append(el("div","sub",hm(new Date(c.t))+" Uhr · "+c.mg+" mg"));
+    const x=el("button","x","×"); x.setAttribute("aria-label","entfernen"); x.addEventListener("click",()=>{ state.caf=state.caf.filter(z=>z!==c); persist(); render(); });
+    li.append(tx,x); ul.append(li);
+  });
+}
+function renderSleepCalc(){
+  const wI=$("slWake"), gI=$("slGoal");
+  if(!wI.dataset.init){
+    const t=addDays(calToday(),1), sh=state.shift[t]; wI.value = sh ? wakeFor(t,sh) : (P().wake.frei||"09:00"); gI.value=P().sleepGoal||8; wI.dataset.init="1";
+    wI.addEventListener("input",renderSleepCalc); gI.addEventListener("input",renderSleepCalc);
+  }
+  const out=$("slOut"); out.innerHTML="";
+  const w=toMin(wI.value), g=num(gI.value)||8; if(w==null) return;
+  const bed=w-g*60-15;
+  out.append(el("div","alert ok","Ins Bett um "+minTxt(bed)+" Uhr (inklusive 15 Minuten zum Einschlafen)."));
+  out.append(el("div","note","In Schlafzyklen von 90 Minuten: "+[7.5,6].map(h=>minTxt(w-h*60-15)+" Uhr ("+String(h).replace(".",",")+" Std.)").join(" oder ")));
+  const mkT=rows=>{ const t=el("table"), tb=el("tbody"); rows.forEach(([n,m])=>{ const tr=el("tr"); tr.append(el("td",null,n), el("td","r num",minTxt(m))); tb.append(tr); }); t.append(tb); return t; };
+  out.append(el("div","cat","Am Abend davor"), mkT([["Letzter Kaffee oder Monster",bed-8*60],["Letztes großes Essen",bed-150],["Licht dimmen, Handy weg",bed-60],["Supplements vor dem Schlafen",bed-45]]),
+             el("div","cat","Essenszeiten am Tag"), mkT([["Frühstück",w+30],["Mittag",w+300],["Snack",w+450],["Abendessen",w+630]]));
+}
+function renderWoche(){
+  const wl=$("weekList"); wl.innerHTML=""; const k0=calToday();
+  const mon=addDays(k0, -((parseKey(k0).getDay()+6)%7));
+  for(let w=0; w<3; w++){
+    const ws=addDays(mon,w*7), box=el("div","wk"), hd=el("div","between");
+    hd.append(el("b",null, w===0?"Diese Woche":w===1?"Nächste Woche":"Übernächste Woche"), el("span","note",fmtDate(ws)+" bis "+fmtDate(addDays(ws,6)))); box.append(hd);
+    const btns=el("div","wkbtns");
+    [["frueh","Früh","f"],["spaet","Spät","s"],["nacht","Nacht","n"],["urlaub","Urlaub","u"]].forEach(([s,l,c])=>{ const b=el("button",null,l); b.style.color="var(--"+c+")";
+      b.addEventListener("click",()=>{ for(let i=0;i<7;i++){ const d=addDays(ws,i); state.shift[d] = s==="urlaub" ? "urlaub" : (i<5 ? s : "frei"); } persist(); render(); toast(l+" Woche eingetragen"); }); btns.append(b); });
+    box.append(btns);
+    for(let i=0;i<7;i++){
+      const k=addDays(ws,i); if(k<k0) continue;
+      const row=el("div","wday"+(k===k0?" today":""));
+      const dd=el("div","d"); dd.append(el("b",null, k===k0?"Heute": parseKey(k).toLocaleDateString("de-DE",{weekday:"short"})), document.createTextNode(fmtDate(k)));
+      row.append(dd, shiftPicker(k,true)); box.append(row);
+    }
+    wl.append(box);
+  }
+  const st=$("notifStatus");
+  st.textContent = !LN ? "Erinnerungen funktionieren nur in der installierten App." : notifPerm==="granted" ? (state.notif.on ? "An. Gilt für alle Tage mit Eintrag, 14 Tage im Voraus." : "Aus.") : "Benachrichtigungen sind noch nicht erlaubt.";
+  $("notifAllow").hidden = !LN || notifPerm==="granted";
+  $("notifTest").hidden = !LN || notifPerm!=="granted";
+  $("exactHint").hidden = !LN || exactOk || notifPerm!=="granted";
+  const tg=$("toggles"); tg.innerHTML="";
+  toggleRow(tg,"Alle Erinnerungen", state.notif.on, ()=>{ state.notif.on=!state.notif.on; persist(); render(); });
+  if(state.notif.on) CATS.forEach(([c,l])=>toggleRow(tg,l, !!state.notif.cats[c], ()=>{ state.notif.cats[c]=!state.notif.cats[c]; persist(); render(); }));
+}
+$("vacAdd").addEventListener("click",()=>{
+  const a=$("vacFrom").value, b=$("vacTo").value; if(!a||!b||b<a){ toast("Bitte Von und Bis wählen"); return; }
+  let d=a, n=0; while(d<=b && n<60){ state.shift[d]="urlaub"; d=addDays(d,1); n++; }
+  persist(); render(); toast(n+" Urlaubstage eingetragen. Schönen Urlaub!");
+});
+
+// ---------- Training
+function nextSlot(){ return SEQ[state.train.idx % SEQ.length]; }
+function streakBefore(k){ const days = new Set(state.train.log.filter(e=>e.u!=="P").map(e=>e.d)); let n=0, d=addDays(k,-1); while(days.has(d)){ n++; d=addDays(d,-1); } return n; }
+function options(pk){ return PAT[pk].o.concat((state.customEx[pk]||[]).map(c=>[c.n,c.e,1,"eigene Übung"])); }
+function usable(o, hand){ return o[2]<=hand && (state.equip[o[1]] || o[1]==="KG"); }
+function pickFor(u, i, hand){
+  const pk = UNITS[u].s[i][0], opts=options(pk), key = u+i;
+  if(key in state.swap && opts[state.swap[key]] && usable(opts[state.swap[key]], hand)) return state.swap[key];
+  const d = DEFAULT_PICK[key]; let idx = d ? d[hand-1] : 0;
+  if(!opts[idx] || !usable(opts[idx],hand)) idx = opts.findIndex(o=>usable(o,hand));
+  return idx<0 ? 0 : idx;
+}
+function parseSR(sr){ const m=sr.match(/^(\d+) × (\d+) bis (\d+)/); return m ? {sets:+m[1], lo:+m[2], hi:+m[3]} : null; }
+const e1rm = (w,r) => w*(1+r/30);
+function liftInfo(name){ const L=state.lifts[name]; return L && L.length ? L : null; }
+function startText(o, hand){
+  const h=HIST()[o[0]]; if(!h) return null;
+  let st=h.start;
+  if(hand===1 && o[1]==="KH"){ if(num(st)>10) st="10 kg (Hand)"; }
+  return "Alpha: "+h.last+" ("+h.when+") · Start "+st;
+}
+function stepFor(o,u){ return u==="lb" ? 5 : (o[1]==="KH" ? 2 : 2.5); }
+function suggest(o,sr,L){
+  const r=parseSR(sr); if(!r || !L) return null; const s=L[0];
+  if(s.s.length>=Math.min(r.sets,2) && s.s.every(x=>x[1]>=r.hi)){ const w=Math.max(...s.s.map(x=>x[0])); return "Alle Sätze oben am Ziel: nächstes Mal "+fmtAmt(w+stepFor(o,s.u))+" "+s.u; }
+  if(s.s.some(x=>x[1]<r.lo-1)) return "Ein Satz deutlich unter "+r.lo+" Wdh: Gewicht halten, längere Pause.";
+  return "Gewicht halten, Wiederholungen steigern.";
+}
+function renderTraining(k, ph){
+  const seq=$("seq"); seq.innerHTML=""; const cur = state.train.idx % SEQ.length;
+  SEQ.forEach((u,i)=>seq.appendChild(el("span", i===cur?"cur": i<cur?"past":"", u)));
+  const u = nextSlot(), warn=$("trainWarn"); warn.innerHTML="";
+  const al=(t,cls)=>warn.appendChild(el("div","alert"+(cls?" "+cls:""),t));
+  if(state.train.log.some(e=>e.d===k && e.u!=="P")) al("Heute schon trainiert. Nächstes Mal geht es mit der nächsten Einheit weiter.");
+  else if(streakBefore(k)>=3 && u!=="P") al("3 Tage am Stück trainiert. Heute lieber Pause und spazieren gehen.","bad");
+  if(ph.deload) al("Leichte Woche: nur die Hälfte der Sätze, gleiches Gewicht.");
+  const list=$("unitList"), btns=$("unitBtns"); list.innerHTML=""; btns.innerHTML="";
+  if(u==="P"){
+    $("unitTitle").textContent="Pause"; $("unitNote").textContent="30 bis 45 Minuten spazieren, Meal Prep, früh schlafen.";
+    const b=el("button","btn","Pause gemacht"); b.addEventListener("click",()=>advance("P",k)); btns.appendChild(b);
+  } else {
+    const unit=UNITS[u], w=planWeek(k); $("unitTitle").textContent=unit.t;
+    $("unitNote").textContent=(w>0 && w<=2 ? "Einstieg: 2 Sätze pro Übung, 3 Wdh im Tank." : "1 bis 2 Wdh vor dem Versagen aufhören.")+" Pausen 2 bis 3 Min. Tipp auf Sätze zum Eintragen.";
+    unit.s.forEach(([pk,sr],i)=>{
+      const pat=PAT[pk], o=options(pk)[pickFor(u,i,ph.hand)], L=liftInfo(o[0]);
+      const r=el("div","ex"), left=el("div");
+      left.append(el("div","nm",o[0]));
+      const h=el("div","hint"); h.append(el("span","tag",o[1]), document.createTextNode(o[3]||pat.n)); left.append(h);
+      if(L){ const s=L[0]; const line=el("div","last"); line.textContent="Zuletzt "+fmtDate(s.d)+": "+s.s.map(x=>fmtAmt(x[0])+"×"+x[1]).join("  ")+" "+s.u;
+        if(L[1]){ const b0=Math.max(...s.s.map(x=>e1rm(x[0],x[1]))), b1=Math.max(...L[1].s.map(x=>e1rm(x[0],x[1]))); if(b0>b1*1.005){ line.append(" "); line.append(el("span","up","▲ stärker")); } }
+        left.append(line); const sug=suggest(o,sr,L); if(sug) left.append(el("div","hint",sug)); }
+      else { const stt=startText(o,ph.hand); if(stt) left.append(el("div","hint num",stt)); }
+      const right=el("div","exR"); right.append(el("div","sr",sr));
+      const rr=el("div","row nowrap"); rr.style.gap="12px";
+      if(parseSR(sr)){ const lg=el("button","link","Sätze"); lg.addEventListener("click",()=>openLog(o,sr,k)); rr.append(lg); }
+      const swb=el("button","link","Tauschen"); swb.addEventListener("click",()=>openSwap(u,i,ph.hand)); rr.append(swb);
+      right.append(rr); r.append(left,right); list.appendChild(r);
+    });
+    const b=el("button","btn","Einheit "+u+" erledigt"); b.addEventListener("click",()=>advance(u,k)); btns.appendChild(b);
+    const s=el("button","btn ghost","Heute Pause"); s.addEventListener("click",()=>{ state.train.log.unshift({d:k,u:"P"}); state.train.log=state.train.log.slice(0,300); persist(); render(); toast("Pause eingetragen, Einheit "+u+" bleibt dran"); }); btns.appendChild(s);
+  }
+  const wl=$("warmup"); wl.innerHTML=""; WARM.forEach(t=>{ const li=el("li","item nt"); li.append(el("span",null,t)); wl.appendChild(li); });
+  const eq=$("equipToggles"); eq.innerHTML=""; EQUIP.forEach(([c,l])=>toggleRow(eq,l,!!state.equip[c],()=>{ state.equip[c]=!state.equip[c]; persist(); render(); }));
+  const log=$("trainLog"), items=state.train.log.slice(0,10); log.innerHTML="";
+  if(!items.length) log.textContent="Noch nichts eingetragen.";
+  else { const t=el("table"), tb=el("tbody"); items.forEach(e=>{ const tr=el("tr"); tr.append(el("td","num",fmtDate(e.d)), el("td",null,e.u==="P"?"Pause":UNITS[e.u].t)); tb.appendChild(tr); }); t.appendChild(tb); log.appendChild(t); }
+  $("undoTrain").hidden = !items.length;
+}
+function openLog(o,sr,k){
+  const r=parseSR(sr), L=liftInfo(o[0]), h=HIST()[o[0]];
+  let unit = L ? L[0].u : (h && /lb/.test(h.last) ? "lb" : "kg");
+  const startW = L ? L[0].s.map(x=>x[0]) : (h ? [num(h.start)] : []);
+  const doneToday = L && L[0].d===k ? L[0] : null;
+  openSheet(p=>{
+    sheetHead(p,o[0]);
+    p.append(el("div","note","Ziel: "+sr+". Trag Gewicht und Wiederholungen pro Satz ein."));
+    const us=el("div","seg"); const bk=el("button",null,"kg"), bl=el("button",null,"lb");
+    const setU=v=>{ unit=v; bk.setAttribute("aria-pressed",v==="kg"?"true":"false"); bl.setAttribute("aria-pressed",v==="lb"?"true":"false"); }; setU(unit);
+    bk.addEventListener("click",()=>setU("kg")); bl.addEventListener("click",()=>setU("lb")); us.append(bk,bl); p.append(us);
+    const rows=[]; const box=el("div"); box.style.display="flex"; box.style.flexDirection="column"; box.style.gap="8px";
+    const hdr=el("div","setrow"); hdr.append(el("span","label","#"), el("span","label","Gewicht"), el("span","label","Wdh")); box.append(hdr);
+    const addRow=(wv,rv)=>{ const row=el("div","setrow"); const n=el("span","n",String(rows.length+1)); const iw=el("input","num"); iw.type="number"; iw.inputMode="decimal"; iw.step="0.5"; iw.value=wv!=null && !isNaN(wv)?wv:""; const ir=el("input","num"); ir.type="number"; ir.inputMode="numeric"; ir.value=rv!=null?rv:""; row.append(n,iw,ir); box.append(row); rows.push([iw,ir]); };
+    const nSets = doneToday ? doneToday.s.length : r.sets;
+    for(let i=0;i<nSets;i++) addRow(doneToday ? doneToday.s[i][0] : (startW[i]!=null?startW[i]:startW[0]), doneToday ? doneToday.s[i][1] : null);
+    p.append(box);
+    const more=el("button","link","+ Satz"); more.addEventListener("click",()=>addRow(rows.length? rows[rows.length-1][0].value : null, null)); p.append(more);
+    const save=el("button","btn wide","Speichern");
+    save.addEventListener("click",()=>{
+      const sets=rows.map(([a,b])=>[num(a.value)||0,parseInt(b.value,10)]).filter(x=>x[1]>0 && (x[0]>0 || o[1]==="KG"));
+      if(!sets.length){ toast("Bitte Gewicht und Wiederholungen eintragen"); return; }
+      const arr=state.lifts[o[0]]||(state.lifts[o[0]]=[]);
+      if(arr[0] && arr[0].d===k) arr.shift();
+      arr.unshift({d:k,u:unit,s:sets}); state.lifts[o[0]]=arr.slice(0,60);
+      closeSheet(); persist(); render(); toast("Sätze gespeichert");
+    });
+    p.append(save);
+    if(L && L.length){
+      p.append(el("div","cat","Verlauf"));
+      const t=el("table"), tb=el("tbody");
+      L.slice(0,8).forEach(s=>{ const best=s.s.reduce((a,x)=>e1rm(x[0],x[1])>e1rm(a[0],a[1])?x:a); const tr=el("tr"); tr.append(el("td","num",fmtDate(s.d)), el("td","num",s.s.map(x=>fmtAmt(x[0])+"×"+x[1]).join("  ")), el("td","r num","~"+de(e1rm(best[0],best[1]))+" "+s.u)); tb.append(tr); });
+      t.append(tb); p.append(t, el("div","note","Rechts: geschätztes Maximalgewicht für 1 Wiederholung. Steigt die Zahl, wirst du stärker."));
+    }
+    setTimeout(()=>{ const f=rows.find(([a,b])=>!b.value); if(f) f[1].focus(); },60);
+  });
+}
+function openSwap(u,i,hand){
+  const pk=UNITS[u].s[i][0], pat=PAT[pk], cur=pickFor(u,i,hand), opts=options(pk);
+  openSheet(p=>{
+    sheetHead(p, pat.n);
+    p.append(el("div","note","Alternative wählen, wenn ein Gerät besetzt ist oder dir etwas besser liegt. Die Wahl bleibt für diese Einheit gespeichert."));
+    const box=el("div");
+    opts.forEach((o,idx)=>{
+      const ok=usable(o,hand), r=el("div","opt"+(idx===cur?" cur":"")+(ok?"":" off"));
+      const l=el("div"); l.append(el("div","nm",o[0]));
+      const h=el("div","note"); h.append(el("span","tag",o[1]), document.createTextNode(!ok ? (o[2]>hand ? "ab Hand Stufe "+o[2] : "Gerät ausgeschaltet") : (o[3]||""))); l.append(h);
+      const L=liftInfo(o[0]); const stt = L ? "Zuletzt "+L[0].s.map(x=>fmtAmt(x[0])+"×"+x[1]).join(", ")+" "+L[0].u : startText(o,hand); if(stt) l.append(el("div","note num",stt));
+      const b=el("button","btn small"+(idx===cur?"":" ghost"), idx===cur?"Aktiv":"Nehmen"); b.disabled=!ok||idx===cur;
+      b.addEventListener("click",()=>{ state.swap[u+i]=idx; persist(); closeSheet(); render(); toast(o[0]+" gewählt"); });
+      r.append(l,b); box.appendChild(r);
+    });
+    p.append(box);
+    const add=el("details"); add.append(el("summary",null,"Eigene Übung hinzufügen"));
+    const [ln,inN]=field("Name","text",""); inN.placeholder="z. B. Egym Brustpresse";
+    const ls=el("label","f","Gerät"), sel=el("select"); EQUIP.concat([["KG","Körpergewicht"]]).forEach(([c,l])=>{ const op=el("option",null,l); op.value=c; sel.append(op); }); ls.append(sel);
+    const ab=el("button","btn small","Hinzufügen und nehmen");
+    ab.addEventListener("click",()=>{ const n=inN.value.trim(); if(!n){ toast("Bitte einen Namen eingeben"); return; } (state.customEx[pk]=state.customEx[pk]||[]).push({n,e:sel.value}); state.swap[u+i]=options(pk).length-1; state.equip[sel.value]=true; persist(); closeSheet(); render(); toast(n+" hinzugefügt"); });
+    const wrap=el("div"); wrap.style.display="flex"; wrap.style.flexDirection="column"; wrap.style.gap="8px"; wrap.style.marginTop="8px"; wrap.append(ln,ls,ab); add.append(wrap); p.append(add);
+    if(u+i in state.swap){ const rs=el("button","link","Zurück zum Standard"); rs.addEventListener("click",()=>{ delete state.swap[u+i]; persist(); closeSheet(); render(); }); p.append(rs); }
+  });
+}
+function advance(u,k){
+  state.train.log.unshift({d:k,u,adv:true}); state.train.log=state.train.log.slice(0,300);
+  state.train.idx=(state.train.idx+1)%SEQ.length;
+  const sh=state.shift[k]; if(u!=="P" && sh){ const i=TPL[sh].findIndex(x=>x[2]==="gym"); dayChecks(k)["gym@"+i]=true; }
+  persist(); render(); toast(u==="P"?"Pause erledigt":"Einheit "+u+" erledigt. Stark.");
+}
+
+// ---------- Essen
+function renderEssen(k){
+  document.querySelectorAll("#foodSeg button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.v===foodView?"true":"false"));
+  $("f-log").hidden = foodView!=="log"; $("f-rez").hidden = foodView!=="rez"; $("f-cart").hidden = foodView!=="cart";
+  if(foodView==="log") renderLog(k);
+  if(foodView==="rez") renderRecipes();
+  if(foodView==="cart") renderCart();
+}
+function freeCount(k){
+  const w=planWeek(k); let n=0;
+  Object.keys(state.food).forEach(d=>{ const inW = w>0 ? (d>=weekRange(w)[0] && d<=weekRange(w)[1]) : (dayDiff(d,k)>=0 && dayDiff(d,k)<7); if(inW) n+=state.food[d].filter(f=>f.free).length; });
+  return n;
+}
+const macroTxt = f => de(f.kcal)+" kcal · P "+fmtAmt(f.p||0)+" · K "+fmtAmt(f.c||0)+" · F "+fmtAmt(f.f||0);
+function renderLog(k){
+  const list=dayFood(k), T={kcal:0,p:0,c:0,f:0}; list.forEach(f=>{ T.kcal+=f.kcal||0; T.p+=f.p||0; T.c+=f.c||0; T.f+=f.f||0; });
+  const G={kcal:P().kcal||2400, p:P().p||150, c:P().c||250, f:P().f||70};
+  [["K","kcal",""],["P","p"," g"],["C","c"," g"],["F","f"," g"]].forEach(([id,key,u])=>{ $("m"+id).textContent=de(T[key])+u; $("b"+id).style.width=Math.min(100,T[key]/G[key]*100)+"%"; });
+  $("macroLeft").textContent = "Ziel "+de(G.kcal)+" kcal · P "+G.p+" · K "+G.c+" · F "+G.f+". Noch "+de(Math.max(0,G.kcal-T.kcal))+" kcal und "+de(Math.max(0,G.p-T.p))+" g Eiweiß.";
+  $("freeInfo").textContent="Freie Mahlzeiten: "+freeCount(k)+" von 2";
+  const q=$("quick"); q.innerHTML="";
+  QUICK.concat((state.myRecipes||[]).map(r=>({n:r.n, kcal:r.kcal, p:r.p, c:r.c, f:r.f}))).forEach(f=>{ const b=el("button"); b.append(document.createTextNode(f.n)); b.append(el("small",null,f.kcal+" kcal · "+f.p+" g P"));
+    b.addEventListener("click",()=>addFood(k,{n:f.n,kcal:f.kcal,p:f.p,c:f.c,f:f.f,free:f.free})); q.appendChild(b); });
+  const ul=$("foodLog"); ul.innerHTML="";
+  if(!list.length) ul.append(el("li","note","Noch nichts eingetragen. Baukasten antippen, scannen oder suchen."));
+  list.forEach((f,idx)=>{
+    const li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span",null,f.n));
+    tx.append(el("div","macros",(f.g?fmtAmt(f.g)+" g · ":"")+macroTxt(f)));
+    const x=el("button","x","×"); x.setAttribute("aria-label",f.n+" entfernen"); x.addEventListener("click",()=>{ list.splice(idx,1); persist(); render(); });
+    li.append(tx,x); ul.appendChild(li);
+  });
+  const rc=$("recent"); rc.innerHTML=""; $("recentCard").hidden = !state.myfoods.length;
+  state.myfoods.slice(0,8).forEach(m=>{
+    const li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span",null,m.n)); tx.append(el("div","macros","je 100 g: "+de(m.k100||0)+" kcal · P "+fmtAmt(m.p100||0)+" · K "+fmtAmt(m.c100||0)+" · F "+fmtAmt(m.f100||0)));
+    const b=el("button","btn small ghost","+"); b.setAttribute("aria-label",m.n+" hinzufügen"); b.addEventListener("click",()=>openAmount(k,m));
+    li.append(tx,b); rc.appendChild(li);
+  });
+}
+function addFood(k,f){
+  dayFood(k).push(Object.assign({t:Date.now()},f));
+  toast(f.free && freeCount(k)>2 ? "Das ist schon die "+freeCount(k)+". freie Mahlzeit diese Woche" : f.n+" eingetragen");
+  persist(); render();
+}
+function rememberFood(m){ state.myfoods = [m].concat(state.myfoods.filter(x=>!(x.n===m.n && (x.code||"")===(m.code||"")))).slice(0,40); }
+function openAmount(k, m){
+  openSheet(p=>{
+    sheetHead(p, m.n);
+    if(m.brand) p.append(el("div","note",m.brand));
+    p.append(el("div","label","Nährwerte je 100 g"));
+    const g4=el("div","grid4"); const mk=(l,v)=>{ const [lab,i]=field(l,"number",v!=null?v:""); g4.append(lab); return i; };
+    const ik=mk("kcal",m.k100), ip=mk("Eiweiß",m.p100), ic=mk("Kohlenh.",m.c100), ifa=mk("Fett",m.f100);
+    p.append(g4);
+    const [lg,ig]=field("Menge in g","number",m.serving||100); p.append(lg);
+    const sum=el("div","alert");
+    const calc=()=>{ const g=num(ig.value)||0, fk=g/100; return {g, kcal:Math.round((num(ik.value)||0)*fk), p:Math.round((num(ip.value)||0)*fk*10)/10, c:Math.round((num(ic.value)||0)*fk*10)/10, f:Math.round((num(ifa.value)||0)*fk*10)/10}; };
+    const upd=()=>{ const x=calc(); sum.textContent=fmtAmt(x.g)+" g = "+macroTxt(x); };
+    if(m.serving){ const r=el("div","row"); [[m.serving,"1 Portion"],[100,"100 g"]].forEach(([v,l])=>{ const b=el("button","btn small ghost",l+" ("+fmtAmt(v)+" g)"); b.addEventListener("click",()=>{ ig.value=v; upd(); }); r.append(b); }); p.append(r); }
+    p.append(sum);
+    [ik,ip,ic,ifa,ig].forEach(i=>i.addEventListener("input",upd)); upd();
+    const b=el("button","btn wide","Hinzufügen");
+    b.addEventListener("click",()=>{
+      const x=calc(); if(!x.g || !num(ik.value)){ toast("Bitte kcal und Menge angeben"); return; }
+      rememberFood({n:m.n, brand:m.brand, code:m.code, k100:num(ik.value), p100:num(ip.value)||0, c100:num(ic.value)||0, f100:num(ifa.value)||0, serving:m.serving});
+      closeSheet(); addFood(k,Object.assign({n:m.n},x));
+    });
+    p.append(b);
+    setTimeout(()=>ig.focus(),50);
+  });
+}
+function fromOFF(prod, code){
+  const nu=prod.nutriments||{}, r1=v=>v!=null ? Math.round(Number(v)*10)/10 : null;
+  let k100 = nu["energy-kcal_100g"]; if(k100==null && nu["energy_100g"]!=null) k100 = nu["energy_100g"]/4.184;
+  return {n:(prod.product_name_de||prod.product_name||"Unbekanntes Produkt").trim(), brand:(prod.brands||"").split(",")[0], code:code||prod.code,
+    k100: k100!=null ? Math.round(k100) : null, p100:r1(nu["proteins_100g"]), c100:r1(nu["carbohydrates_100g"]), f100:r1(nu["fat_100g"]),
+    serving: prod.serving_quantity ? Math.round(Number(prod.serving_quantity)) : null};
+}
+const OFF_FIELDS="code,product_name,product_name_de,brands,nutriments,serving_quantity";
+async function lookupCode(code){
+  const own = state.myfoods.find(m=>m.code===code); if(own) return own;
+  const r = await fetch("https://world.openfoodfacts.org/api/v2/product/"+encodeURIComponent(code)+".json?fields="+OFF_FIELDS);
+  const j = await r.json(); if(j.status!==1 || !j.product) return null;
+  return fromOFF(j.product, code);
+}
+let scanning=false, scanResolve=null, scanStream=null;
+function stopCamera(){ scanning=false; $("scanModal").hidden=true; try{ if(scanStream) scanStream.getTracks().forEach(t=>t.stop()); }catch(e){} scanStream=null; $("scanVideo").srcObject=null; }
+function readCode(){
+  return new Promise(async (resolve)=>{
+    scanResolve=resolve; const v=$("scanVideo");
+    try{ scanStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}, width:{ideal:1280}, height:{ideal:720}}, audio:false}); }
+    catch(e){ toast("Kamera nicht erlaubt. In den Android Einstellungen bei Winterplan die Kamera erlauben"); resolve(null); return; }
+    v.srcObject=scanStream; $("scanModal").hidden=false; scanning=true; try{ await v.play(); }catch(e){}
+    let detector=null;
+    try{ if("BarcodeDetector" in window){ const f=await window.BarcodeDetector.getSupportedFormats(); if(f.includes("ean_13")) detector=new window.BarcodeDetector({formats:["ean_13","ean_8","upc_a","upc_e","qr_code"]}); } }catch(e){ detector=null; }
+    let reader=null;
+    if(!detector && window.ZXing){ const Z=window.ZXing, hints=new Map(); hints.set(Z.DecodeHintType.POSSIBLE_FORMATS,[Z.BarcodeFormat.EAN_13,Z.BarcodeFormat.EAN_8,Z.BarcodeFormat.UPC_A,Z.BarcodeFormat.UPC_E,Z.BarcodeFormat.QR_CODE]); hints.set(Z.DecodeHintType.TRY_HARDER,true); reader=new Z.MultiFormatReader(); reader.setHints(hints); }
+    const cv=document.createElement("canvas"), ctx=cv.getContext("2d",{willReadFrequently:true});
+    const tick=async ()=>{
+      if(!scanning) return;
+      if(v.readyState>=2 && v.videoWidth){
+        let code=null;
+        try{
+          if(detector){ const r=await detector.detect(v); if(r && r[0]) code=r[0].rawValue; }
+          else if(reader){ const vw=v.videoWidth, vh=v.videoHeight, cw=Math.round(vw*0.8), ch=Math.round(vh*0.5); cv.width=cw; cv.height=ch; ctx.drawImage(v,(vw-cw)/2,(vh-ch)/2,cw,ch,0,0,cw,ch); const Z=window.ZXing; code=reader.decode(new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(cv)))).getText(); }
+        }catch(e){}
+        if(code){ stopCamera(); try{ navigator.vibrate && navigator.vibrate(60); }catch(e){} resolve(code); return; }
+      }
+      setTimeout(tick, detector?120:220);
+    };
+    tick();
+  });
+}
+$("scanCancel").addEventListener("click", ()=>{ stopCamera(); if(scanResolve) scanResolve(null); });
+async function scan(k){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ toast("Kamera wird auf diesem Gerät nicht unterstützt"); return; }
+  const code = await readCode(); if(!code) return;
+  toast("Suche Produkt …");
+  let m=null; try{ m = await lookupCode(code); }catch(e){ toast("Keine Verbindung. Werte selbst eintragen"); }
+  if(!m){ openManual(k, code); toast("Produkt nicht gefunden, bitte Werte von der Packung eintragen"); return; }
+  if(m.k100==null) toast("Keine Nährwerte hinterlegt, bitte von der Packung ergänzen");
+  openAmount(k,m);
+}
+function openSearch(k){
+  openSheet(p=>{
+    sheetHead(p,"Lebensmittel suchen");
+    const row=el("div","row nowrap"); const inp=el("input"); inp.type="search"; inp.placeholder="z. B. Skyr, Hähnchenbrust, Monster"; inp.setAttribute("aria-label","Suchbegriff");
+    const b=el("button","btn small","Suchen"); row.append(inp,b); p.append(row);
+    const out=el("div"); p.append(out);
+    const own=()=>{ const q=inp.value.trim().toLowerCase(); return state.myfoods.filter(m=>!q || m.n.toLowerCase().includes(q)).slice(0,6); };
+    function show(items, msg){
+      out.innerHTML=""; if(msg) out.append(el("div","note",msg));
+      items.forEach(m=>{ const r=el("div","opt"); const l=el("div"); l.append(el("div","nm",m.n)); l.append(el("div","macros",[m.brand, m.k100!=null?de(m.k100)+" kcal":"kcal fehlt", "P "+fmtAmt(m.p100||0), "K "+fmtAmt(m.c100||0), "F "+fmtAmt(m.f100||0)].filter(Boolean).join(" · ")+" je 100 g"));
+        const a=el("button","btn small ghost","Wählen"); a.addEventListener("click",()=>openAmount(k,m)); r.append(l,a); out.append(r); });
+    }
+    show(own(), state.myfoods.length?"Deine Lebensmittel":"");
+    async function go(){
+      const q=inp.value.trim(); if(q.length<2) return;
+      show(own(), "Suche in Open Food Facts …");
+      try{ const r=await fetch("https://world.openfoodfacts.org/cgi/search.pl?search_terms="+encodeURIComponent(q)+"&search_simple=1&action=process&json=1&page_size=20&lc=de&cc=de&fields="+OFF_FIELDS); const j=await r.json();
+        const res=(j.products||[]).map(x=>fromOFF(x)).filter(m=>m.k100!=null); show(own().concat(res), res.length? "" : "Nichts gefunden. Probier einen anderen Begriff oder trag es unter Eigenes ein."); }
+      catch(e){ show(own(), "Keine Verbindung. Deine gespeicherten Lebensmittel gehen trotzdem."); }
+    }
+    b.addEventListener("click",go); inp.addEventListener("keydown",e=>{ if(e.key==="Enter") go(); });
+    setTimeout(()=>inp.focus(),50);
+  });
+}
+function openManual(k, code){
+  openSheet(p=>{
+    sheetHead(p,"Eigenes eintragen");
+    p.append(el("div","note","Werte von der Packung oder eine Schätzung. Mit Angaben je 100 g wird es gespeichert und taucht unter Zuletzt verwendet auf."));
+    const [fn,iname]=field("Name","text",""); iname.placeholder="z. B. Döner Box"; p.append(fn);
+    const mode=el("div","seg"); const m1=el("button",null,"Je 100 g"), m2=el("button",null,"Ganze Portion"); mode.append(m1,m2); p.append(mode);
+    const g4=el("div","grid4"); const mk=l=>{ const [lab,i]=field(l,"number",""); g4.append(lab); return i; };
+    const ik=mk("kcal"), ip=mk("Eiweiß"), ic=mk("Kohlenh."), ifa=mk("Fett"); p.append(g4);
+    const b=el("button","btn wide","Weiter zur Menge"); p.append(b);
+    let per100=true; const setM=v=>{ per100=v; m1.setAttribute("aria-pressed",v?"true":"false"); m2.setAttribute("aria-pressed",v?"false":"true"); b.textContent=v?"Weiter zur Menge":"Hinzufügen"; };
+    setM(true); m1.addEventListener("click",()=>setM(true)); m2.addEventListener("click",()=>setM(false));
+    b.addEventListener("click",()=>{
+      const n=iname.value.trim()||"Eigenes", kc=num(ik.value), pr=num(ip.value)||0, cb=num(ic.value)||0, ft=num(ifa.value)||0;
+      if(!kc){ toast("Bitte kcal angeben"); return; }
+      if(per100) openAmount(k,{n, code, k100:kc, p100:pr, c100:cb, f100:ft});
+      else { closeSheet(); addFood(k,{n, kcal:Math.round(kc), p:pr, c:cb, f:ft}); }
+    });
+    setTimeout(()=>iname.focus(),50);
+  });
+}
+const allRecipes = () => RECIPES.concat(state.myRecipes||[]);
+function openRecipeForm(edit){
+  const r = edit || {n:"", por:1, kcal:"", p:"", c:"", f:"", z:[], st:[]};
+  openSheet(p=>{
+    sheetHead(p, edit ? "Rezept bearbeiten" : "Eigenes Rezept");
+    const [ln,iN]=field("Name","text",r.n); p.append(ln);
+    const g=el("div","grid2"); const [lpo,iPo]=field("Portionen","number",r.por); const bx=el("label","f","Art"), sB=el("select"); [["box","Meal Prep Boxen"],["por","Portionen"]].forEach(([v,l])=>{ const o=el("option",null,l); o.value=v; sB.append(o); }); sB.value=r.box?"box":"por"; bx.append(sB); g.append(lpo,bx); p.append(g);
+    p.append(el("div","label","Nährwerte pro Portion"));
+    const g4=el("div","grid4"); const mk=(l,v)=>{ const [lab,i]=field(l,"number",v); g4.append(lab); return i; };
+    const iK=mk("kcal",r.kcal), iP=mk("Eiweiß",r.p), iC=mk("Kohlenh.",r.c), iF=mk("Fett",r.f); p.append(g4);
+    const lz=el("label","f","Zutaten, eine pro Zeile (z. B. 500 g Hähnchenbrust)"), tz=el("textarea"); tz.style.fontFamily="var(--body)"; tz.style.fontSize="15px"; tz.value=r.z.map(([a,u,n])=>fmtAmt(a)+" "+u+" "+n).join("\n"); lz.append(tz); p.append(lz);
+    const ls=el("label","f","Zubereitung, ein Schritt pro Zeile"), ts=el("textarea"); ts.style.fontFamily="var(--body)"; ts.style.fontSize="15px"; ts.value=r.st.join("\n"); ls.append(ts); p.append(ls);
+    const save=el("button","btn wide","Speichern");
+    save.onclick=()=>{
+      const n=iN.value.trim(); if(!n){ toast("Bitte einen Namen eingeben"); return; }
+      const z=tz.value.split("\n").map(x=>x.trim()).filter(Boolean).map(line=>{ const m=line.match(/^([\d.,]+)\s*(\S+)\s+(.+)$/); return m ? [num(m[1]), m[2], m[3], "Eigenes"] : [1,"",line,"Eigenes"]; });
+      const rec={id: edit ? edit.id : "my"+Date.now(), mine:true, n, por:parseInt(iPo.value,10)||1, box:sB.value==="box", kcal:num(iK.value)||0, p:num(iP.value)||0, c:num(iC.value)||0, f:num(iF.value)||0, z, st:ts.value.split("\n").map(x=>x.trim()).filter(Boolean)};
+      const i=state.myRecipes.findIndex(x=>x.id===rec.id); if(i>=0) state.myRecipes[i]=rec; else state.myRecipes.push(rec);
+      closeSheet(); persist(); render(); toast("Rezept gespeichert");
+    };
+    p.append(save);
+    if(edit){ const del=el("button","link","Rezept löschen"); del.onclick=()=>{ state.myRecipes=state.myRecipes.filter(x=>x.id!==edit.id); delete state.cart.plan[edit.id]; closeSheet(); persist(); render(); toast("Rezept gelöscht"); }; p.append(del); }
+  });
+}
+function renderRecipes(){
+  const box=$("recipes"); box.innerHTML="";
+  const nb=el("button","btn wide","Eigenes Rezept anlegen"); nb.onclick=()=>openRecipeForm(); box.append(nb);
+  allRecipes().forEach(r=>{
+    const d=el("details"); const s=el("summary"); const t=el("div"); t.append(el("span",null,r.n));
+    t.append(el("div","macros",(r.box? r.por+" Boxen, je Box: " : r.unit? "je "+r.unit+": " : "1 Portion: ")+macroTxt(r))); s.append(t); d.append(s);
+    const tb=el("table"), body=el("tbody"); r.z.forEach(([a,u,n])=>{ const tr=el("tr"); tr.append(el("td","num",fmtAmt(a)+" "+u), el("td",null,n)); body.append(tr); }); tb.append(body); d.append(tb);
+    const ol=el("ol","steps"); r.st.forEach(x=>ol.append(el("li",null,x))); d.append(ol);
+    const row=el("div","row"); row.style.marginTop="6px";
+    const add=el("button","btn small ghost","Auf die Einkaufsliste"); add.addEventListener("click",()=>{ state.cart.plan[r.id]=(state.cart.plan[r.id]||0)+1; persist(); toast(r.n+" auf der Einkaufsliste"); });
+    const eat=el("button","btn small ghost","Portion essen"); eat.addEventListener("click",()=>addFood(activeDay(),{n:r.n,kcal:r.kcal,p:r.p,c:r.c,f:r.f}));
+    row.append(add,eat);
+    if(r.mine){ const ed=el("button","btn small ghost","Bearbeiten"); ed.onclick=()=>openRecipeForm(r); row.append(ed); s.querySelector("span").textContent=r.n+" (eigenes)"; }
+    d.append(row); box.append(d);
+  });
+}
+function cartItems(){
+  const map=new Map();
+  allRecipes().forEach(r=>{ const c=state.cart.plan[r.id]||0; if(!c) return; r.z.forEach(([a,u,n,cat])=>{ const key=n+"|"+u; const e=map.get(key)||{n,u,a:0,cat}; e.a+=a*c; map.set(key,e); }); });
+  BASICS.forEach(([n,cat])=>map.set(n+"|", {n,u:"",a:0,cat}));
+  state.cart.custom.forEach(n=>map.set(n+"|c", {n,u:"",a:0,cat:"Eigenes",custom:true}));
+  return Array.from(map.entries()).map(([key,e])=>Object.assign({key},e));
+}
+function renderCart(){
+  const pl=$("cartPlan"); pl.innerHTML="";
+  allRecipes().forEach(r=>{
+    const li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span",null,r.n));
+    const c=state.cart.plan[r.id]||0; tx.append(el("div","sub", c ? (r.box ? c*r.por+" Boxen" : c*r.por+" × "+(r.unit||"Portion")) : "nicht geplant"));
+    const cnt=el("div","cnt"); const mi=el("button",null,"−"), pl2=el("button",null,"+"); mi.setAttribute("aria-label","weniger"); pl2.setAttribute("aria-label","mehr");
+    mi.addEventListener("click",()=>{ state.cart.plan[r.id]=Math.max(0,c-1); persist(); render(); });
+    pl2.addEventListener("click",()=>{ state.cart.plan[r.id]=c+1; persist(); render(); });
+    cnt.append(mi, el("span",null,String(c)), pl2); li.append(tx,cnt); pl.append(li);
+  });
+  const boxes=allRecipes().filter(r=>r.box).reduce((s,r)=>s+(state.cart.plan[r.id]||0)*r.por,0);
+  pl.append(el("li","note","Zusammen "+boxes+" Boxen. Du brauchst ca. 12 bis 14 pro Woche."));
+  const cl=$("cartList"); cl.innerHTML=""; const items=cartItems();
+  CAT_ORDER.forEach(cat=>{
+    const its=items.filter(i=>i.cat===cat); if(!its.length) return;
+    cl.append(el("div","cat",CAT_NAMES[cat]||cat)); const ul=el("ul","list");
+    its.forEach(i=>{
+      const on=!!state.cart.checked[i.key], li=el("li","item nt"+(on?" isdone":""));
+      const tx=el("div","txt"); tx.append(el("span",null,i.n)); if(i.a) tx.append(el("div","sub num",fmtAmt(i.a)+" "+i.u));
+      const right=el("div","row nowrap");
+      if(i.custom){ const x=el("button","x","×"); x.setAttribute("aria-label",i.n+" entfernen"); x.addEventListener("click",()=>{ state.cart.custom=state.cart.custom.filter(n=>n!==i.n); delete state.cart.checked[i.key]; persist(); render(); }); right.append(x); }
+      right.append(tickBtn(on,()=>{ if(on) delete state.cart.checked[i.key]; else state.cart.checked[i.key]=true; persist(); render(); }, i.n));
+      li.append(tx,right); ul.append(li);
+    });
+    cl.append(ul);
+  });
+}
+
+// ---------- Körper
+function renderGewicht(k){
+  const entries = Object.entries(state.weights).map(([d,v])=>[d,Number(v)]).filter(e=>isFinite(e[1])).sort((a,b)=>a[0]<b[0]?-1:1);
+  const avg=(from,to)=>{ const v=entries.filter(([d])=>{ const x=dayDiff(d,k); return x>=from && x<to; }).map(e=>e[1]); return v.length? v.reduce((a,b)=>a+b,0)/v.length : null; };
+  const now=avg(0,7), prev=avg(7,14);
+  $("avgNow").textContent = now? kg(now)+" kg" : "-";
+  $("avgDiff").textContent = now && prev ? ((now-prev>0?"+":"")+kg(now-prev)+" kg") : "-";
+  const hint=$("wHint"); hint.innerHTML="";
+  if(now && prev && planWeek(k)>2){
+    const d=prev-now, goal=P().goal; let t, cls="";
+    if(goal==="cut"){ if(d<0.3) t="Weniger als 0,3 kg pro Woche. Passiert das 2 Wochen hintereinander: 30 g weniger Reis oder Nudeln pro Box, oder 2.000 Schritte mehr am Tag."; else if(d>1){ t="Mehr als 1 kg pro Woche ist zu schnell. 150 kcal mehr am Tag."; cls="bad"; } else { t="Perfektes Tempo. Nichts ändern."; cls="ok"; } }
+    else if(goal==="bulk"){ const up=-d; if(up<0.1) t="Kaum Zunahme. 150 kcal mehr am Tag."; else if(up>0.5){ t="Zu schnell, das wird viel Fett. 150 kcal weniger."; cls="bad"; } else { t="Gutes Tempo für Muskelaufbau."; cls="ok"; } }
+    else t = Math.abs(d)<0.4 ? "Gewicht stabil, passt." : "Gewicht bewegt sich, Kalorien leicht anpassen.";
+    hint.append(el("div","alert"+(cls?" "+cls:""),t));
+  }
+  drawChart(entries);
+  $("chartNote").textContent = (P().alpha ? "Grau: Verlauf aus Alpha Progression und der Waage. " : "")+"Orange: ab Start."+(P().target ? " Grüne Linie: Ziel "+String(P().target).replace(".",",")+" kg." : "");
+  const wl=$("wList"); wl.innerHTML="";
+  if(!entries.length) wl.textContent="Noch kein Eintrag.";
+  else { const t=el("table"), tb=el("tbody");
+    entries.slice().reverse().slice(0,60).forEach(([d,v])=>{ const tr=el("tr"); const c=el("td","r"); const x=el("button","x","×"); x.setAttribute("aria-label","Eintrag löschen"); x.addEventListener("click",()=>{ delete state.weights[d]; persist(); render(); }); c.append(x);
+      tr.append(el("td","num",fmtDate(d)), el("td","r num",kg(v)+" kg"), c); tb.appendChild(tr); });
+    t.appendChild(tb); wl.appendChild(t); }
+  const f=state.hc.fat; $("fatLine").hidden=!f; if(f) $("fatLine").textContent="Körperfett laut Waage: "+String(f.v).replace(".",",")+" % ("+fmtDate(f.d)+")";
+}
+function drawChart(entries){
+  const svg=$("wChart"), W=340, H=170, L=36, R=10, T=12, B=24, NS="http://www.w3.org/2000/svg"; svg.innerHTML="";
+  const mk=(n,a)=>{ const e=document.createElementNS(NS,n); for(const k in a) e.setAttribute(k,a[k]); svg.appendChild(e); return e; };
+  const old = (P().alpha && state.alphaData && state.alphaData.weights) || [];
+  const s0 = startKey(), x0 = old.length ? old[0][0] : addDays(s0,-14), end = addDays(s0, (P().weeks||22)*7+7), span=Math.max(1,dayDiff(x0,end));
+  const pts=entries.filter(([d])=>d>addDays(s0,-7) && d<=end);
+  const tgt=Number(P().target)||null;
+  const vals=pts.map(e=>e[1]).concat(old.map(e=>e[1]), tgt?[tgt]:[], Number(P().weight)?[Number(P().weight)]:[]);
+  if(!vals.length){ mk("text",{x:W/2,y:H/2,"text-anchor":"middle","font-size":12,fill:"var(--muted)"}).textContent="Noch keine Daten"; return; }
+  const lo=Math.floor(Math.min(...vals))-1, hi=Math.ceil(Math.max(...vals))+1;
+  const X=d=>L+(dayDiff(x0,d)/span)*(W-L-R), Y=v=>T+(hi-v)/(hi-lo)*(H-T-B);
+  const stepY = hi-lo>16?4: hi-lo>8?2:1;
+  for(let v=Math.ceil(lo/stepY)*stepY; v<=hi; v+=stepY){ mk("line",{x1:L,x2:W-R,y1:Y(v),y2:Y(v),stroke:"var(--line)","stroke-width":1}); mk("text",{x:L-6,y:Y(v)+4,"text-anchor":"end","font-size":10,fill:"var(--muted)"}).textContent=v; }
+  const months=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"]; const d=parseKey(x0); d.setDate(1); d.setMonth(d.getMonth()+1);
+  const every = span>300?3:span>150?2:1; let n=0;
+  while(keyOf(d)<=end){ if(n%every===0){ const k=keyOf(d); mk("text",{x:X(k),y:H-7,"text-anchor":"middle","font-size":10,fill:"var(--muted)"}).textContent=months[d.getMonth()]+(d.getMonth()===0?" "+String(d.getFullYear()).slice(2):""); } d.setMonth(d.getMonth()+1); n++; }
+  if(tgt){ mk("line",{x1:L,x2:W-R,y1:Y(tgt),y2:Y(tgt),stroke:"var(--done)","stroke-width":1.5,"stroke-dasharray":"4 3"}); mk("text",{x:W-R-4,y:Y(tgt)-4,"text-anchor":"end","font-size":10,fill:"var(--done)"}).textContent="Ziel"; }
+  mk("line",{x1:X(s0),x2:X(s0),y1:T,y2:H-B,stroke:"var(--accent)","stroke-dasharray":"3 3","stroke-width":1});
+  mk("text",{x:X(s0)+4,y:T+9,"font-size":10,fill:"var(--accent)"}).textContent="Start";
+  if(old.length){ const op=old.filter(([dd])=>dd<"2026-06-01"); if(op.length) mk("path",{d:op.map(([dd,v],i)=>(i?"L":"M")+X(dd).toFixed(1)+" "+Y(v).toFixed(1)).join(" "),fill:"none",stroke:"var(--muted)","stroke-width":1.5,"stroke-opacity":0.7}); old.filter(([dd])=>dd>="2026-06-01").forEach(([dd,v])=>mk("circle",{cx:X(dd),cy:Y(v),r:3,fill:"var(--muted)"})); }
+  if(pts.length){
+    mk("path",{d:pts.map(([dd,v],i)=>(i?"L":"M")+X(dd).toFixed(1)+" "+Y(v).toFixed(1)).join(" "),fill:"none",stroke:"var(--accent)","stroke-width":2,"stroke-linejoin":"round"});
+    pts.forEach(([dd,v],i)=>mk("circle",{cx:X(dd),cy:Y(v),r:i===pts.length-1?4:2.2,fill:"var(--accent)"}));
+  }
+}
+function renderMeas(){
+  const due=measNextKey(), dd=dayDiff(calToday(),due);
+  $("measDue").textContent = !state.meas.length ? "noch keine Messung" : dd<=0 ? "heute fällig" : "nächste in "+dd+" Tag"+(dd===1?"":"en");
+  const box=$("measTable"); box.innerHTML="";
+  if(!state.meas.length){ box.append(el("div","note","Trag am Start einmal alle Maße ein. Danach erinnert dich die App alle "+(P().measEvery||14)+" Tage.")); return; }
+  const first=state.meas[state.meas.length-1], last=state.meas[0];
+  const t=el("table"), th=el("thead"), hr=el("tr"); hr.append(el("th",null,"Maß"), el("th","r",fmtDate(last.d)), el("th","r","seit Start")); th.append(hr); t.append(th);
+  const tb=el("tbody");
+  MEAS.forEach(([k,l])=>{ if(last[k]==null) return; const tr=el("tr"); const diff = first[k]!=null && first!==last ? last[k]-first[k] : null;
+    tr.append(el("td",null,l), el("td","r num",fmtAmt(last[k])+" cm"), el("td","r num", diff==null?"-":(diff>0?"+":"")+fmtAmt(diff)+" cm")); tb.append(tr); });
+  t.append(tb); box.append(t);
+}
+$("measAdd").addEventListener("click",()=>{
+  openSheet(p=>{
+    sheetHead(p,"Körpermaße");
+    p.append(el("div","note","Alles in cm. Was du nicht misst, einfach leer lassen."));
+    const last=state.meas[0]||{}; const g=el("div","grid2"); const ins={};
+    MEAS.forEach(([k,l])=>{ const [lab,i]=field(l,"number",""); i.placeholder=last[k]!=null?fmtAmt(last[k]):""; i.step="0.5"; ins[k]=i; g.append(lab); });
+    p.append(g);
+    const b=el("button","btn wide","Speichern");
+    b.addEventListener("click",()=>{ const e={d:calToday()}; let any=false; MEAS.forEach(([k])=>{ const v=num(ins[k].value); if(v>0){ e[k]=v; any=true; } }); if(!any){ toast("Mindestens ein Maß eintragen"); return; }
+      if(state.meas[0] && state.meas[0].d===e.d) state.meas.shift(); state.meas.unshift(e); closeSheet(); persist(); render(); toast("Maße gespeichert"); });
+    p.append(b);
+  });
+});
+
+// ---------- Health Connect (Garmin, Renpho)
+const HC_READ=["Weight","BodyFat","Steps","SleepSession"];
+let hcAvail=null, hcBusy=false;
+async function hcCheck(){ if(!HC){ hcAvail="NoApp"; return; } try{ const r=await HC.checkAvailability(); hcAvail=r.availability; }catch(e){ hcAvail="NotSupported"; } }
+let hcReadAll = async function(type, from, to){
+  let out=[], token, n=0;
+  do{ const r=await HC.readRecords({type, timeRangeFilter:{type:"between", startTime:from.toISOString(), endTime:to.toISOString()}, pageSize:500, pageToken:token}); out=out.concat(r.records||[]); token=r.pageToken; n++; }while(token && n<10);
+  return out;
+}
+const tKey = t => keyOf(new Date(t));
+async function hcSync(quiet){
+  if(!HC || !state.hc.on || hcBusy) return;
+  hcBusy=true; const got=[], now=new Date();
+  const diag={avail:hcAvail, at:now.toISOString(), err:{}, n:{}, src:{}};
+  try{ const g=await HC.checkHealthPermissions({read:HC_READ, write:[], history:true}); diag.granted=(g.grantedPermissions||[]).map(x=>String(x).split(".").pop()); diag.history=g.historyAvailable; }catch(e){ diag.err.perm=String(e && (e.message||e)); }
+  const origDo = hcReadAll;
+  hcReadAll = async (type,from,to)=>{ try{ const r=await origDo(type,from,to); diag.n[type]=(diag.n[type]||0)+r.length; r.forEach(x=>{ const o=x.metadata&&x.metadata.dataOrigin; if(o){ diag.src[o]=1; } }); return r; }catch(e){ diag.err[type]=String(e && (e.message||e)).slice(0,120); throw e; } };
+  try{
+    const ws=await hcReadAll("Weight", new Date(now.getTime()-200*86400000), now), byDay={};
+    ws.forEach(r=>{ const w=r.weight; if(!w) return; const kgv = w.unit==="kilogram" ? w.value : w.unit==="pound" ? w.value*0.4536 : w.value/1000; const d=tKey(r.time); if(!byDay[d] || r.time<byDay[d].t) byDay[d]={t:r.time, v:kgv}; });
+    let added=0; Object.entries(byDay).forEach(([d,o])=>{ if(state.wManual[d]) return; const v=Math.round(o.v*100)/100; if(state.weights[d]!==v){ state.weights[d]=v; added++; } });
+    if(ws.length) got.push("Gewicht"); if(added && !quiet) toast(added+" Gewichtswerte übernommen");
+  }catch(e){}
+  try{ const fs=await hcReadAll("BodyFat", new Date(now.getTime()-60*86400000), now); if(fs.length){ const last=fs.reduce((a,b)=>a.time>b.time?a:b); const pct=last.percentage && (last.percentage.value!=null?last.percentage.value:last.percentage); if(pct!=null){ state.hc.fat={v:Math.round(Number(pct)*10)/10, d:tKey(last.time)}; got.push("Körperfett"); } } }catch(e){}
+  try{ for(let i=0;i<3;i++){ const d=addDays(calToday(),-i), s0=parseKey(d), s1=new Date(s0.getTime()+86400000); const st=await hcReadAll("Steps", s0, i===0?now:s1); const by={}; st.forEach(r=>{ const o=(r.metadata&&r.metadata.dataOrigin)||"x"; by[o]=(by[o]||0)+(Number(r.count)||0); }); const best=Math.max(0,...Object.values(by)); state.hc.steps[d]=best; if(best>=8000) dayChecks(d)["h_steps"]=true; if(st.length && i===0) got.push("Schritte"); } }catch(e){}
+  try{ const sl=await hcReadAll("SleepSession", new Date(now.getTime()-36*3600000), now); if(sl.length){ const last=sl.reduce((a,b)=>a.endTime>b.endTime?a:b); let mins=(new Date(last.endTime)-new Date(last.startTime))/60000; if(Array.isArray(last.stages)){ mins-=last.stages.filter(x=>/awake|out_of_bed/i.test(String(x.stage))).reduce((a,x)=>a+(new Date(x.endTime)-new Date(x.startTime))/60000,0); } state.hc.sleep[tKey(last.endTime)]=Math.round(mins); got.push("Schlaf"); } }catch(e){}
+  ["steps","sleep"].forEach(t=>Object.keys(state.hc[t]).forEach(d=>{ if(dayDiff(d,calToday())>30) delete state.hc[t][d]; }));
+  hcReadAll = origDo;
+  state.hc.last=new Date().toISOString(); state.hc.got=got; state.hc.diag=diag; hcBusy=false; persist(); render();
+}
+async function hcConnect(){
+  await hcCheck();
+  if(hcAvail!=="Available"){ if(hcAvail==="NotInstalled"){ toast("Health Connect fehlt, bitte aus dem Play Store installieren"); try{ await HC.openHealthConnectSetting(); }catch(e){} } else toast("Health Connect geht nur in der installierten App auf Android"); render(); return; }
+  try{ const r=await HC.requestHealthPermissions({read:HC_READ, write:[], history:true}); if(r.grantedPermissions && r.grantedPermissions.length){ state.hc.on=true; persist(); toast("Verbunden, gleiche ab …"); await hcSync(); } else toast("Keine Freigabe erteilt"); }
+  catch(e){ toast("Verbinden hat nicht geklappt"); }
+  render();
+}
+const fmtMin = m => Math.floor(m/60)+" Std. "+pad(Math.round(m%60))+" Min.";
+function renderVitals(){
+  const on=state.hc.on; $("vitCard").hidden=!on; if(!on) return;
+  const st=state.hc.steps[calToday()]; $("vitSteps").textContent= st!=null? de(st) : "-"; $("vitStepsBar").style.width=Math.min(100,(st||0)/8000*100)+"%";
+  const sl= state.hc.sleep[calToday()]!=null ? state.hc.sleep[calToday()] : state.hc.sleep[addDays(calToday(),-1)];
+  $("vitSleep").textContent= sl!=null? fmtMin(sl) : "-";
+  $("vitSleepNote").textContent= sl==null ? "kein Schlaf von der Uhr" : sl<(P().sleepGoal||8)*60-30 ? "unter Ziel, heute früher ins Bett" : "gut so";
+}
+function renderHC(){
+  const on=state.hc.on;
+  $("hcPill").textContent = on ? "verbunden" : "nicht verbunden"; $("hcConnect").textContent = on ? "Freigaben ändern" : "Verbinden";
+  $("hcSync").hidden=!on; $("hcSettings").hidden = !HC;
+  let t="Über Health Connect holt sich die App Gewicht und Körperfett von deiner Waage sowie Schritte und Schlaf von deiner Uhr.";
+  if(on && state.hc.last){ const d=new Date(state.hc.last); t="Zuletzt abgeglichen "+d.toLocaleDateString("de-DE")+" "+hm(d)+". Gefunden: "+((state.hc.got&&state.hc.got.length)? state.hc.got.join(", ") : "noch keine Daten. Prüfe, ob Garmin und Renpho an Health Connect senden")+"."; }
+  if(hcAvail==="NotInstalled") t="Health Connect ist nicht installiert. Ab Android 14 ist es eingebaut, sonst gibt es die App im Play Store.";
+  if(hcAvail==="NotSupported") t="Health Connect wird auf diesem Gerät nicht unterstützt.";
+  $("hcText").textContent=t;
+  const dg=state.hc.diag, box=$("hcDiag"); box.innerHTML="";
+  if(dg){
+    const names={Weight:"Gewicht",BodyFat:"Körperfett",Steps:"Schritte",SleepSession:"Schlaf"};
+    const rows=[["Health Connect",String(dg.avail||"-")],["Freigaben",(dg.granted&&dg.granted.length)?dg.granted.join(", "):"keine"]];
+    HC_READ.forEach(tp=>rows.push([names[tp], dg.err[tp] ? "Fehler: "+dg.err[tp] : (dg.n[tp]||0)+" Einträge"]));
+    rows.push(["Quellen", Object.keys(dg.src).length ? Object.keys(dg.src).map(x=>x.replace(/^com\./,"")).join(", ") : "keine"]);
+    if(dg.err.perm) rows.push(["Freigabe Fehler",dg.err.perm]);
+    const tb=el("table"), body=el("tbody"); rows.forEach(([a,b])=>{ const tr=el("tr"); tr.append(el("td",null,a), el("td","r macros",b)); body.append(tr); }); tb.append(body); box.append(tb);
+    const src=Object.keys(dg.src).join(" ");
+    let tip=null;
+    if(!(dg.granted||[]).length) tip="Die App hat noch keine Freigabe. Tipp auf Freigaben ändern oder öffne Health Connect und erlaube dem Winterplan alles unter App Berechtigungen.";
+    else if(!/garmin/i.test(src)) tip="In Health Connect kommen noch keine Daten von Garmin an. Das liegt an Garmin Connect: dort muss Health Connect eingeschaltet sein und Garmin braucht die Schreibrechte. Neue Daten kommen erst nach dem nächsten Sync der Uhr.";
+    if(tip) box.append(el("div","alert",tip));
+  }
+}
+$("hcConnect").addEventListener("click", hcConnect);
+$("hcSync").addEventListener("click", ()=>hcSync(false));
+$("hcSettings").addEventListener("click", async ()=>{ try{ await HC.openHealthConnectSetting(); }catch(e){ toast("Konnte Health Connect nicht öffnen"); } });
+
+// ---------- Konto und Sync (Firebase)
+let DEVICE = null; try{ DEVICE = localStorage.getItem("wp_device"); if(!DEVICE){ DEVICE = Math.random().toString(36).slice(2); localStorage.setItem("wp_device", DEVICE); } }catch(e){ DEVICE = Math.random().toString(36).slice(2); }
+let fbUser=null, unsubCloud=null, uploadT=null, syncStatus="nicht angemeldet";
+const FB = () => window.WPFB || null;
+function cloudUpload(now){
+  if(!fbUser || !FB()) return; clearTimeout(uploadT);
+  uploadT=setTimeout(async()=>{ try{ await FB().save(fbUser.uid,{json:JSON.stringify(state), updatedAt:state.updatedAt, device:DEVICE}); syncStatus="synchron"; }catch(e){ syncStatus="Hochladen fehlgeschlagen, versuche es später nochmal"; } renderSyncLine(); }, now?50:1500);
+}
+function applyRemote(data){
+  try{ const s=normalize(JSON.parse(data.json)); s.updatedAt=data.updatedAt; state=s; save(); scheduleSoon(); }catch(e){ return; }
+  if(P().setup && !$("sheet").hidden && $("pane").dataset.kind==="setup") closeSheet();
+  render();
+}
+function startCloud(user){
+  if(unsubCloud){ unsubCloud(); unsubCloud=null; }
+  fbUser=user||null;
+  if(!fbUser){ syncStatus="nicht angemeldet"; renderSyncLine(); return; }
+  syncStatus="verbinde …"; renderSyncLine();
+  unsubCloud = FB().watch(fbUser.uid, (data, pending)=>{
+    if(pending) return;
+    if(!data){ cloudUpload(true); if(!P().setup) setTimeout(()=>openSettings(true),300); return; }
+    if((data.updatedAt||0) > (state.updatedAt||0)){ applyRemote(data); syncStatus="synchron"; if(data.device!==DEVICE) toast("Daten vom anderen Gerät geladen"); }
+    else if((data.updatedAt||0) < (state.updatedAt||0)) cloudUpload(true);
+    else syncStatus="synchron";
+    renderSyncLine();
+  }, ()=>{ syncStatus="Sync gestört, prüfe die Internetverbindung"; renderSyncLine(); });
+}
+function renderSyncLine(){ const e=$("syncLine"); if(e) e.textContent = fbUser ? "Angemeldet als "+(fbUser.email||"")+" · "+syncStatus : "Nicht angemeldet. Mit Konto sind deine Daten auf Handy und PC gleich und gesichert."; const b=$("syncBtns"); if(b) renderSyncBtns(b); }
+function renderSyncBtns(b){
+  b.innerHTML="";
+  if(fbUser){ const s1=el("button","btn ghost small","Jetzt synchronisieren"); s1.onclick=()=>{ state.updatedAt=Date.now(); cloudUpload(true); toast("Wird hochgeladen"); }; const s2=el("button","btn ghost small","Abmelden"); s2.onclick=async()=>{ try{ await FB().logout(); }catch(e){} toast("Abgemeldet. Deine Daten bleiben auf diesem Gerät."); }; b.append(s1,s2); }
+  else { const s1=el("button","btn small","Anmelden oder Konto erstellen"); s1.onclick=()=>openAccount(); b.append(s1); }
+}
+const FB_ERR = {"auth/invalid-email":"Die E-Mail Adresse ist ungültig.","auth/missing-password":"Bitte ein Passwort eingeben.","auth/weak-password":"Das Passwort braucht mindestens 6 Zeichen.","auth/email-already-in-use":"Für diese E-Mail gibt es schon ein Konto. Bitte anmelden.","auth/invalid-credential":"E-Mail oder Passwort stimmt nicht.","auth/wrong-password":"E-Mail oder Passwort stimmt nicht.","auth/user-not-found":"Kein Konto mit dieser E-Mail gefunden.","auth/too-many-requests":"Zu viele Versuche. Bitte kurz warten.","auth/network-request-failed":"Keine Internetverbindung."};
+function openAccount(){
+  if(!FB()){ toast("Sync ist gerade nicht verfügbar"); return; }
+  openSheet(p=>{
+    sheetHead(p,"Konto");
+    p.append(el("div","note","Mit einem Konto sind deine Daten auf Handy und PC gleich und in der Cloud gesichert. Jeder sieht nur seine eigenen Daten."));
+    const [le,ie]=field("E-Mail","text",""); ie.type="email"; ie.autocomplete="email"; const [lp,ip]=field("Passwort (mind. 6 Zeichen)","text",""); ip.type="password"; ip.autocomplete="current-password";
+    p.append(le,lp);
+    const msg=el("div","note"); 
+    const go=async(fn,label)=>{ msg.textContent=label+" …"; try{ await fn(ie.value.trim(), ip.value); closeSheet(); toast("Angemeldet. Daten werden abgeglichen"); }catch(e){ msg.textContent=FB_ERR[e && e.code] || ("Das hat nicht geklappt ("+(e && e.code || e)+")"); } };
+    const b1=el("button","btn wide","Anmelden"); b1.onclick=()=>go(FB().login,"Anmelden");
+    const b2=el("button","btn ghost wide","Neues Konto erstellen"); b2.onclick=()=>go(FB().register,"Konto wird erstellt");
+    const b3=el("button","link","Passwort vergessen"); b3.onclick=async()=>{ if(!ie.value.trim()){ msg.textContent="Bitte erst die E-Mail eintragen."; return; } try{ await FB().reset(ie.value.trim()); msg.textContent="Mail zum Zurücksetzen ist unterwegs."; }catch(e){ msg.textContent=FB_ERR[e && e.code] || "Hat nicht geklappt."; } };
+    p.append(b1,b2,b3,msg);
+    p.append(el("div","note","Wenn auf diesem Gerät schon Daten sind und im Konto noch nichts liegt, werden deine Daten hochgeladen. Liegen im Konto neuere Daten, werden die geladen."));
+  });
+}
+function initCloud(){ if(!FB()) return; FB().onUser(u=>startCloud(u)); }
+
+// ---------- Einstellungen und Einrichtung
+function calcGoals(pr){
+  const w=Number(pr.weight)||80, h=Number(pr.height)||178, a=Number(pr.age)||25, t=Number(pr.target)||w;
+  const bmr = 10*w + 6.25*h - 5*a + (pr.sex==="f" ? -161 : 5), tdee = bmr*(Number(pr.act)||1.55);
+  const kcal = Math.round((tdee + (pr.goal==="cut"?-500: pr.goal==="bulk"?250:0))/50)*50;
+  const p = Math.round(Math.min(2*w, 2.3*t)/5)*5, f = Math.round(0.8*w/5)*5, c = Math.max(50, Math.round((kcal - p*4 - f*9)/4/5)*5);
+  return {kcal,p,c,f};
+}
+function openSettings(first){
+  const pr=JSON.parse(JSON.stringify(P())); if(!pr.wake) pr.wake={frueh:"05:00", spaet:"08:00", nacht:"15:00", frei:"09:00", urlaub:"09:00"};
+  if(first) Object.assign(pr,{name:"", sex:"m", age:"", height:"", weight:"", target:"", goal:"cut", act:1.55, start:keyOf(new Date(Date.now()+86400000)), weeks:20, injury:false, sleepGoal:8, measEvery:14, kcal:"", p:"", c:"", f:""});
+  openSheet(p=>{
+    sheetHead(p, first ? "Willkommen beim Winterplan" : "Einstellungen", first);
+    if(first){ p.append(el("div","note","Kurz einrichten, dann rechnet die App deine Ziele aus. Alles lässt sich später über das Zahnrad oben rechts ändern."));
+      if(FB()){ const a=el("button","btn ghost wide","Ich habe schon ein Konto: anmelden"); a.onclick=()=>openAccount(); p.append(a); } }
+    const sec=t=>p.append(el("div","cat",t));
+    if(!first){ sec("Konto und Sync"); p.append(Object.assign(el("div","note"),{id:"syncLine"})); const sb=el("div","row"); sb.id="syncBtns"; p.append(sb); setTimeout(renderSyncLine,0); }
+    sec("Über dich");
+    const [ln,iN]=field("Name","text",pr.name||""); p.append(ln);
+    const g=el("div","grid3"); const [la,iA]=field("Alter","number",pr.age); const [lh,iH]=field("Größe cm","number",pr.height);
+    const ls=el("label","f","Geschlecht"), sS=el("select"); [["m","Mann"],["f","Frau"]].forEach(([v,l])=>{ const o=el("option",null,l); o.value=v; sS.append(o); }); sS.value=pr.sex||"m"; ls.append(sS); g.append(la,lh,ls); p.append(g);
+    const g2=el("div","grid2"); const [lw,iW]=field("Gewicht jetzt kg","number",pr.weight); const [lt,iT]=field("Zielgewicht kg","number",pr.target); g2.append(lw,lt); p.append(g2);
+    const lg=el("label","f","Ziel"), sG=el("select"); [["cut","Fett verlieren, Muskeln halten"],["keep","Gewicht halten, Form verbessern"],["bulk","Muskeln aufbauen"]].forEach(([v,l])=>{ const o=el("option",null,l); o.value=v; sG.append(o); }); sG.value=pr.goal||"cut"; lg.append(sG); p.append(lg);
+    const lac=el("label","f","Alltag"), sAc=el("select"); [["1.4","Viel sitzen, wenig Bewegung"],["1.55","Normal, 4 bis 5 Mal Training"],["1.7","Körperlicher Job plus Training"]].forEach(([v,l])=>{ const o=el("option",null,l); o.value=v; sAc.append(o); }); sAc.value=String(pr.act||1.55); lac.append(sAc); p.append(lac);
+    sec("Plan");
+    const g3=el("div","grid2"); const [lst,iSt]=field("Startdatum","date",pr.start); const [lwk,iWk]=field("Dauer in Wochen","number",pr.weeks||20); g3.append(lst,lwk); p.append(g3);
+    sec("Ziele pro Tag");
+    const g4=el("div","grid4"); const [lk,iK]=field("kcal","number",pr.kcal); const [lp,iP]=field("Eiweiß g","number",pr.p); const [lc,iC]=field("Kohlenh. g","number",pr.c); const [lf,iF]=field("Fett g","number",pr.f); g4.append(lk,lp,lc,lf); p.append(g4);
+    const doCalc=()=>{ const x=calcGoals({weight:num(iW.value),height:num(iH.value),age:num(iA.value),target:num(iT.value),sex:sS.value,goal:sG.value,act:num(sAc.value)}); iK.value=x.kcal; iP.value=x.p; iC.value=x.c; iF.value=x.f; };
+    const calcB=el("button","btn ghost small","Aus meinen Daten berechnen"); calcB.addEventListener("click",doCalc); p.append(calcB);
+    sec("Aufstehzeiten");
+    const g5=el("div","grid3"); const wi={}; [["frueh","Früh"],["spaet","Spät"],["nacht","Nacht"],["frei","Frei"],["urlaub","Urlaub"]].forEach(([k,l])=>{ const [lab,i]=field(l,"time",pr.wake[k]); wi[k]=i; g5.append(lab); });
+    const [lsl,iSl]=field("Schlafziel Std.","number",pr.sleepGoal||8); g5.append(lsl); p.append(g5);
+    p.append(el("div","note","Der ganze Tagesablauf mit Essen, Training, Supplements und Erinnerungen richtet sich nach der Aufstehzeit."));
+    sec("Sonstiges");
+    const tg=el("div");
+    let inj=!!pr.injury; const sInj=toggleRow(tg,"Verletzungsmodus Hand", inj, null, "Übungen in Stufen freigeben"); sInj.addEventListener("click",()=>{ inj=!inj; sInj.setAttribute("aria-checked",inj?"true":"false"); });
+    let alpha=!!pr.alpha;
+    if(state.alphaData && !first){ const sA=toggleRow(tg,"Alpha Progression Daten anzeigen", alpha, null, "Startgewichte und alter Verlauf"); sA.addEventListener("click",()=>{ alpha=!alpha; sA.setAttribute("aria-checked",alpha?"true":"false"); }); }
+    p.append(tg);
+    const [lme,iMe]=field("Körpermaße alle ... Tage","number",pr.measEvery||14); p.append(lme);
+    sec("Supplements");
+    p.append(el("div","note","M = morgens nach dem Aufstehen, A = abends vor dem Schlafen. Die Erinnerungen kommen passend zu deiner Schicht."));
+    const sl=el("div"); const supps=JSON.parse(JSON.stringify(state.supps));
+    const drawS=()=>{ sl.innerHTML=""; supps.forEach(s=>{ const r=el("div","toggle"); const nm=el("div","tt"); nm.append(el("div",null,s.n));
+      const right=el("div","row nowrap"); const seg=el("div","seg"); seg.style.width="84px"; const bm=el("button",null,"M"), be=el("button",null,"A"); bm.setAttribute("aria-pressed",s.t==="M"?"true":"false"); be.setAttribute("aria-pressed",s.t==="E"?"true":"false"); bm.onclick=()=>{ s.t="M"; drawS(); }; be.onclick=()=>{ s.t="E"; drawS(); }; seg.append(bm,be);
+      right.append(seg, sw(s.on,()=>{ s.on=!s.on; drawS(); },s.n)); r.append(nm,right); sl.append(r); }); };
+    drawS(); p.append(sl);
+    const addRow=el("div","row nowrap"); const iAdd=el("input"); iAdd.type="text"; iAdd.placeholder="Eigenes Supplement"; const bAdd=el("button","btn small ghost","Dazu"); bAdd.onclick=()=>{ const n=iAdd.value.trim(); if(!n) return; supps.push({id:"c"+Date.now(), n, t:"M", on:true}); iAdd.value=""; drawS(); }; addRow.append(iAdd,bAdd); p.append(addRow);
+    const save=el("button","btn wide", first ? "Los geht's" : "Speichern");
+    save.addEventListener("click",()=>{
+      if(first && (!num(iW.value) || !num(iH.value))){ toast("Bitte mindestens Größe und Gewicht eintragen"); return; }
+      if(!num(iK.value)) doCalc();
+      const np=Object.assign(P(),{setup:true, name:iN.value.trim(), sex:sS.value, age:num(iA.value)||null, height:num(iH.value)||null, weight:num(iW.value)||null, target:num(iT.value)||null, goal:sG.value, act:num(sAc.value),
+        start:iSt.value||calToday(), weeks:parseInt(iWk.value,10)||20, kcal:num(iK.value)||2400, p:num(iP.value)||150, c:num(iC.value)||250, f:num(iF.value)||70, injury:inj, alpha, sleepGoal:num(iSl.value)||8, measEvery:parseInt(iMe.value,10)||14,
+        wake:{frueh:wi.frueh.value||"05:00", spaet:wi.spaet.value||"08:00", nacht:wi.nacht.value||"15:00", frei:wi.frei.value||"09:00", urlaub:wi.urlaub.value||"09:00"}});
+      state.profile=np; state.supps=supps;
+      if(first && np.weight){ state.weights[calToday()]=np.weight; state.wManual[calToday()]=true; }
+      closeSheet(); persist(); render(); toast(first ? "Eingerichtet. Viel Erfolg!" : "Gespeichert");
+    });
+    p.append(save);
+  }, first ? "setup" : "settings");
+}
+$("openSettings").addEventListener("click",()=>openSettings(false));
+
+// ---------- Events
+document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("click",()=>{
+  tab=b.dataset.tab;
+  document.querySelectorAll("nav.tabs button").forEach(x=>x.setAttribute("aria-selected", x===b?"true":"false"));
+  Object.keys(TITLES).forEach(t=>{ $("p-"+t).hidden = t!==tab; });
+  window.scrollTo(0,0); render();
+}));
+document.querySelectorAll("#foodSeg button").forEach(b=>b.addEventListener("click",()=>{ foodView=b.dataset.v; render(); }));
+$("aScan").addEventListener("click",()=>scan(activeDay()));
+$("aSearch").addEventListener("click",()=>openSearch(activeDay()));
+$("aManual").addEventListener("click",()=>openManual(activeDay()));
+$("cartAddBtn").addEventListener("click",()=>{ const v=$("cartAdd").value.trim(); if(!v) return; if(!state.cart.custom.includes(v)) state.cart.custom.push(v); $("cartAdd").value=""; persist(); render(); });
+$("cartAdd").addEventListener("keydown",e=>{ if(e.key==="Enter") $("cartAddBtn").click(); });
+$("cartReset").addEventListener("click",()=>{ state.cart.checked={}; persist(); render(); toast("Alle Haken entfernt"); });
+$("wSave").addEventListener("click",()=>{
+  const v=num($("wInput").value);
+  if(!(v>30 && v<250)){ toast("Bitte ein gültiges Gewicht eingeben"); return; }
+  state.weights[calToday()]=Math.round(v*100)/100; state.wManual[calToday()]=true; $("wInput").value=""; $("wInput").blur(); persist(); render(); toast("Gewicht gespeichert");
+});
+$("undoTrain").addEventListener("click",()=>{ const e=state.train.log.shift(); if(!e) return; if(e.adv) state.train.idx=(state.train.idx-1+SEQ.length)%SEQ.length; persist(); render(); });
+$("notifAllow").addEventListener("click", async ()=>{ if(!LN) return; try{ await LN.requestPermissions(); }catch(e){} await refreshPerm(); render(); scheduleAll(); });
+$("notifTest").addEventListener("click", async ()=>{ if(!LN) return; try{ await LN.schedule({notifications:[{id:9999, title:"Test vom Winterplan", body:"So sehen deine Erinnerungen aus.", channelId:"plan", schedule:{at:new Date(Date.now()+10000), allowWhileIdle:true}}]}); toast("Kommt in 10 Sekunden"); }catch(e){ toast("Test hat nicht geklappt"); } });
+$("exactBtn").addEventListener("click", async ()=>{ try{ await LN.changeExactNotificationSetting(); }catch(e){} await refreshPerm(); render(); scheduleAll(); });
+$("bkCopy").addEventListener("click", async ()=>{
+  const ta=$("backup"); ta.value=JSON.stringify(state);
+  try{ await navigator.clipboard.writeText(ta.value); $("bkMsg").textContent="Kopiert."; }
+  catch(e){ ta.focus(); ta.select(); try{ document.execCommand("copy"); $("bkMsg").textContent="Kopiert."; }catch(x){ $("bkMsg").textContent="Text ist markiert, lange drücken und Kopieren wählen."; } }
+});
+$("bkLoad").addEventListener("click",()=>{
+  try{ const s=JSON.parse($("backup").value); if(!s || typeof s!=="object" || !s.train) throw 0; state=normalize(s); persist(); render(); $("bkMsg").textContent="Sicherung geladen."; }
+  catch(e){ $("bkMsg").textContent="Das ist keine gültige Sicherung. Bitte den kompletten Text einfügen."; }
+});
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ refreshPerm().then(()=>{ render(); scheduleSoon(); }); hcSync(true); } });
+
+// ---------- Start
+(async function(){
+  await load();
+  render();
+  if(!P().setup) openSettings(true);
+  if(LN){
+    try{ await LN.createChannel({id:"plan", name:"Tagesplan", description:"Essen, Training, Supplements, Koffeinstopp und Schlafen", importance:4, vibration:true, visibility:1}); }catch(e){}
+    await refreshPerm();
+    if(notifPerm==="prompt" || notifPerm==="prompt-with-rationale"){ try{ await LN.requestPermissions(); }catch(e){} await refreshPerm(); }
+  }
+  render(); scheduleAll();
+  initCloud();
+  await hcCheck(); hcSync(true);
+  setInterval(render, 60000);
+})();
+})();
+</script>
+</body>
+</html>
