@@ -220,6 +220,7 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
     <div class="card">
       <div class="between"><h3>Koffein</h3><span class="mid" id="cafNow"></span></div>
       <div class="note" id="cafInfo"></div>
+      <details class="cafset"><summary>Mein Kaffeevollautomat <span class="note">Stärke und Tasse</span></summary><div id="cafCoffee" style="display:flex;flex-direction:column;gap:6px;margin-top:6px"></div><div class="note" style="margin-top:6px">Stärke 1 ca. 70 mg, 2 ca. 90 mg, 3 ca. 110 mg. Große Tasse etwa 20 % mehr. Grobe Schätzung, je nach Bohne.</div></details>
       <div class="caf" id="cafBtns"></div>
       <ul class="list" id="cafLog"></ul>
     </div>
@@ -487,7 +488,7 @@ const TPL = {
 const CAT = {steps:"steps", suppM:"supp", suppE:"supp", fr:"essen", b1:"essen", b2:"essen", ab:"essen", sn:"essen", sh:"essen", gym:"gym", caf:"koffein", wind:"schlaf", sleep:"schlaf"};
 const CATS = [["essen","Essen"],["gym","Training"],["koffein","Koffeinstopp"],["schlaf","Licht dimmen und Schlafen"],["supp","Supplements morgens und abends"],["steps","Schritte Check in der Freizeit"],["meas","Körpermaße nehmen"],["plan","Abends: Schicht für morgen fehlt"]];
 const HABITS = [["steps","8.000 Schritte geschafft"],["water","Viel Wasser getrunken"],["tv","Ohne Fernseher eingeschlafen"]];
-const CAF_DRINKS = [["Kaffee",100,"Vollautomat"],["Monster 0,5 l",160],["Red Bull 0,25 l",80],["Cola 0,5 l",50]];
+const CAF_DRINKS = [["Kaffee",90],["Monster 0,5 l",160],["Red Bull 0,25 l",80],["Cola 0,5 l",50]];
 const CAF_HALF = 5; // Stunden
 const STEP_GOAL = 8000;
 const SUPP_DEFAULT = [
@@ -853,9 +854,14 @@ function renderCaf(k){
   $("cafInfo").textContent=info;
   const cb=$("cafBtns"); cb.innerHTML="";
   const addCaf=(n,mg,t)=>{ const atBed = bed && bed>new Date() ? cafLevel(bed)+mg*Math.pow(0.5,(bed-t)/3600000/CAF_HALF) : 0; state.caf.unshift({n,mg,t}); state.caf.sort((a,b)=>b.t-a.t); state.caf=state.caf.filter(c=>Date.now()-c.t<48*3600000); persist(); render(); toast(atBed>50 ? n+" eingetragen. Achtung, wird knapp für den Schlaf" : n+" eingetragen um "+hm(new Date(t))+" Uhr"); };
-  CAF_DRINKS.forEach(([n,mg,sub])=>{ const b=el("button"); b.append(document.createTextNode(n)); b.append(el("small",null,(sub?sub+" · ":"")+mg+" mg"));
+  const cf=coffeeSet();
+  CAF_DRINKS.forEach(([n0,mg0,sub])=>{ const isK=n0==="Kaffee", n=isK?coffeeName():n0, mg=isK?coffeeMg():mg0; const b=el("button"); b.append(document.createTextNode(isK?"Kaffee":n)); b.append(el("small",null,(isK?"Stärke "+cf.lvl+(cf.big?" groß":"")+" · ":"")+mg+" mg"));
     b.addEventListener("click",()=>addCaf(n,mg,Date.now())); cb.append(b); });
   const own=el("button"); own.append(document.createTextNode("Eigenes")); own.append(el("small",null,"mit Uhrzeit")); own.addEventListener("click",()=>openCaf(null)); cb.append(own);
+  const cr=$("cafCoffee"); cr.innerHTML="";
+  const sg=el("div","seg"); [1,2,3].forEach(l=>{ const b=el("button",null,"Stärke "+l); b.setAttribute("aria-pressed",cf.lvl===l?"true":"false"); b.addEventListener("click",()=>{ state.coffee={lvl:l,big:cf.big}; persist(); render(); }); sg.append(b); });
+  const sz=el("div","seg"); [[false,"Tasse normal"],[true,"Tasse groß"]].forEach(([v,t])=>{ const b=el("button",null,t); b.setAttribute("aria-pressed",cf.big===v?"true":"false"); b.addEventListener("click",()=>{ state.coffee={lvl:cf.lvl,big:v}; persist(); render(); }); sz.append(b); });
+  cr.append(sg,sz);
   const ul=$("cafLog"); ul.innerHTML="";
   const list=state.caf.filter(c=>Date.now()-c.t<24*3600000).slice(0,8);
   list.forEach(c=>{
@@ -865,20 +871,23 @@ function renderCaf(k){
   });
   if(list.length) ul.append(el("li","note","Später getrunken oder falsche Zeit? Auf Ändern tippen."));
 }
+function coffeeSet(){ const c=state.coffee||{}; return {lvl:[1,2,3].includes(c.lvl)?c.lvl:2, big:!!c.big}; }
+function coffeeMg(){ const c=coffeeSet(); return Math.round([70,90,110][c.lvl-1]*(c.big?1.2:1)); }
+function coffeeName(){ const c=coffeeSet(); return "Kaffee Stärke "+c.lvl+(c.big?" groß":""); }
 function openCaf(c){
   openSheet(p=>{
     sheetHead(p, c ? "Eintrag ändern" : "Koffein eintragen");
     const d0 = c ? new Date(c.t) : new Date();
     const g=el("div","grid2");
-    const [l1,iN]=field("Getränk","text", c?c.n:"Kaffee");
-    const [l2,iM]=field("Koffein in mg","number", c?c.mg:100); iM.className="num"; iM.inputMode="numeric";
+    const [l1,iN]=field("Getränk","text", c?c.n:coffeeName());
+    const [l2,iM]=field("Koffein in mg","number", c?c.mg:coffeeMg()); iM.className="num"; iM.inputMode="numeric";
     g.append(l1,l2); p.append(g);
-    const quick=el("div","row"); CAF_DRINKS.forEach(([n,mg])=>{ const b=el("button","btn small ghost",n); b.addEventListener("click",()=>{ iN.value=n; iM.value=mg; }); quick.append(b); }); p.append(quick);
+    const quick=el("div","row"); CAF_DRINKS.map(([n,mg])=>n==="Kaffee"?[coffeeName(),coffeeMg()]:[n,mg]).forEach(([n,mg])=>{ const b=el("button","btn small ghost",n); b.addEventListener("click",()=>{ iN.value=n; iM.value=mg; }); quick.append(b); }); p.append(quick);
     const g2=el("div","grid2");
     const [l3,iT]=field("Uhrzeit","time", pad(d0.getHours())+":"+pad(d0.getMinutes()));
     const ls=el("label","f","Tag"), sel=el("select"); [["0","Heute"],["1","Gestern"]].forEach(([v,t])=>{ const o=el("option",null,t); o.value=v; sel.append(o); });
     sel.value = keyOf(d0)===calToday() ? "0" : "1"; ls.append(sel); g2.append(l3,ls); p.append(g2);
-    p.append(el("div","note","Kaffee aus dem Vollautomaten hat je Tasse etwa 80 bis 120 mg, ein doppelter eher 150 mg."));
+    p.append(el("div","note","Vollautomat: Stärke 1 ca. 70 mg, 2 ca. 90 mg, 3 ca. 110 mg pro Tasse. Doppelter Kaffee etwa doppelt so viel."));
     const sv=el("button","btn wide", c?"Speichern":"Eintragen");
     sv.addEventListener("click",()=>{
       const mg=Math.round(num(iM.value)), tm=toMin(iT.value), n=iN.value.trim()||"Koffein";
@@ -1071,14 +1080,21 @@ function renderTraining(k, ph){
       const swb=el("button","link","Tauschen"); swb.addEventListener("click",()=>openSwap(u,i,ph.hand)); rr.append(swb);
       right.append(rr); r.append(left,right); list.appendChild(r);
     });
-    const b=el("button","btn","Einheit "+u+" erledigt"); b.addEventListener("click",()=>advance(u,k)); btns.appendChild(b);
+    const nSets=unit.s.reduce((a,[pk,sr])=>{ const r=parseSR(sr); return a+(r ? (w>0&&w<=2?Math.min(2,r.sets):r.sets) : 1); },0);
+    const est=Math.round((10+nSets*3)/5)*5, run=state.train.run && state.train.run.u===u && Date.now()-state.train.run.t<4*3600000 ? state.train.run : null;
+    const tl=el("div","note num"); 
+    if(run){ const m=Math.floor((Date.now()-run.t)/60000); tl.textContent="Läuft seit "+m+" Min. (Start "+hm(new Date(run.t))+" Uhr). Geplant ca. "+est+" Min., fertig gegen "+hm(new Date(run.t+est*60000))+" Uhr."; }
+    else tl.textContent="Dauer ca. "+est+" Min. ("+nSets+" Sätze plus 10 Min. Aufwärmen).";
+    list.appendChild(tl);
+    if(!run){ const st=el("button","btn","Training starten"); st.addEventListener("click",()=>{ state.train.run={u,t:Date.now()}; persist(); render(); toast("Los geht's. Fertig gegen "+hm(new Date(Date.now()+est*60000))+" Uhr"); }); btns.appendChild(st); }
+    const b=el("button","btn"+(run?"":" ghost"),"Einheit "+u+" erledigt"); b.addEventListener("click",()=>advance(u,k)); btns.appendChild(b);
     const s=el("button","btn ghost","Heute Pause"); s.addEventListener("click",()=>{ state.train.log.unshift({d:k,u:"P"}); state.train.log=state.train.log.slice(0,300); persist(); render(); toast("Pause eingetragen, Einheit "+u+" bleibt dran"); }); btns.appendChild(s);
   }
   const wl=$("warmup"); wl.innerHTML=""; WARM.forEach(t=>{ const li=el("li","item nt"); li.append(el("span",null,t)); wl.appendChild(li); });
   const eq=$("equipToggles"); eq.innerHTML=""; EQUIP.forEach(([c,l])=>toggleRow(eq,l,!!state.equip[c],()=>{ state.equip[c]=!state.equip[c]; persist(); render(); }));
   const log=$("trainLog"), items=state.train.log.slice(0,10); log.innerHTML="";
   if(!items.length) log.textContent="Noch nichts eingetragen.";
-  else { const t=el("table"), tb=el("tbody"); items.forEach(e=>{ const tr=el("tr"); tr.append(el("td","num",fmtDate(e.d)), el("td",null,e.u==="P"?"Pause":UNITS[e.u].t)); tb.appendChild(tr); }); t.appendChild(tb); log.appendChild(t); }
+  else { const t=el("table"), tb=el("tbody"); items.forEach(e=>{ const tr=el("tr"); tr.append(el("td","num",fmtDate(e.d)), el("td",null,e.u==="P"?"Pause":UNITS[e.u].t), el("td","r num",e.min?e.min+" Min.":"")); tb.appendChild(tr); }); t.appendChild(tb); log.appendChild(t); }
   $("undoTrain").hidden = !items.length;
   renderProgress();
 }
@@ -1091,10 +1107,12 @@ function openLog(o,sr,k){
     sheetHead(p,o[0]);
     p.append(el("div","note","Ziel: "+sr+". Trag Gewicht und Wiederholungen pro Satz ein."));
     const us=el("div","seg"); const bk=el("button",null,"kg"), bl=el("button",null,"lb");
-    const setU=v=>{ unit=v; bk.setAttribute("aria-pressed",v==="kg"?"true":"false"); bl.setAttribute("aria-pressed",v==="lb"?"true":"false"); }; setU(unit);
-    bk.addEventListener("click",()=>setU("kg")); bl.addEventListener("click",()=>setU("lb")); us.append(bk,bl); p.append(us);
-    const rows=[]; const box=el("div"); box.style.display="flex"; box.style.flexDirection="column"; box.style.gap="8px";
-    const hdr=el("div","setrow"); hdr.append(el("span","label","#"), el("span","label","Gewicht"), el("span","label","Wdh")); box.append(hdr);
+    const rows=[];
+    const setU=(v,cv)=>{ if(cv && v!==unit){ rows.forEach(([iw])=>{ const x=num(iw.value); if(x>0){ const y=conv(x,unit,v); iw.value = v==="lb" ? Math.round(y) : Math.round(y*2)/2; } }); toast(v==="lb" ? "Auf lb umgerechnet" : "Auf kg umgerechnet"); }
+      unit=v; bk.setAttribute("aria-pressed",v==="kg"?"true":"false"); bl.setAttribute("aria-pressed",v==="lb"?"true":"false"); const hl=p.querySelector(".wlab"); if(hl) hl.textContent="Gewicht in "+v; }; setU(unit);
+    bk.addEventListener("click",()=>setU("kg",true)); bl.addEventListener("click",()=>setU("lb",true)); us.append(bk,bl); p.append(us);
+    const box=el("div"); box.style.display="flex"; box.style.flexDirection="column"; box.style.gap="8px";
+    const hdr=el("div","setrow"); hdr.append(el("span","label","#"), el("span","label wlab","Gewicht in "+unit), el("span","label","Wdh")); box.append(hdr);
     const addRow=(wv,rv)=>{ const row=el("div","setrow"); const n=el("span","n",String(rows.length+1)); const iw=el("input","num"); iw.type="number"; iw.inputMode="decimal"; iw.step="0.5"; iw.value=wv!=null && !isNaN(wv)?wv:""; const ir=el("input","num"); ir.type="number"; ir.inputMode="numeric"; ir.value=rv!=null?rv:""; row.append(n,iw,ir); box.append(row); rows.push([iw,ir]); };
     const nSets = doneToday ? doneToday.s.length : r.sets;
     for(let i=0;i<nSets;i++) addRow(doneToday ? doneToday.s[i][0] : (startW[i]!=null?startW[i]:startW[0]), doneToday ? doneToday.s[i][1] : null);
@@ -1146,10 +1164,11 @@ function openSwap(u,i,hand){
   });
 }
 function advance(u,k){
-  state.train.log.unshift({d:k,u,adv:true}); state.train.log=state.train.log.slice(0,300);
+  const run=state.train.run, e={d:k,u,adv:true}; if(run && run.u===u && Date.now()-run.t<4*3600000) e.min=Math.round((Date.now()-run.t)/60000); state.train.run=null;
+  state.train.log.unshift(e); state.train.log=state.train.log.slice(0,300);
   state.train.idx=(state.train.idx+1)%SEQ.length;
   const sh=state.shift[k]; if(u!=="P" && sh){ const i=TPL[sh].findIndex(x=>x[2]==="gym"); dayChecks(k)["gym@"+i]=true; }
-  persist(); render(); toast(u==="P"?"Pause erledigt":"Einheit "+u+" erledigt. Stark.");
+  persist(); render(); toast(u==="P"?"Pause erledigt":"Einheit "+u+" erledigt"+(e.min?" in "+e.min+" Min.":"")+". Stark.");
 }
 
 // ---------- Essen
@@ -1480,6 +1499,20 @@ let hcReadAll = async function(type, from, to){
   return out;
 }
 const tKey = t => keyOf(new Date(t));
+async function hcPerms(){
+  if(!HC) return [];
+  try{ const g=await HC.checkHealthPermissions({read:HC_READ, write:[], history:true}); hcInfo.granted=(g.grantedPermissions||[]).map(x=>String(x).split(".").pop()); hcInfo.permErr=null; }
+  catch(e){ hcInfo.granted=null; hcInfo.permErr=String(e && (e.message||e)).slice(0,160); }
+  if(hcInfo.granted && hcInfo.granted.length && !state.hc.on){ state.hc.on=true; persist(); }
+  return hcInfo.granted||[];
+}
+async function hcSyncNow(){
+  if(!HC){ toast("Abgleichen geht nur in der App auf dem Handy"); return; }
+  toast("Suche Daten …"); await hcCheck(); const g=await hcPerms();
+  if(!g.length){ render(); toast("Noch keine Freigabe, öffne jetzt die Freigaben"); await hcConnect(true); return; }
+  await hcSync(false);
+  toast(state.hc.got && state.hc.got.length ? "Abgeglichen: "+state.hc.got.join(", ") : "Verbunden, aber keine Daten gefunden. Siehe Technische Infos");
+}
 async function hcSync(quiet){
   if(!HC || !state.hc.on || hcBusy) return;
   hcBusy=true; const got=[], now=new Date();
@@ -1524,8 +1557,10 @@ function renderVitals(){
 }
 function renderHC(){
   const on=state.hc.on;
-  $("hcPill").textContent = on ? "verbunden" : "nicht verbunden"; $("hcConnect").textContent = on ? "Freigaben ändern" : "Verbinden";
-  $("hcSync").hidden=!on || !HC; $("hcSettings").hidden = !HC;
+  const gr=hcInfo.granted;
+  $("hcPill").textContent = on && (!gr || gr.length) ? "verbunden" : gr && !gr.length ? "keine Freigabe" : (hcAvail==="NotSupported"||hcAvail==="Fehler") ? "Problem" : "nicht verbunden";
+  $("hcConnect").textContent = on ? "Freigaben ändern" : "Verbinden";
+  $("hcSync").hidden=!HC; $("hcSettings").hidden = !HC;
   let t="Über Health Connect holt sich die App Gewicht und Körperfett von deiner Waage sowie Schritte und Schlaf von deiner Uhr.";
   if(on && state.hc.last){ const d=new Date(state.hc.last); t="Zuletzt abgeglichen "+d.toLocaleDateString("de-DE")+" "+hm(d)+". Gefunden: "+((state.hc.got&&state.hc.got.length)? state.hc.got.join(", ") : "noch keine Daten. Prüfe, ob Garmin und Renpho an Health Connect senden")+"."; }
   if(hcAvail==="NotInstalled") t="Health Connect muss installiert oder aktualisiert werden. Ab Android 14 ist es eingebaut, sonst gibt es die App im Play Store.";
@@ -1536,7 +1571,8 @@ function renderHC(){
   const dg=state.hc.diag, box=$("hcDiag"); box.innerHTML="";
   const base=[["Läuft als", HC ? "App auf dem Handy" : (isNative ? "App ohne Health Connect Modul" : "Browser")],["Android", androidVer()||"nicht erkannt"],["Health Connect Status", HC ? String(hcAvail==null?"noch nicht geprüft":hcAvail) : "im Browser nicht verfügbar"]];
   if(hcInfo.checkErr) base.push(["Prüfung Fehler",hcInfo.checkErr]);
-  if(hcInfo.req) base.push(["Letzte Freigabe",hcInfo.req]);
+  if(HC) base.push(["Freigaben jetzt", hcInfo.granted ? (hcInfo.granted.length ? hcInfo.granted.join(", ") : "keine") : (hcInfo.permErr ? "Fehler: "+hcInfo.permErr : "noch nicht geprüft")]);
+  if(hcInfo.req) base.push(["Letzte Anfrage",hcInfo.req]);
   if(hcInfo.reqErr) base.push(["Freigabe Fehler",hcInfo.reqErr]);
   { const tb=el("table"), body=el("tbody"); base.forEach(([a,b])=>{ const tr=el("tr"); tr.append(el("td",null,a), el("td","r macros",b)); body.append(tr); }); tb.append(body); box.append(tb); }
   if(!dg && HC) box.append(el("div","note","Nach dem ersten Abgleich stehen hier auch die gefundenen Daten je Art."));
@@ -1556,7 +1592,7 @@ function renderHC(){
 }
 $("hcConnect").addEventListener("click", ()=>hcConnect(false));
 $("hcForce").addEventListener("click", ()=>hcConnect(true));
-$("hcSync").addEventListener("click", ()=>hcSync(false));
+$("hcSync").addEventListener("click", hcSyncNow);
 $("hcSettings").addEventListener("click", async ()=>{ try{ await HC.openHealthConnectSetting(); }catch(e){ toast("Konnte Health Connect nicht öffnen"); } });
 
 // ---------- Konto und Sync (Firebase)
@@ -1722,7 +1758,7 @@ document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ refresh
   }
   render(); scheduleAll();
   initCloud();
-  await hcCheck(); render(); hcSync(true);
+  await hcCheck(); await hcPerms(); render(); hcSync(true);
   setInterval(render, 60000);
 })();
 })();
