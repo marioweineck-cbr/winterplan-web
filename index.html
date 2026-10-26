@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Winterplan</title>
 <style>
 /* Layout: App mit festem Kopf, Inhalt in ruhigen Karten, Reiterleiste unten wie bei nativen Android Apps. */
@@ -320,6 +320,21 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
 .fit.ok{background:color-mix(in srgb,var(--done) 16%,transparent);color:var(--done)}
 .fit.no{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
 .ff.top .nm::before{content:"★ ";color:var(--accent)}
+.warnTxt{color:var(--warn);font-weight:700}
+.enter .bar-in{transform-origin:bottom;transform-box:fill-box;animation:barUp .6s var(--ease) both}
+@keyframes barUp{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+
+.revCard{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 16%,var(--panel)),var(--panel));animation:pop .5s var(--ease)}
+.rev{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.revT{display:flex;flex-direction:column;gap:2px;padding:12px;border-radius:var(--rs);background:var(--bg);position:relative}
+.revT .ic{position:absolute;right:10px;top:10px}
+.revT.good{background:color-mix(in srgb,var(--done) 12%,var(--bg))}.revT.bad{background:color-mix(in srgb,var(--warn) 10%,var(--bg))}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pslot{aspect-ratio:3/4;border-radius:var(--rs);border:2px dashed var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;position:relative;overflow:hidden;font-size:13px;font-weight:700;color:var(--muted)}
+.pslot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+.pslot.has img{display:block}.pslot.has{border-style:solid;border-color:var(--done)}
+.pslot.has span{position:absolute;bottom:6px;background:rgba(0,0,0,.55);color:#fff;padding:2px 8px;border-radius:999px;z-index:1}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:6px}.cmp img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:var(--rs);background:var(--bg)}
 </style>
 </head>
 <body>
@@ -352,6 +367,10 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
       <div class="between"><h3 id="shiftTitle">Schicht heute</h3><span class="note" id="phaseFood"></span></div>
       <div id="shiftPick"></div>
       <div class="row" id="wakeRow"></div>
+    </div>
+    <div class="card revCard" id="reviewCard" hidden>
+      <div class="between"><h3><svg class="hi"><use href="#i-chart"/></svg>Wochenrückblick</h3><button class="btn small" id="reviewOpen">Ansehen</button></div>
+      <div class="note">Deine Woche in Zahlen und was du nächste Woche besser machen kannst.</div>
     </div>
     <div class="card focus" id="nextCard"></div>
     <div class="card" id="vitCard" hidden>
@@ -483,6 +502,10 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
       <button data-v="cart" aria-pressed="false">Einkauf</button>
     </div>
     <div id="f-log" class="wrap">
+      <div class="card" id="balCard" hidden>
+        <h3><svg class="hi"><use href="#i-flame"/></svg>Kalorienbilanz</h3>
+        <div id="balBody" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
       <div class="card">
         <div class="stat4">
           <div><span class="label">kcal</span><span class="mid" id="mK"></span><div class="bar"><i id="bK"></i></div></div>
@@ -515,6 +538,11 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
       <div class="card" id="recipes"></div>
     </div>
     <div id="f-cart" class="wrap" hidden>
+      <div class="card">
+        <h3><svg class="hi"><use href="#i-pill"/></svg>Supplement Vorrat</h3>
+        <ul class="list" id="stockList"></ul>
+        <div class="note">Was in den nächsten 7 Tagen leer wird, steht automatisch auf der Einkaufsliste.</div>
+      </div>
       <div class="card">
         <h3><svg class="hi"><use href="#i-book"/></svg>Was kochst du diese Woche?</h3>
         <div class="note">Anzahl festlegen, die Einkaufsliste rechnet sich automatisch zusammen.</div>
@@ -553,10 +581,20 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
       <div class="note" id="chartNote"></div>
     </div>
     <div class="card">
+      <div class="between"><h3><svg class="hi"><use href="#i-camera"/></svg>Fortschrittsfotos</h3><button class="link" id="reviewOpen2">Wochenrückblick</button></div>
+      <div class="note" id="photoInfo"></div>
+      <div class="row"><button class="btn" id="photoShoot">Fotos machen</button><button class="btn ghost" id="photoCmp">Vergleichen</button></div>
+    </div>
+    <div class="card">
       <div class="between"><h3><svg class="hi"><use href="#i-tape"/></svg>Körpermaße</h3><span class="pill" id="measDue"></span></div>
       <div id="measTable"></div>
       <button class="btn" id="measAdd">Maße eintragen</button>
       <div class="note">Morgens nüchtern, entspannt stehen, Maßband waagerecht. Oberarm angespannt an der dicksten Stelle.</div>
+    </div>
+    <div class="card" id="stepCard" hidden>
+      <div class="between"><h3><svg class="hi"><use href="#i-steps"/></svg>Schritte</h3><span class="pill" id="stepAvg"></span></div>
+      <svg class="chart" id="stepChart" viewBox="0 0 340 140" role="img" aria-label="Schritte der letzten 14 Tage"></svg>
+      <div class="note" id="stepNote"></div>
     </div>
     <div class="card" id="hcCard">
       <div class="between"><h3><svg class="hi"><use href="#i-watch"/></svg>Garmin und Waage</h3><span class="pill" id="hcPill">nicht verbunden</span></div>
@@ -841,9 +879,9 @@ function normalize(s){
   s.hc = s.hc || {on:false, last:null, steps:{}, sleep:{}, fat:null}; s.hc.steps=s.hc.steps||{}; s.hc.sleep=s.hc.sleep||{};
   s.wManual = s.wManual || {};
   s.caf = s.caf || []; s.wake = s.wake || {}; s.meas = s.meas || [];
-  s.lifts = s.lifts || {}; s.customEx = s.customEx || {}; s.srOv = s.srOv || {}; s.exNotes = s.exNotes || {}; s.sick = s.sick || {}; s.ready = s.ready || {};
+  s.lifts = s.lifts || {}; s.customEx = s.customEx || {}; s.srOv = s.srOv || {}; s.exNotes = s.exNotes || {}; s.sick = s.sick || {}; s.ready = s.ready || {}; s.photos = s.photos || [];
   if(s.train.run && !s.train.run.ex) s.train.run = null;
-  s.hc && (s.hc.rhr = s.hc.rhr || {}, s.hc.hrv = s.hc.hrv || {});
+  s.hc && (s.hc.rhr = s.hc.rhr || {}, s.hc.hrv = s.hc.hrv || {}, s.hc.burn = s.hc.burn || {});
   s.supps = s.supps || SUPP_DEFAULT.map(x=>Object.assign({},x));
   s.myRecipes = s.myRecipes || []; s.updatedAt = s.updatedAt || 0;
   if(!s.profile) s.profile = existing ? marioProfile() : {setup:false};
@@ -965,6 +1003,15 @@ async function scheduleAll(){
     });
     if(cats.meas && k===measNextKey()){ const at=new Date(tl[0].at.getTime()+20*60000); if(at>now) list.push({id:(d+2)*100+90, title:"Heute Körpermaße nehmen", body:"Bauch, Brust, Arme, Oberschenkel. Dauert 2 Minuten.", at}); }
   }
+  // Eiweiß Erinnerung vor der letzten Mahlzeit, passend zur Schicht
+  if(cats.essen) [addDays(k0,-1),k0].forEach((k,j)=>{ const sh=state.shift[k]; if(!sh) return; const meals=timeline(k,sh).filter(it=>it.key in MEALS); const last=meals[meals.length-1]; if(!last) return;
+    const at=new Date(last.at.getTime()-45*60000); if(at<=now || at-now>24*3600000) return; const gap=Math.round((P().p||150)-foodSum(k).p); if(gap<25) return;
+    const idea = gap<=35 ? "250 g Magerquark (30 g)" : gap<=55 ? "500 g Magerquark (60 g) oder Skyr 450 g (50 g)" : "Shake (24 g) und 500 g Magerquark (60 g)";
+    list.push({id:95+j, title:"Noch "+gap+" g Eiweiß offen", body:"Zur nächsten Mahlzeit passt: "+idea+".", at}); });
+  // Wochenrückblick Sonntag
+  { let d=k0; while(parseKey(d).getDay()!==0) d=addDays(d,1); const at=parseKey(d); at.setHours(state.shift[d]==="nacht"?16:19,0,0,0); if(at>now) list.push({id:92, title:"Dein Wochenrückblick ist da", body:"Gewicht, Training, Essen und Schlaf der Woche plus Tipps für die nächste.", at}); }
+  // Fotos alle 4 Wochen
+  if(cats.meas){ const due=photoDue(); if(dayDiff(k0,due)>=0 && dayDiff(k0,due)<14){ const sh=state.shift[due]; const at=sh ? new Date(timeline(due,sh)[0].at.getTime()+25*60000) : (()=>{ const x=parseKey(due); x.setHours(9,30,0,0); return x; })(); if(at>now) list.push({id:91, title:"Zeit für Fortschrittsfotos", body:"Vorne, Seite, Rücken. Gleiches Licht wie letztes Mal.", at}); } }
   if(!list.length) return;
   try{ await LN.schedule({notifications: list.map(n=>({id:n.id, title:n.title, body:n.body, channelId:"plan", schedule:{at:n.at, allowWhileIdle:true}}))}); }catch(e){}
 }
@@ -998,11 +1045,12 @@ function render(){
   $("weekLabel").textContent = w===0 ? "Start in "+dayDiff(k, startKey())+" Tagen" : "Woche "+w+" von "+(P().weeks||22);
   $("phasePill").textContent = ph.name + (P().injury ? " · Hand Stufe "+ph.hand : "");
   $("pageTitle").textContent = TITLES[tab];
-  if(tab==="heute"){ renderHeute(k, ph); renderVitals(); renderCaf(k); renderSleepCalc(); }
+  if(tab==="koerper") renderSteps();
+  if(tab==="heute"){ renderHeute(k, ph); renderVitals(); renderCaf(k); renderSleepCalc(); $("reviewCard").hidden=!reviewDue(); }
   if(tab==="woche") renderWoche();
   if(tab==="training") renderTraining(k, ph);
   if(tab==="essen") renderEssen(k);
-  if(tab==="koerper"){ renderGewicht(calToday()); renderMeas(); renderHC(); }
+  if(tab==="koerper"){ renderGewicht(calToday()); renderMeas(); renderHC(); renderPhotos(); }
 }
 function renderHeute(k, ph){
   const sh = state.shift[k];
@@ -1379,7 +1427,7 @@ function renderTraining(k, ph){
   const eq=$("equipToggles"); eq.innerHTML=""; EQUIP.forEach(([c,l])=>toggleRow(eq,l,!!state.equip[c],()=>{ state.equip[c]=!state.equip[c]; persist(); render(); }));
   const log=$("trainLog"), items=state.train.log.slice(0,12); log.innerHTML="";
   if(!items.length) log.textContent="Noch nichts eingetragen.";
-  else { const t=el("table"), tb=el("tbody"); items.forEach(e=>{ const tr=el("tr"); tr.append(el("td","num",fmtDate(e.d)), el("td",null,e.u==="P"?"Pause":UNITS[e.u].t), el("td","r num",[e.min?e.min+" Min.":"", e.rpe?"RPE "+e.rpe:""].filter(Boolean).join(" · "))); tb.appendChild(tr); }); t.appendChild(tb); log.appendChild(t); }
+  else { const t=el("table"), tb=el("tbody"); items.forEach(e=>{ const tr=el("tr"); tr.append(el("td","num",fmtDate(e.d)), el("td",null,e.u==="P"?"Pause":UNITS[e.u].t), el("td","r num",[e.min?e.min+" Min.":"", e.hr?"♥ "+e.hr.avg+"/"+e.hr.max:"", e.rpe?"RPE "+e.rpe:""].filter(Boolean).join(" · "))); tb.appendChild(tr); }); t.appendChild(tb); log.appendChild(t); }
   $("undoTrain").hidden = !items.length;
   renderProgress(); renderMuscles(); renderActs();
 }
@@ -1631,7 +1679,7 @@ function saveLive(run, mins, rpe){
     sum.push({n:x.name, txt:work.map(([w,r])=>fmtW(w)+"×"+r).join(" ")+" "+x.unit, ch: prevS ? (nowS/prevS-1)*100 : null, pr:isPR});
   });
   state.train.run=null; restNotify({rest:null});
-  advance(run.u, run.d, {min:mins, rpe:rpe||undefined, ex:names, vol:Math.round(vol), sets});
+  advance(run.u, run.d, {min:mins, rpe:rpe||undefined, ex:names, vol:Math.round(vol), sets, ts:run.t});
   closeLive();
   openSheet(p=>{
     sheetHead(p,"Stark, Einheit "+run.u+" geschafft");
@@ -1639,7 +1687,7 @@ function saveLive(run, mins, rpe){
     if(prs) p.append(el("div","alert ok prbox","🏆 "+prs+" neue"+(prs===1?"r Rekord":" Rekorde")+" heute!"));
     const tb=el("table"), body=el("tbody");
     sum.forEach(s=>{ const tr=el("tr"); const a=el("td"); a.append(el("div",null,s.n), el("div","note num",s.txt)); const c=el("td","r num"+(s.ch>0.5?" up":"")); c.textContent = s.pr ? "🏆 Rekord" : s.ch==null ? "neu" : (s.ch>=0?"+":"")+String(Math.round(s.ch*10)/10).replace(".",",")+" %"; tr.append(a,c); body.append(tr); });
-    tb.append(body); p.append(tb, el("div","note","Prozent: geschätzte Maximalkraft im Vergleich zum letzten Mal."));
+    tb.append(body); p.append(tb, el("div","note","Prozent: geschätzte Maximalkraft im Vergleich zum letzten Mal."+(HC&&state.hc.on?" Dein Puls von der Uhr erscheint nach dem nächsten Abgleich unter Letzte Einheiten.":"")));
     const b=el("button","btn wide","Fertig"); b.addEventListener("click",closeSheet); p.append(b);
   });
 }
@@ -1650,20 +1698,21 @@ function renderEssen(k){
   $("f-log").hidden = foodView!=="log"; $("f-rez").hidden = foodView!=="rez"; $("f-cart").hidden = foodView!=="cart";
   if(foodView==="log") renderLog(k);
   if(foodView==="rez") renderRecipes();
-  if(foodView==="cart") renderCart();
+  if(foodView==="cart"){ renderStock(); renderCart(); }
 }
 function freeCount(k){
   const w=planWeek(k); let n=0;
-  Object.keys(state.food).forEach(d=>{ const inW = w>0 ? (d>=weekRange(w)[0] && d<=weekRange(w)[1]) : (dayDiff(d,k)>=0 && dayDiff(d,k)<7); if(inW) n+=state.food[d].filter(f=>f.free).length; });
+  Object.keys(state.food).forEach(d=>{ const inW = w>0 ? (d>=weekRange(w)[0] && d<=weekRange(w)[1]) : (dayDiff(d,k)>=0 && dayDiff(d,k)<7); if(inW) n+=state.food[d].filter(f=>f.free||(f.out&&f.kcal>=450)).length; });
   return n;
 }
 const macroTxt = f => de(f.kcal)+" kcal · P "+fmtAmt(f.p||0)+" · K "+fmtAmt(f.c||0)+" · F "+fmtAmt(f.f||0);
 function renderLog(k){
   const list=dayFood(k), T={kcal:0,p:0,c:0,f:0}; list.forEach(f=>{ T.kcal+=f.kcal||0; T.p+=f.p||0; T.c+=f.c||0; T.f+=f.f||0; });
-  const G={kcal:P().kcal||2400, p:P().p||150, c:P().c||250, f:P().f||70};
+  const G={kcal:goalKcal(), p:P().p||150, c:P().c||250, f:P().f||70};
+  renderBalance();
   [["K","kcal",""],["P","p"," g"],["C","c"," g"],["F","f"," g"]].forEach(([id,key,u])=>{ $("m"+id).textContent=de(T[key])+u; $("b"+id).style.width=Math.min(100,T[key]/G[key]*100)+"%"; });
   $("macroLeft").textContent = "Ziel "+de(G.kcal)+" kcal · P "+G.p+" · K "+G.c+" · F "+G.f+". Noch "+de(Math.max(0,G.kcal-T.kcal))+" kcal und "+de(Math.max(0,G.p-T.p))+" g Eiweiß.";
-  $("freeInfo").textContent="Freie Mahlzeiten: "+freeCount(k)+" von 2";
+  const fc=freeCount(k); $("freeInfo").textContent=list.length+" Einträge · Freie Mahlzeiten diese Woche "+fc+" von 2"; $("freeInfo").classList.toggle("warnTxt", fc>2);
   const q=$("quick"); q.innerHTML="";
   QUICK.concat((state.myRecipes||[]).map(r=>({n:r.n, kcal:r.kcal, p:r.p, c:r.c, f:r.f}))).forEach(f=>{ const b=el("button"); b.append(document.createTextNode(f.n)); b.append(el("small",null,f.kcal+" kcal · "+f.p+" g P"));
     b.addEventListener("click",()=>addFood(k,{n:f.n,kcal:f.kcal,p:f.p,c:f.c,f:f.f,free:f.free})); q.appendChild(b); });
@@ -1897,6 +1946,7 @@ function cartItems(){
   allRecipes().forEach(r=>{ const c=state.cart.plan[r.id]||0; if(!c) return; r.z.forEach(([a,u,n,cat])=>{ const key=n+"|"+u; const e=map.get(key)||{n,u,a:0,cat}; e.a+=a*c; map.set(key,e); }); });
   BASICS.forEach(([n,cat])=>map.set(n+"|", {n,u:"",a:0,cat}));
   state.cart.custom.forEach(n=>map.set(n+"|c", {n,u:"",a:0,cat:"Eigenes",custom:true}));
+  state.supps.filter(s=>s.on && suppLeft(s)!=null && suppLeft(s)<=7).forEach(s=>map.set(s.n+"|s", {n:s.n+" nachkaufen ("+(suppLeft(s)?"noch "+suppLeft(s)+" Tage":"leer")+")",u:"",a:0,cat:"Vorrat"}));
   return Array.from(map.entries()).map(([key,e])=>Object.assign({key},e));
 }
 function renderCart(){
@@ -1927,6 +1977,149 @@ function renderCart(){
   });
 }
 
+
+// ---------- Kalorienbilanz, Plateau, Wochenrückblick, Fotos, Vorrat
+function foodSum(d){ const T={kcal:0,p:0,c:0,f:0,n:0}; (state.food[d]||[]).forEach(f=>{ T.kcal+=f.kcal||0; T.p+=f.p||0; T.c+=f.c||0; T.f+=f.f||0; T.n++; }); return T; }
+function wAvg(fromAgo,toAgo){ const k=calToday(); const v=Object.entries(state.weights).filter(([d])=>{ const x=dayDiff(d,k); return x>=fromAgo && x<toAgo; }).map(e=>Number(e[1])).filter(isFinite); return v.length>=3 ? v.reduce((a,b)=>a+b,0)/v.length : null; }
+function exKcalToday(){ const k=calToday(); return (state.hc.acts||[]).filter(a=>keyOf(new Date(a.s))===k).reduce((s,a)=>s+(a.kcal||0),0); }
+function goalKcal(){ const base=P().kcal||2400; return P().addEx ? base+Math.round(exKcalToday()*0.5) : base; }
+// Echter Verbrauch aus Essen und Gewichtsverlauf (wie MacroFactor): Verbrauch = Schnitt gegessen minus Gewichtsänderung mal 7700 kcal pro kg
+function tdeeEstimate(){
+  const k=calToday(), days=[]; for(let i=1;i<=14;i++){ const d=addDays(k,-i), T=foodSum(d); if(T.n>=2 && T.kcal>800) days.push(T.kcal); }
+  const now=wAvg(0,7), then=wAvg(7,14);
+  if(days.length<10 || now==null || then==null) return null;
+  const intake=days.reduce((a,b)=>a+b,0)/days.length, perDay=(now-then)/7;
+  return {tdee:Math.round(intake - perDay*7700), intake:Math.round(intake), kgWeek:Math.round((now-then)*100)/100, n:days.length};
+}
+function burnAvg(n){ const k=calToday(), v=[]; for(let i=1;i<=n;i++){ const b=(state.hc.burn||{})[addDays(k,-i)]; if(b) v.push(b); } return v.length>=3 ? Math.round(v.reduce((a,b)=>a+b,0)/v.length) : null; }
+function renderBalance(){
+  const box=$("balBody"); box.innerHTML=""; const k=calToday(), y=addDays(k,-1), burn=state.hc.burn||{};
+  const has=Object.keys(burn).length>0, est=tdeeEstimate(), bA=burnAvg(7);
+  $("balCard").hidden = !has && !est;
+  if($("balCard").hidden) return;
+  const rows=[];
+  if(burn[y]!=null){ const ate=foodSum(y).kcal; rows.push(["Gestern", de(ate)+" gegessen · "+de(burn[y])+" verbrannt", ate-burn[y]]); }
+  if(burn[k]!=null) rows.push(["Heute bisher", de(foodSum(k).kcal)+" gegessen · "+de(burn[k])+" verbrannt", null]);
+  if(bA){ const eat=[]; for(let i=1;i<=7;i++){ const T=foodSum(addDays(k,-i)); if(T.n>=2) eat.push(T.kcal); } if(eat.length>=3){ const ea=eat.reduce((a,b)=>a+b,0)/eat.length; rows.push(["Schnitt 7 Tage", de(ea)+" gegessen · "+de(bA)+" verbrannt", ea-bA]); } }
+  const t=el("table"), tb=el("tbody"); rows.forEach(([a,b,c])=>{ const tr=el("tr"); const td=el("td"); td.append(el("div",null,a), el("div","note num",b)); tr.append(td, el("td","r num"+(c!=null?(c<0?" up":" warnTxt"):""), c==null?"":(c>0?"+":"")+de(c)+" kcal")); tb.append(tr); }); t.append(tb); if(rows.length) box.append(t);
+  if(est){
+    const goal=P().goal, cur=P().kcal||2400, raw = goal==="cut" ? est.tdee-500 : goal==="bulk" ? est.tdee+250 : est.tdee, sug = Math.round(Math.max(1600, Math.min(cur+300, Math.max(cur-300, raw)))/10)*10;
+    box.append(el("div","note","Dein echter Verbrauch aus den letzten "+est.n+" Tagen (Essen und Gewichtsverlauf): ca. "+de(est.tdee)+" kcal. Gewicht: "+(est.kgWeek>0?"+":"")+String(est.kgWeek).replace(".",",")+" kg pro Woche."+(bA?" Die Uhr sagt "+de(bA)+" kcal.":"")));
+    if(Math.abs(sug-cur)>=100){ const b=el("button","btn small","Ziel auf "+de(sug)+" kcal setzen"); b.addEventListener("click",()=>setKcal(sug)); box.append(b); }
+  } else box.append(el("div","note","Nach ca. 2 Wochen mit Essen und Gewicht rechnet die App deinen echten Verbrauch aus und schlägt ein neues Ziel vor. Die Uhr schätzt den Verbrauch nur grob."));
+  const tg=el("div"); toggleRow(tg,"Training einrechnen", !!P().addEx, ()=>{ P().addEx=!P().addEx; persist(); render(); }, "Die Hälfte der Kalorien aus Trainings von der Uhr kommt aufs Tagesziel"+(exKcalToday()?" (heute +"+de(exKcalToday()*0.5)+")":"")); box.append(tg);
+}
+function setKcal(kcal){
+  const p=P(), diff=kcal-(p.kcal||2400); p.kcal=Math.round(kcal); p.c=Math.max(80, Math.round((p.c||250)+diff/4)); persist(); render(); toast("Neues Ziel: "+de(p.kcal)+" kcal, Kohlenhydrate "+p.c+" g");
+}
+function plateauInfo(){
+  if(P().goal!=="cut" || planWeek(calToday())<3) return null;
+  const a=wAvg(0,7), b=wAvg(7,14), c=wAvg(14,21); if(a==null||b==null||c==null) return null;
+  return (b-a)<0.15 && (c-b)<0.15 ? {a,b,c} : null;
+}
+
+// Wochenrückblick
+function weekStats(off){
+  const k=calToday(), from=addDays(k,-6-off), to=addDays(k,-off), inR=d=>d>=from&&d<=to, days=[]; for(let i=0;i<7;i++) days.push(addDays(from,i));
+  const train=state.train.log.filter(e=>e.u!=="P"&&inR(e.d)), food=days.map(foodSum).filter(T=>T.n>=2);
+  const steps=days.map(d=>state.hc.steps[d]).filter(v=>v!=null), sleep=days.map(d=>state.hc.sleep[d]).filter(v=>v!=null);
+  let prs=0, vol=0; train.forEach(e=>{ vol+=e.vol||0; });
+  Object.entries(state.lifts).forEach(([n,L])=>{ const o=exByName(n).o; L.filter(s=>inR(s.d)).forEach(s=>{ const best=Math.max(0,...L.filter(x=>x.d<s.d).map(x=>{ const v=sessBest(x,o); return repsMode(o)?v:conv(v,x.u,"kg"); })), now=repsMode(o)?sessBest(s,o):conv(sessBest(s,o),s.u,"kg"); if(best>0&&now>best*1.001) prs++; }); });
+  const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+  return {from,to,train:train.length,vol,prs, kcal:avg(food.map(T=>T.kcal)), p:avg(food.map(T=>T.p)), foodDays:food.length, steps:avg(steps), sleep:avg(sleep), w:wAvg(off,off+7), burn:avg(days.map(d=>(state.hc.burn||{})[d]).filter(Boolean))};
+}
+function openReview(){
+  const s=weekStats(0), p=weekStats(7), G=P();
+  openSheet(q=>{
+    sheetHead(q,"Dein Wochenrückblick");
+    q.append(el("div","note",fmtDate(s.from)+" bis "+fmtDate(s.to)));
+    const tiles=el("div","rev");
+    const tile=(ic,lab,val,sub,good)=>{ const t=el("div","revT"+(good===true?" good":good===false?" bad":"")); t.append(icoEl(ic), el("span","label",lab), el("span","big",val)); if(sub) t.append(el("span","note",sub)); tiles.append(t); };
+    tile("scale","Gewicht", s.w?kg(s.w)+" kg":"-", s.w&&p.w ? ((s.w-p.w>0?"+":"")+kg(s.w-p.w)+" kg zur Vorwoche") : "", s.w&&p.w ? (G.goal==="cut" ? s.w<p.w : s.w>=p.w) : null);
+    tile("dumbbell","Trainings", s.train+" von 5", s.prs?"🏆 "+s.prs+" Rekord"+(s.prs>1?"e":""):"", s.train>=4);
+    tile("bowl","kcal Schnitt", s.kcal?de(s.kcal):"-", "Ziel "+de(G.kcal||2400)+(s.foodDays<7?" · "+s.foodDays+" Tage erfasst":""), s.kcal? Math.abs(s.kcal-(G.kcal||2400))<200 : null);
+    tile("shake","Eiweiß Schnitt", s.p?de(s.p)+" g":"-", "Ziel "+(G.p||150)+" g", s.p? s.p>=(G.p||150)*0.9 : null);
+    tile("steps","Schritte Schnitt", s.steps?de(s.steps):"-", p.steps?"Vorwoche "+de(p.steps):"", s.steps? s.steps>=STEP_GOAL : null);
+    tile("moon","Schlaf Schnitt", s.sleep?fmtMin(s.sleep):"-", "Ziel "+(G.sleepGoal||8)+" Std.", s.sleep? s.sleep>=(G.sleepGoal||8)*60-30 : null);
+    q.append(tiles);
+    const tips=[];
+    if(s.p && s.p<(G.p||150)*0.9) tips.push("Eiweiß war zu niedrig. Plan dir jeden Abend Quark oder Skyr ein, das sind schnell 30 bis 50 g.");
+    if(s.train<4) tips.push("Nur "+s.train+" Training"+(s.train===1?"":"s")+". Trag dir die Gym Zeiten für nächste Woche gleich als Schicht ein, dann kommen die Erinnerungen.");
+    if(s.sleep && s.sleep<(G.sleepGoal||8)*60-30) tips.push("Zu wenig Schlaf. Licht dimmen und Handy weg zur Zeit aus dem Tagesablauf, das bringt am meisten.");
+    if(s.steps && s.steps<STEP_GOAL) tips.push("Schritte unter Ziel. 20 Minuten Spaziergang nach dem Essen bringt fast 2.500 Schritte.");
+    if(plateauInfo()) tips.push("Gewicht steht seit 2 Wochen. 150 kcal weniger am Tag oder 2.000 Schritte mehr.");
+    if(s.foodDays<5) tips.push("Nur "+s.foodDays+" Tage Essen erfasst. Je vollständiger, desto genauer wird die Kalorienbilanz.");
+    if(!tips.length) tips.push("Starke Woche, alles im Plan. Genau so weitermachen!");
+    q.append(el("div","cat","Für nächste Woche"));
+    tips.slice(0,3).forEach(t=>q.append(el("div","alert",t)));
+    const b=el("button","btn wide","Alles klar"); b.addEventListener("click",()=>{ state.reviewSeen=weekKeyOf(calToday()); persist(); closeSheet(); render(); }); q.append(b);
+  });
+}
+function weekKeyOf(k){ return addDays(k, -((parseKey(k).getDay()+6)%7)); }
+function reviewDue(){ const dow=parseKey(calToday()).getDay(); if(dow!==0 && dow!==1) return false; const wk=dow===1?addDays(weekKeyOf(calToday()),-7):weekKeyOf(calToday()); return state.reviewSeen!==wk && state.reviewSeen!==weekKeyOf(calToday()) && state.train.log.length>0; }
+
+// Fotos (nur auf diesem Gerät, in IndexedDB)
+const POSES=[["front","Vorne"],["side","Seite"],["back","Rücken"]];
+let idbP=null;
+function idb(){ if(idbP) return idbP; idbP=new Promise((res,rej)=>{ try{ const r=indexedDB.open("winterplan",1); r.onupgradeneeded=()=>r.result.createObjectStore("photos"); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }catch(e){ rej(e); } }); return idbP; }
+async function photoPut(key,val){ const db=await idb(); return new Promise((res,rej)=>{ const tx=db.transaction("photos","readwrite"); tx.objectStore("photos").put(val,key); tx.oncomplete=res; tx.onerror=()=>rej(tx.error); }); }
+async function photoGet(key){ const db=await idb(); return new Promise((res)=>{ const r=db.transaction("photos").objectStore("photos").get(key); r.onsuccess=()=>res(r.result||null); r.onerror=()=>res(null); }); }
+async function photoDel(key){ const db=await idb(); return new Promise((res)=>{ const tx=db.transaction("photos","readwrite"); tx.objectStore("photos").delete(key); tx.oncomplete=res; tx.onerror=res; }); }
+function shrink(file){ return new Promise((res,rej)=>{ const img=new Image(), url=URL.createObjectURL(file); img.onload=()=>{ const s=Math.min(1, 1000/Math.max(img.width,img.height)), c=document.createElement("canvas"); c.width=Math.round(img.width*s); c.height=Math.round(img.height*s); c.getContext("2d").drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url); res(c.toDataURL("image/jpeg",0.78)); }; img.onerror=rej; img.src=url; }); }
+function photoDue(){ const L=state.photos||[]; return !L.length ? calToday() : addDays(L[L.length-1], 28); }
+function renderPhotos(){
+  const L=state.photos||[], box=$("photoInfo"); box.textContent = !L.length ? "Noch keine Fotos. Mach am Start einen Satz, dann alle 4 Wochen." : L.length+" Termin"+(L.length>1?"e":"")+", zuletzt "+fmtDate(L[L.length-1])+". Nächste Fotos "+(dayDiff(calToday(),photoDue())<=0?"heute fällig":"am "+fmtDate(photoDue()))+".";
+  $("photoCmp").hidden = L.length<1;
+}
+function openPhotoShoot(){
+  const d=calToday();
+  openSheet(p=>{
+    sheetHead(p,"Fotos "+fmtDate(d));
+    p.append(el("div","note","Gleiches Licht, gleiche Stelle, morgens nüchtern. Die Bilder bleiben nur auf diesem Handy und werden nicht hochgeladen."));
+    const g=el("div","pgrid");
+    POSES.forEach(([key,lab])=>{ const c=el("label","pslot"); const im=el("img"); im.alt=lab; const sp=el("span",null,lab); const inp=el("input"); inp.type="file"; inp.accept="image/*"; inp.setAttribute("capture","environment"); inp.hidden=true;
+      photoGet(d+"|"+key).then(v=>{ if(v){ im.src=v; c.classList.add("has"); } });
+      inp.addEventListener("change",async()=>{ const f=inp.files&&inp.files[0]; if(!f) return; try{ const v=await shrink(f); await photoPut(d+"|"+key,v); im.src=v; c.classList.add("has"); state.photos=Array.from(new Set((state.photos||[]).concat([d]))).sort(); persist(); renderPhotos(); }catch(e){ toast("Foto ging nicht"); } });
+      c.append(im, icoEl("camera"), sp, inp); g.append(c); });
+    p.append(g);
+    const b=el("button","btn wide","Fertig"); b.addEventListener("click",closeSheet); p.append(b);
+  });
+}
+function openPhotoCompare(){
+  const L=(state.photos||[]).slice(); if(!L.length) return;
+  let a=L[0], b=L[L.length-1], pose="front";
+  openSheet(p=>{
+    sheetHead(p,"Vorher und Nachher");
+    const g2=el("div","grid2"); const mkSel=(lab,val,cb)=>{ const l=el("label","f",lab), s=el("select"); L.forEach(d=>{ const o=el("option",null,fmtDate(d)); o.value=d; s.append(o); }); s.value=val; s.addEventListener("change",()=>{ cb(s.value); draw(); }); l.append(s); return l; };
+    g2.append(mkSel("Vorher",a,v=>a=v), mkSel("Nachher",b,v=>b=v)); p.append(g2);
+    const seg=el("div","seg"); POSES.forEach(([k,l])=>{ const bt=el("button",null,l); bt.addEventListener("click",()=>{ pose=k; draw(); }); bt.dataset.k=k; seg.append(bt); }); p.append(seg);
+    const row=el("div","cmp"); const i1=el("img"), i2=el("img"); row.append(i1,i2); p.append(row);
+    const wa=el("div","note"); p.append(wa);
+    const draw=async()=>{ seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.k===pose?"true":"false")); const [x,y]=await Promise.all([photoGet(a+"|"+pose),photoGet(b+"|"+pose)]); i1.src=x||""; i2.src=y||""; i1.style.visibility=x?"visible":"hidden"; i2.style.visibility=y?"visible":"hidden";
+      const wa1=state.weights[a], wb=state.weights[b]; wa.textContent=(wa1&&wb?"Gewicht "+kg(wa1)+" → "+kg(wb)+" kg · ":"")+dayDiff(a,b)+" Tage dazwischen"+(!x||!y?". Auf diesem Handy fehlt ein Bild.":""); };
+    draw();
+    const del=el("button","link warnlink","Fotos vom "+fmtDate(b)+" löschen"); let sure=false; del.addEventListener("click",async()=>{ if(!sure){ sure=true; del.textContent="Wirklich löschen? Nochmal tippen"; return; } for(const [k] of POSES) await photoDel(b+"|"+k); state.photos=(state.photos||[]).filter(d=>d!==b); persist(); closeSheet(); render(); }); p.append(del);
+  });
+}
+
+// Supplement Vorrat
+function suppLeft(s){ if(!s.stock) return null; return Math.max(0, s.stock.n - dayDiff(s.stock.d, calToday())); }
+function renderStock(){
+  const ul=$("stockList"); ul.innerHTML="";
+  state.supps.filter(s=>s.on).forEach(s=>{ const left=suppLeft(s), li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span",null,s.n));
+    tx.append(el("div","sub"+(left!=null&&left<=7?" warnTxt":""), left==null ? "Vorrat noch nicht eingetragen" : left===0 ? "leer, nachkaufen" : "noch ca. "+left+" Tag"+(left===1?"":"e")+" (bis "+fmtDate(addDays(calToday(),left))+")"));
+    const b=el("button","btn small ghost", left==null?"Eintragen":"Neue Dose"); b.addEventListener("click",()=>openStock(s)); li.append(tx,b); ul.append(li); });
+}
+function openStock(s){
+  openSheet(p=>{
+    sheetHead(p,s.n);
+    p.append(el("div","note","Wie viele Tagesportionen sind in der Dose? Beispiel: 500 g Kreatin mit 5 g am Tag sind 100 Portionen. 60 Kapseln mit 2 am Tag sind 30."));
+    const [l,i]=field("Portionen ab heute","number", s.stock?suppLeft(s):""); p.append(l);
+    const b=el("button","btn wide","Speichern"); b.addEventListener("click",()=>{ const n=parseInt(i.value,10); if(!(n>0)){ toast("Bitte Anzahl eintragen"); return; } const real=state.supps.find(x=>x.id===s.id); real.stock={n,d:calToday()}; persist(); closeSheet(); render(); toast(s.n+": reicht bis "+fmtDate(addDays(calToday(),n))); }); p.append(b);
+    if(s.stock){ const r=el("button","link","Vorrat nicht mehr verfolgen"); r.addEventListener("click",()=>{ delete state.supps.find(x=>x.id===s.id).stock; persist(); closeSheet(); render(); }); p.append(r); }
+  });
+}
+
 // ---------- Körper
 function renderGewicht(k){
   const entries = Object.entries(state.weights).map(([d,v])=>[d,Number(v)]).filter(e=>isFinite(e[1])).sort((a,b)=>a[0]<b[0]?-1:1);
@@ -1942,6 +2135,7 @@ function renderGewicht(k){
     else t = Math.abs(d)<0.4 ? "Gewicht stabil, passt." : "Gewicht bewegt sich, Kalorien leicht anpassen.";
     hint.append(el("div","alert"+(cls?" "+cls:""),t));
   }
+  if(plateauInfo()){ const a=el("div","alert bad"); a.append(document.createTextNode("Plateau: Dein Wochenschnitt bewegt sich seit 2 Wochen kaum. Zeit für einen kleinen Schritt: 150 kcal weniger oder 2.000 Schritte mehr am Tag. ")); const b=el("button","btn small","Ziel um 150 kcal senken"); b.addEventListener("click",()=>setKcal((P().kcal||2400)-150)); a.append(b); hint.append(a); }
   drawChart(entries);
   $("chartNote").textContent = (P().alpha ? "Grau: Verlauf aus Alpha Progression und der Waage. " : "")+"Orange: ab Start."+(P().target ? " Grüne Linie: Ziel "+String(P().target).replace(".",",")+" kg." : "");
   const wl=$("wList"); wl.innerHTML="";
@@ -2004,12 +2198,12 @@ $("measAdd").addEventListener("click",()=>{
 });
 
 // ---------- Health Connect (Garmin, Renpho)
-const HC_READ=["Weight","BodyFat","Steps","SleepSession","RestingHeartRate","HeartRateVariabilityRmssd","ExerciseSession","Distance","ActiveCaloriesBurned"];
+const HC_READ=["Weight","BodyFat","Steps","SleepSession","RestingHeartRate","HeartRateVariabilityRmssd","ExerciseSession","Distance","ActiveCaloriesBurned","TotalCaloriesBurned","HeartRateSeries"];
 let hcAvail=null, hcBusy=false;
 let hcInfo={};
 const androidVer = () => { const m=(navigator.userAgent||"").match(/Android\s([\d.]+)/); return m ? m[1] : null; };
 async function hcCheck(){ hcInfo.checkErr=null; if(!HC){ hcAvail="NoApp"; return; } try{ const r=await HC.checkAvailability(); hcAvail=r.availability; }catch(e){ hcAvail="Fehler"; hcInfo.checkErr=String(e && (e.message||e)).slice(0,160); } hcInfo.checkAt=new Date().toISOString(); }
-const HC_PERM={Weight:"READ_WEIGHT",BodyFat:"READ_BODY_FAT",Steps:"READ_STEPS",SleepSession:"READ_SLEEP",RestingHeartRate:"READ_RESTING_HEART_RATE",HeartRateVariabilityRmssd:"READ_HEART_RATE_VARIABILITY",ExerciseSession:"READ_EXERCISE",Distance:"READ_DISTANCE",ActiveCaloriesBurned:"READ_ACTIVE_CALORIES_BURNED"};
+const HC_PERM={Weight:"READ_WEIGHT",BodyFat:"READ_BODY_FAT",Steps:"READ_STEPS",SleepSession:"READ_SLEEP",RestingHeartRate:"READ_RESTING_HEART_RATE",HeartRateVariabilityRmssd:"READ_HEART_RATE_VARIABILITY",ExerciseSession:"READ_EXERCISE",Distance:"READ_DISTANCE",ActiveCaloriesBurned:"READ_ACTIVE_CALORIES_BURNED",TotalCaloriesBurned:"READ_TOTAL_CALORIES_BURNED",HeartRateSeries:"READ_HEART_RATE"};
 let hcGranted=null;
 // Wichtig: der Standard Lesemodus des Plugins fängt Fehler nicht ab und reißt die App mit runter.
 // Darum immer im abgesicherten Modus lesen und nur Arten, für die es eine Freigabe gibt.
@@ -2051,7 +2245,7 @@ async function hcSync(quiet){
     if(ws.length) got.push("Gewicht"); if(added && !quiet) toast(added+" Gewichtswerte übernommen");
   }catch(e){}
   try{ const fs=await hcReadAll("BodyFat", new Date(now.getTime()-60*86400000), now); if(fs.length){ const last=fs.reduce((a,b)=>a.time>b.time?a:b); const pct=last.percentage && (last.percentage.value!=null?last.percentage.value:last.percentage); if(pct!=null){ state.hc.fat={v:Math.round(Number(pct)*10)/10, d:tKey(last.time)}; got.push("Körperfett"); } } }catch(e){}
-  try{ for(let i=0;i<3;i++){ const d=addDays(calToday(),-i), s0=parseKey(d), s1=new Date(s0.getTime()+86400000); const st=await hcReadAll("Steps", s0, i===0?now:s1); const by={}; st.forEach(r=>{ const o=(r.metadata&&r.metadata.dataOrigin)||"x"; by[o]=(by[o]||0)+(Number(r.count)||0); }); const best=Math.max(0,...Object.values(by)); state.hc.steps[d]=best; if(best>=8000) dayChecks(d)["h_steps"]=true; if(st.length && i===0) got.push("Schritte"); } }catch(e){}
+  try{ for(let i=0;i<(state.hc.stepsFull?3:14);i++){ const d=addDays(calToday(),-i), s0=parseKey(d), s1=new Date(s0.getTime()+86400000); const st=await hcReadAll("Steps", s0, i===0?now:s1); const by={}; st.forEach(r=>{ const o=(r.metadata&&r.metadata.dataOrigin)||"x"; by[o]=(by[o]||0)+(Number(r.count)||0); }); const best=Math.max(0,...Object.values(by)); state.hc.steps[d]=best; if(best>=8000) dayChecks(d)["h_steps"]=true; if(st.length && i===0) got.push("Schritte"); } }catch(e){}
   try{ const sl=await hcReadAll("SleepSession", new Date(now.getTime()-15*86400000), now); const by={};
     sl.forEach(x=>{ let mins=(new Date(x.endTime)-new Date(x.startTime))/60000; if(Array.isArray(x.stages)){ mins-=x.stages.filter(z=>[1,3,7].includes(Number(z.stage)) || /awake|out_of_bed/i.test(String(z.stage))).reduce((a,z)=>a+(new Date(z.endTime)-new Date(z.startTime))/60000,0); } if(mins<90) return; const d=tKey(x.endTime); by[d]=(by[d]||0)+mins; });
     Object.entries(by).forEach(([d,m])=>{ state.hc.sleep[d]=Math.round(m); }); if(sl.length) got.push("Schlaf"); }catch(e){}
@@ -2064,8 +2258,15 @@ async function hcSync(quiet){
       state.hc.acts = ss.map(x=>{ const a=new Date(x.startTime), b=new Date(x.endTime); const m=ds.filter(z=>inS(z,a,b)).reduce((t,z)=>t+(z.distance&&z.distance.value||0),0), kc=cs.filter(z=>inS(z,a,b)).reduce((t,z)=>t+(z.energy&&z.energy.value||0),0);
         return {s:x.startTime, e:x.endTime, type:Number(x.exerciseType)||0, title:x.title||"", km:Math.round(m/10)/100, kcal:Math.round(kc), src:(x.metadata&&x.metadata.dataOrigin)||""}; }).sort((p,q)=>q.s.localeCompare(p.s)).slice(0,30);
       got.push("Aktivitäten"); } }catch(e){}
+  try{ const from=parseKey(addDays(calToday(),-21)), tc=await hcReadAll("TotalCaloriesBurned", from, now), by={};
+    tc.forEach(x=>{ const d=tKey(x.startTime), o=(x.metadata&&x.metadata.dataOrigin)||"x"; by[d]=by[d]||{}; by[d][o]=(by[d][o]||0)+(x.energy&&x.energy.value||0); });
+    state.hc.burn=state.hc.burn||{}; Object.entries(by).forEach(([d,o])=>{ state.hc.burn[d]=Math.round(Math.max(...Object.values(o))); }); if(tc.length) got.push("Verbrauch"); }catch(e){}
+  try{ for(const e of state.train.log.filter(e=>e.ts && e.min && !e.hr && Date.now()-e.ts<10*86400000)){
+      const hr=await hcReadAll("HeartRateSeries", new Date(e.ts), new Date(e.ts+e.min*60000)); const v=[]; hr.forEach(r=>(r.samples||[]).forEach(x=>{ const t=new Date(x.time).getTime(); if(t>=e.ts && t<=e.ts+e.min*60000) v.push(Number(x.beatsPerMinute)); }));
+      if(v.length>=5) e.hr={avg:Math.round(v.reduce((a,b)=>a+b,0)/v.length), max:Math.max(...v)}; } }catch(e){}
   calcReady();
-  ["steps","sleep","rhr","hrv"].forEach(t=>Object.keys(state.hc[t]||{}).forEach(d=>{ if(dayDiff(d,calToday())>30) delete state.hc[t][d]; }));
+  if(got.includes("Schritte")) state.hc.stepsFull=true;
+  ["steps","sleep","rhr","hrv","burn"].forEach(t=>Object.keys(state.hc[t]||{}).forEach(d=>{ if(dayDiff(d,calToday())>30) delete state.hc[t][d]; }));
   hcReadAll = origDo;
   try{ localStorage.removeItem("wp_hcSyncing"); }catch(e){}
   state.hc.last=new Date().toISOString(); state.hc.got=got; state.hc.diag=diag; hcBusy=false; persist(); render();
@@ -2109,6 +2310,20 @@ function renderVitals(){
   $("readyNum").textContent=r.v; $("readyFill").style.width=r.v+"%"; $("readyFill").parentNode.className="bar "+(r.v>=75?"p":r.v<50?"warnbar":"");
   $("readyTxt").textContent=(r.v>=75 ? "Gut erholt. Normal trainieren, gern das Ziel angreifen." : r.v>=50 ? "Okay. Normal trainieren, auf saubere Technik achten." : "Wenig erholt. Gewicht halten und einen Satz weniger, oder heute Pause.")+" Aus: "+r.from.join(", ")+" im Vergleich zu deinem Schnitt"+(r.rhr?" · Ruhepuls "+r.rhr:"")+(r.hrv?" · HRV "+Math.round(r.hrv)+" ms":"")+".";
 }
+function renderSteps(){
+  const st=state.hc.steps||{}, days=[]; for(let i=13;i>=0;i--){ const d=addDays(calToday(),-i); days.push([d, st[d]]); }
+  const has=days.filter(x=>x[1]!=null); $("stepCard").hidden=!has.length; if(!has.length) return;
+  const last7=days.slice(7).filter(x=>x[1]!=null).map(x=>x[1]), avg=last7.length?last7.reduce((a,b)=>a+b,0)/last7.length:0, hit=days.slice(7).filter(x=>(x[1]||0)>=STEP_GOAL).length;
+  $("stepAvg").textContent="Ø "+de(avg)+" pro Tag";
+  $("stepNote").textContent="Letzte 7 Tage: "+hit+" von 7 Tagen über "+de(STEP_GOAL)+". Heute "+de(st[calToday()]||0)+" Schritte"+((st[calToday()]||0)<STEP_GOAL?", noch "+de(STEP_GOAL-(st[calToday()]||0))+" bis zum Ziel.":", Ziel geschafft.");
+  const svg=$("stepChart"), W=340,H=140,L=30,R=6,T=10,B=22, NS="http://www.w3.org/2000/svg"; svg.innerHTML="";
+  const mk=(n,a)=>{ const e=document.createElementNS(NS,n); for(const k in a) e.setAttribute(k,a[k]); svg.appendChild(e); return e; };
+  const max=Math.max(STEP_GOAL*1.25, ...has.map(x=>x[1])), Y=v=>T+(1-v/max)*(H-T-B), bw=(W-L-R)/14;
+  [0,5000,10000,15000,20000].filter(v=>v<=max).forEach(v=>{ mk("line",{x1:L,x2:W-R,y1:Y(v),y2:Y(v),stroke:"var(--line)"}); mk("text",{x:L-4,y:Y(v)+3,"text-anchor":"end","font-size":9,fill:"var(--muted)"}).textContent=v?(v/1000)+"k":"0"; });
+  days.forEach(([d,v],i)=>{ const x=L+i*bw+3; if(v!=null){ const r=mk("rect",{x,y:Y(v),width:bw-6,height:Math.max(1,Y(0)-Y(v)),rx:4,fill:v>=STEP_GOAL?"var(--done)":"var(--accent)",opacity:d===calToday()?1:.8}); r.setAttribute("class","bar-in"); }
+    if(i%2===1||i===13) mk("text",{x:x+(bw-6)/2,y:H-7,"text-anchor":"middle","font-size":9,fill:"var(--muted)"}).textContent=i===13?"heute":parseKey(d).toLocaleDateString("de-DE",{weekday:"short"}).slice(0,2); });
+  mk("line",{x1:L,x2:W-R,y1:Y(STEP_GOAL),y2:Y(STEP_GOAL),stroke:"var(--done)","stroke-dasharray":"4 3","stroke-width":1.5});
+}
 function renderHC(){
   const on=state.hc.on;
   const gr=hcInfo.granted;
@@ -2131,7 +2346,7 @@ function renderHC(){
   { const tb=el("table"), body=el("tbody"); base.forEach(([a,b])=>{ const tr=el("tr"); tr.append(el("td",null,a), el("td","r macros",b)); body.append(tr); }); tb.append(body); box.append(tb); }
   if(!dg && HC) box.append(el("div","note","Nach dem ersten Abgleich stehen hier auch die gefundenen Daten je Art."));
   if(dg){
-    const names={Weight:"Gewicht",BodyFat:"Körperfett",Steps:"Schritte",SleepSession:"Schlaf",RestingHeartRate:"Ruhepuls",HeartRateVariabilityRmssd:"HRV",ExerciseSession:"Aktivitäten",Distance:"Strecke",ActiveCaloriesBurned:"Kalorien"};
+    const names={Weight:"Gewicht",BodyFat:"Körperfett",Steps:"Schritte",SleepSession:"Schlaf",RestingHeartRate:"Ruhepuls",HeartRateVariabilityRmssd:"HRV",ExerciseSession:"Aktivitäten",Distance:"Strecke",ActiveCaloriesBurned:"Aktive kcal",TotalCaloriesBurned:"Verbrauch",HeartRateSeries:"Puls"};
     const rows=[["Health Connect",String(dg.avail||"-")],["Freigaben",(dg.granted&&dg.granted.length)?dg.granted.join(", "):"keine"]];
     HC_READ.forEach(tp=>rows.push([names[tp], dg.err[tp] ? "Fehler: "+dg.err[tp] : (dg.n[tp]||0)+" Einträge"]));
     rows.push(["Quellen", Object.keys(dg.src).length ? Object.keys(dg.src).map(x=>x.replace(/^com\./,"")).join(", ") : "keine"]);
@@ -2286,6 +2501,8 @@ document.querySelectorAll("#foodSeg button").forEach(b=>b.addEventListener("clic
 $("aScan").addEventListener("click",()=>scan(activeDay()));
 $("aSearch").addEventListener("click",()=>openSearch(activeDay()));
 $("aOut").addEventListener("click",()=>openOut(activeDay()));
+$("reviewOpen").addEventListener("click",openReview); $("reviewOpen2").addEventListener("click",openReview);
+$("photoShoot").addEventListener("click",openPhotoShoot); $("photoCmp").addEventListener("click",openPhotoCompare);
 $("vitSync").addEventListener("click",async()=>{ const b=$("vitSync"); b.classList.add("spin"); try{ await hcSyncNow(); }finally{ b.classList.remove("spin"); } });
 setTimeout(()=>{ const i=$("intro"); if(i) i.remove(); },2200);
 { const M=["Stark durch den Winter","Jeder Satz zählt","Heute besser als gestern","Dranbleiben schlägt alles","Sommer wird im Winter gemacht"]; $("introS").textContent=M[new Date().getDate()%M.length]; }
