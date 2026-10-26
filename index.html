@@ -2009,9 +2009,14 @@ let hcAvail=null, hcBusy=false;
 let hcInfo={};
 const androidVer = () => { const m=(navigator.userAgent||"").match(/Android\s([\d.]+)/); return m ? m[1] : null; };
 async function hcCheck(){ hcInfo.checkErr=null; if(!HC){ hcAvail="NoApp"; return; } try{ const r=await HC.checkAvailability(); hcAvail=r.availability; }catch(e){ hcAvail="Fehler"; hcInfo.checkErr=String(e && (e.message||e)).slice(0,160); } hcInfo.checkAt=new Date().toISOString(); }
+const HC_PERM={Weight:"READ_WEIGHT",BodyFat:"READ_BODY_FAT",Steps:"READ_STEPS",SleepSession:"READ_SLEEP",RestingHeartRate:"READ_RESTING_HEART_RATE",HeartRateVariabilityRmssd:"READ_HEART_RATE_VARIABILITY",ExerciseSession:"READ_EXERCISE",Distance:"READ_DISTANCE",ActiveCaloriesBurned:"READ_ACTIVE_CALORIES_BURNED"};
+let hcGranted=null;
+// Wichtig: der Standard Lesemodus des Plugins fängt Fehler nicht ab und reißt die App mit runter.
+// Darum immer im abgesicherten Modus lesen und nur Arten, für die es eine Freigabe gibt.
 let hcReadAll = async function(type, from, to){
+  if(hcGranted && !hcGranted.includes(HC_PERM[type])) throw new Error("keine Freigabe");
   let out=[], token, n=0;
-  do{ const r=await HC.readRecords({type, timeRangeFilter:{type:"between", startTime:from.toISOString(), endTime:to.toISOString()}, pageSize:500, pageToken:token}); out=out.concat(r.records||[]); token=r.pageToken; n++; }while(token && n<10);
+  do{ const r=await HC.readRecords({type, timeRangeFilter:{type:"between", startTime:from.toISOString(), endTime:to.toISOString()}, pageSize:500, pageToken:token, failSafe:{mode:"in_process"}}); out=out.concat(r.records||[]); token=r.pageToken; n++; }while(token && n<10);
   return out;
 }
 const tKey = t => keyOf(new Date(t));
@@ -2034,7 +2039,9 @@ async function hcSync(quiet){
   if(!HC || !state.hc.on || hcBusy) return;
   hcBusy=true; const got=[], now=new Date();
   const diag={avail:hcAvail, at:now.toISOString(), err:{}, n:{}, src:{}};
-  try{ const g=await HC.checkHealthPermissions({read:HC_READ, write:[], history:true}); diag.granted=(g.grantedPermissions||[]).map(x=>String(x).split(".").pop()); diag.history=g.historyAvailable; }catch(e){ diag.err.perm=String(e && (e.message||e)); }
+  hcGranted=null;
+  try{ localStorage.setItem("wp_hcSyncing", String(Date.now())); }catch(e){}
+  try{ const g=await HC.checkHealthPermissions({read:HC_READ, write:[], history:true}); diag.granted=(g.grantedPermissions||[]).map(x=>String(x).split(".").pop()); hcGranted=diag.granted; diag.history=g.historyAvailable; }catch(e){ diag.err.perm=String(e && (e.message||e)); }
   const origDo = hcReadAll;
   hcReadAll = async (type,from,to)=>{ try{ const r=await origDo(type,from,to); diag.n[type]=(diag.n[type]||0)+r.length; r.forEach(x=>{ const o=x.metadata&&x.metadata.dataOrigin; if(o){ diag.src[o]=1; } }); return r; }catch(e){ diag.err[type]=String(e && (e.message||e)).slice(0,120); throw e; } };
   try{
@@ -2060,6 +2067,7 @@ async function hcSync(quiet){
   calcReady();
   ["steps","sleep","rhr","hrv"].forEach(t=>Object.keys(state.hc[t]||{}).forEach(d=>{ if(dayDiff(d,calToday())>30) delete state.hc[t][d]; }));
   hcReadAll = origDo;
+  try{ localStorage.removeItem("wp_hcSyncing"); }catch(e){}
   state.hc.last=new Date().toISOString(); state.hc.got=got; state.hc.diag=diag; hcBusy=false; persist(); render();
 }
 async function hcConnect(force){
@@ -2327,7 +2335,10 @@ document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ refresh
   }
   render(); animIn($("p-"+tab)); if(liveRun()) openLive(); scheduleAll();
   initCloud();
-  await hcCheck(); await hcPerms(); render(); hcSync(true);
+  let crashed=null; try{ crashed=localStorage.getItem("wp_hcSyncing"); localStorage.removeItem("wp_hcSyncing"); }catch(e){}
+  await hcCheck(); await hcPerms(); render();
+  if(crashed && Date.now()-Number(crashed)<10*60000){ toast("Letzter Abgleich ist abgestürzt, automatischer Abgleich pausiert. Tipp auf Abgleichen zum Testen."); }
+  else hcSync(true);
   setInterval(render, 60000);
 })();
 })();
