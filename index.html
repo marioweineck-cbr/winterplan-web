@@ -1021,6 +1021,11 @@ function normalize(s){
   if(s.train.run && !s.train.run.ex) s.train.run = null;
   s.hc && (s.hc.rhr = s.hc.rhr || {}, s.hc.hrv = s.hc.hrv || {}, s.hc.burn = s.hc.burn || {});
   s.supps = s.supps || SUPP_DEFAULT.map(x=>Object.assign({},x));
+  // Marios Packungen (Okt 2026): Mengen einmalig setzen, solange noch der allgemeine Richtwert drinsteht
+  if(!s.myDoseV1 && s.profile && s.profile.name==="Mario"){ const MY={kreatin:["5 g",1],vitd:["1 Tablette (5.000 IE D3, 100 µg K2)",2],omega:["2 Kapseln zum Essen (660 mg EPA, 440 mg DHA)",1],bor:["1 Kapsel (3 mg Bor, 500 mg MSM)",1],zink:["1 Tablette zum Abendessen (25 mg)",2],magnesium:["1 Kapsel (150 mg), an harten Tagen 2",1],ashwa:["1 Kapsel, nach 8 Wochen 2 Wochen Pause",1]};
+    s.supps.forEach(x=>{ const m=MY[x.id]; if(!m) return; x.dose=m[0]; if(m[1]>1) x.every=m[1]; if(x.id==="kreatin" && !x.stock) x.stock={n:0,d:keyOf(new Date())}; });
+    if(!s.supps.some(x=>/melatonin/i.test(x.n))) s.supps.push({id:"melatonin", n:"Melatonin", t:"E", on:false, dose:"0,5 bis 1 mg, 30 bis 60 Min. vor dem Schlafen, nur bei Bedarf"});
+    s.myDoseV1=true; }
   s.supps.forEach(x=>{ if(x.dose==null){ const h=(SUPP_DOSE.find(([r])=>r.test(x.n))||[])[1]; x.dose = h && !hasAmt(x.n) ? h : ""; } });
   s.myRecipes = s.myRecipes || []; s.updatedAt = s.updatedAt || 0;
   if(!s.profile) s.profile = existing ? marioProfile() : {setup:false};
@@ -1074,11 +1079,12 @@ function phase(w){
 
 // ---------- Tagesablauf
 function wakeFor(k, sh){ return state.wake[k] || P().wake[sh] || "07:00"; }
-function suppLabel(t){ const l=state.supps.filter(s=>s.on && s.t===t).map(suppTxt); return l.length ? (t==="M"?"Supplements: ":"Supplements vor dem Schlafen: ")+l.join(", ") : null; }
+const suppToday = (x,k) => !(x.every>1) || (Math.round(parseKey(k||calToday())/86400000) % x.every)===0;
+function suppLabel(t,k){ const l=state.supps.filter(s=>s.on && s.t===t && suppToday(s,k)).map(suppTxt); return l.length ? (t==="M"?"Supplements: ":"Supplements vor dem Schlafen: ")+l.join(", ") : null; }
 function timeline(k, sh){
   const base = parseKey(k), w = toMin(wakeFor(k, sh)), out=[];
   TPL[sh].forEach(([off,label,key],i)=>{
-    if(key==="suppM" || key==="suppE"){ label = suppLabel(key==="suppM"?"M":"E"); if(!label) return; }
+    if(key==="suppM" || key==="suppE"){ label = suppLabel(key==="suppM"?"M":"E", k); if(!label) return; }
     if(key==="steps") label = "Schritte Check: "+STEP_GOAL.toLocaleString("de-DE")+" schon voll? Sonst 20 Minuten gehen";
     let m = typeof off==="string" ? toMin(off.slice(1)) : w+off;
     if(typeof off==="string" && m < w-60) m += 1440;
@@ -2800,6 +2806,7 @@ function openPhotoCompare(){
 
 // Supplement Vorrat
 function suppLeft(s){ if(!s.stock) return null; return Math.max(0, s.stock.n - dayDiff(s.stock.d, calToday())); }
+const everyTxt = x => x.every>1 ? " · jeden "+x.every+". Tag" : "";
 function wheyUse(from){ let g=0; Object.keys(state.food).filter(d=>d>=from).forEach(d=>state.food[d].forEach(f=>{ if(/whey|shake/i.test(f.n)) g+=30; else if(/overnight/i.test(f.n)) g+=15; })); return g; }
 function wheyInfo(){ const w=state.whey; if(!w) return null; const used=wheyUse(w.d), days=Math.max(1,dayDiff(w.d,calToday())+1), perDay=Math.max(15, used/days), left=Math.max(0,w.g-used); return {left, days:Math.floor(left/perDay), perDay}; }
 function openWhey(){
@@ -2812,7 +2819,7 @@ function openWhey(){
 function renderStock(){
   const ul=$("stockList"); ul.innerHTML="";
   { const wi=wheyInfo(), li=el("li","item nt"), tx=el("div","txt"); tx.append(el("span",null,"Whey Protein")); tx.append(el("div","sub"+(wi&&wi.days<=7?" warnTxt":""), !wi ? "Vorrat noch nicht eingetragen" : "noch ca. "+de(wi.left)+" g, reicht "+wi.days+" Tage")); const b=el("button","btn small ghost", wi?"Neue Dose":"Eintragen"); b.addEventListener("click",openWhey); li.append(tx,b); ul.append(li); }
-  state.supps.filter(s=>s.on).forEach(s=>{ const left=suppLeft(s), li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span",null,suppTxt(s)));
+  state.supps.filter(s=>s.on).forEach(s=>{ const left=suppLeft(s), li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span",null,suppTxt(s)+everyTxt(s)));
     tx.append(el("div","sub"+(left!=null&&left<=7?" warnTxt":""), left==null ? "Vorrat noch nicht eingetragen" : left===0 ? "leer, nachkaufen" : "noch ca. "+left+" Tag"+(left===1?"":"e")+" (bis "+fmtDate(addDays(calToday(),left))+")"));
     const b=el("button","btn small ghost", left==null?"Eintragen":"Neue Dose"); b.addEventListener("click",()=>openStock(s));
     const r=el("div","row nowrap"); if(left!==0){ const e0=el("button","btn small ghost","Leer"); e0.addEventListener("click",()=>{ const real=state.supps.find(x=>x.id===s.id); real.stock={n:0,d:calToday()}; persist(); render(); toast(s.n+" steht auf der Einkaufsliste"); }); r.append(e0); } r.append(b); li.append(tx,r); ul.append(li); });
@@ -2821,8 +2828,8 @@ function openStock(s){
   openSheet(p=>{
     sheetHead(p,s.n);
     p.append(el("div","note","Einfach Packungsgröße und Menge pro Tag eintragen, zählen musst du nichts. Angebrochene Dose: grob schätzen, halb voll reicht."));
-    const caps=!/kreatin|pulver|msm/i.test(s.n), dose0=(s.n.match(/(\d+)\s*g/)||[])[1];
-    const g=el("div","grid3"); const [l1,iP]=field("Packung","number",caps?60:500), [l2,iD]=field("pro Tag","number",caps?1:(dose0||5));
+    const caps=!/kreatin|pulver/i.test(s.n), dose0=(s.n.match(/(\d+)\s*g/)||[])[1], perCap = s.every>1 ? 0.5 : (/omega/i.test(s.n) ? 2 : 1);
+    const g=el("div","grid3"); const [l1,iP]=field("Packung","number",caps?60:500), [l2,iD]=field("pro Tag","number",caps?perCap:(dose0||5));
     const lu=el("label","f","Einheit"), su=el("select"); [["g","Gramm"],["Stk","Stück"]].forEach(([v,t])=>{ const o=el("option",null,t); o.value=v; su.append(o); }); su.value=caps?"Stk":"g"; lu.append(su); g.append(l1,l2,lu); p.append(g);
     const fill=el("div","seg"); [["1","voll"],["0.75","¾"],["0.5","halb"],["0.25","¼"]].forEach(([v,t],ix)=>{ const b=el("button",null,t); b.dataset.v=v; b.setAttribute("aria-pressed",ix===0?"true":"false"); b.addEventListener("click",()=>{ fill.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false")); upd(); }); fill.append(b); }); p.append(el("span","label","Wie voll ist die Dose?"), fill);
     const out=el("div","alert ok"); p.append(out);
@@ -3623,7 +3630,8 @@ function openSettings(first){
     const sl=el("div"); const supps=JSON.parse(JSON.stringify(state.supps));
     const drawS=()=>{ sl.innerHTML=""; supps.forEach((s,si)=>{ const r=el("div","toggle"); const nm=el("div","tt"); nm.append(el("div",null,s.n));
       if(suppDoseHint(s.n)) nm.append(el("div","note","Empfohlen: "+suppDoseHint(s.n)+(SUPP_TIP.find(([r])=>r.test(s.n))?". "+SUPP_TIP.find(([r])=>r.test(s.n))[1]:"")));
-      const di=el("input"); di.type="text"; di.value=s.dose||""; di.placeholder="Deine Menge laut Packung"; di.style.cssText="font-size:13px;padding:4px 8px;margin-top:3px;width:100%"; di.setAttribute("aria-label","Menge "+s.n); di.addEventListener("input",()=>{ s.dose=di.value.trim(); }); nm.append(di);
+      const ev=el("button","link",s.every>1?"✓ jeden 2. Tag":"täglich"); ev.style.fontSize="12px"; ev.addEventListener("click",()=>{ s.every = s.every>1 ? undefined : 2; drawS(); });
+      const di=el("input"); di.type="text"; di.value=s.dose||""; di.placeholder="Deine Menge laut Packung"; di.style.cssText="font-size:13px;padding:4px 8px;margin-top:3px;width:100%"; di.setAttribute("aria-label","Menge "+s.n); di.addEventListener("input",()=>{ s.dose=di.value.trim(); }); nm.append(di, ev);
       const right=el("div","row nowrap"); const seg=el("div","seg"); seg.style.width="84px"; const bm=el("button",null,"M"), be=el("button",null,"A"); bm.setAttribute("aria-pressed",s.t==="M"?"true":"false"); be.setAttribute("aria-pressed",s.t==="E"?"true":"false"); bm.onclick=()=>{ s.t="M"; drawS(); }; be.onclick=()=>{ s.t="E"; drawS(); }; seg.append(bm,be);
       const del=el("button","x","×"); del.setAttribute("aria-label",s.n+" entfernen"); del.addEventListener("click",()=>{ supps.splice(si,1); drawS(); });
       right.append(seg, sw(s.on,()=>{ s.on=!s.on; drawS(); },s.n), del); r.append(nm,right); sl.append(r); }); };
