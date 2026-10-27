@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Winterplan</title>
+<title>Winterarc</title>
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-512.png">
 <style>
 /* Layout: App mit festem Kopf, Inhalt in ruhigen Karten, Reiterleiste unten wie bei nativen Android Apps. */
 :root{
@@ -401,6 +403,12 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
 .badges{display:grid;grid-template-columns:1fr 1fr;gap:8px}.badge{border:1px solid var(--line);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:3px}
 .badge .bi{font-size:24px}.badge.off{opacity:.55}.badge.off .bi{filter:grayscale(1)}.badge b{font-size:14px}
 .item.skipped .txt > span{text-decoration:line-through}.item.skipped .tick{opacity:.5}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:8px 0}
+.calgrid .wd{font-size:11px;color:var(--muted);text-align:center}
+.calgrid button{aspect-ratio:1;border:1px solid var(--line);border-radius:10px;background:var(--panel);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:2px;font-size:12px;color:var(--ink)}
+.calgrid button b{font-size:13px}.calgrid button i{font-style:normal;font-size:12px;font-weight:800}
+.calgrid button.past{opacity:.45}.calgrid button.today{border-color:var(--accent);border-width:2px}.calgrid button[aria-pressed="true"]{background:var(--soft);border-color:var(--accent)}
+.calgrid .tr{font-size:9px;line-height:1}
 .rawlog{font-family:ui-monospace,monospace;font-size:10px;word-break:break-all;white-space:pre-wrap;color:var(--muted)}
 .wtrow{padding:6px 0;border-top:1px solid var(--line);gap:10px}.wtrow .note{flex:1;text-align:right}
 </style>
@@ -409,8 +417,8 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-car" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v-4l2-5h12l2 5v4z"/><path d="M4 12h16"/><circle cx="7.5" cy="16.5" r="1.8"/><circle cx="16.5" cy="16.5" r="1.8"/></symbol><symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10M10 20v-6h4v6"/></symbol><symbol id="i-machine" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18M19 3v18M3 21h4M17 21h4M5 5h14"/><rect x="9" y="12" width="6" height="7" rx="1"/><path d="M9 14.5h6M9 17h6M12 5v7"/></symbol><symbol id="i-cable" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18M3 21h4M5 4h11"/><circle cx="16" cy="6.5" r="2.2"/><path d="M17.6 8.2l2.4 7.8"/><path d="M17.5 16.5h5"/></symbol><symbol id="i-dumbbell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11M3.5 9v6M17.5 6.5v11M20.5 9v6M6.5 12h11"/></symbol><symbol id="i-barbell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20M5.5 8v8M8 6v12M18.5 8v8M16 6v12"/></symbol><symbol id="i-smith" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3v18M20 3v18M2 21h4M18 21h4"/><path d="M2 9h20"/><rect x="5.6" y="5.5" width="2.4" height="7" rx="1"/><rect x="16" y="5.5" width="2.4" height="7" rx="1"/><path d="M8.5 16.5l7-2.5M10 15.8V21M15 14.2V21"/></symbol><symbol id="i-body" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.5" r="2"/><path d="M12 7v7l-3 7M12 14l3 7M5.5 10.5L12 8.5l6.5 2"/></symbol><symbol id="i-bike" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5l4-7.5h5.5l3.5 7.5M9.5 9l2.5 7.5h1.5M13.5 5.5h2.5"/></symbol><symbol id="i-run" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="14.5" cy="4" r="2"/><path d="M8 21l3-6 3 2v5M6 11l3-3 4 1 2 3 3 1M11 15l2-6"/></symbol><symbol id="i-walk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M10 21l2-7 3 3v4M9 11l2-3h3l2 4M12 14l1-6"/></symbol><symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"/></symbol><symbol id="i-pill" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 3.8a4.5 4.5 0 0 1 6.4 0l3.3 3.3a4.5 4.5 0 0 1 0 6.4l-6.7 6.7a4.5 4.5 0 0 1-6.4 0l-3.3-3.3a4.5 4.5 0 0 1 0-6.4z"/><path d="M7.2 7.2l9.6 9.6"/></symbol><symbol id="i-bowl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18a9 7.5 0 0 1-18 0z"/><path d="M8.5 8c0-1.5 1.5-1.5 1.5-3M13.5 8c0-1.5 1.5-1.5 1.5-3"/></symbol><symbol id="i-shake" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7h11l-1.6 14H8.1z"/><path d="M6 7l1-3h10l1 3M7.2 12h9.6"/></symbol><symbol id="i-cup" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17M8 2.5v3M12 2.5v3M3 21h15"/></symbol><symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5z"/></symbol><symbol id="i-steps" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 3.5c1.8 0 2.8 1.8 2.8 4.5s-1 4.5-2.8 4.5S4.7 10.7 4.7 8s1-4.5 2.8-4.5zM5.5 15.5h4M16.5 8.5c1.8 0 2.8 1.8 2.8 4.5s-1 4.5-2.8 4.5-2.8-1.8-2.8-4.5 1-4.5 2.8-4.5zM14.5 20.5h4"/></symbol><symbol id="i-apple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5c-3.5-2-8-.5-8 4.5 0 4.5 3 9 6 9 1 0 1.4-.5 2-.5s1 .5 2 .5c3 0 6-4.5 6-9 0-5-4.5-6.5-8-4.5z"/><path d="M12 7.5c0-2 1-4 3-4.5"/></symbol><symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol><symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 6-7"/></symbol><symbol id="i-tape" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="6"/><circle cx="9" cy="12" r="1.5"/><path d="M15 12v6h6M17 18v-2M19 18v-2"/></symbol><symbol id="i-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 9a5 4 0 0 1 8 0M12 9l1.5-2"/></symbol><symbol id="i-cart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2.5l2.2 11h10.6l2.2-8H6.6"/><circle cx="9" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></symbol><symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5zM4 19.5A1.5 1.5 0 0 0 5.5 21H20v-3"/><path d="M8 7h8M8 10.5h6"/></symbol><symbol id="i-watch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="3.5"/><path d="M9 6l.8-3.5h4.4L15 6M9 18l.8 3.5h4.4L15 18M12 9.5V12l1.5 1.5"/></symbol><symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16.5 9.5"/></symbol><symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0"/></symbol><symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/></symbol><symbol id="i-plane" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 13.5l7-1.5 4.5-7.5c.6-1 2.2-.6 2 .6L15 12l5.5 1.2c.8.2.8 1.4 0 1.6L15 16l1 5.4c.2 1.2-1.4 1.6-2 .6L9.5 15l-7-1.5z"/></symbol><symbol id="i-thermo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14.5V5a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0z"/><path d="M12 9v7"/></symbol><symbol id="i-muscle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19c0-4 1.5-8 3.5-10.5L9 5l3.5-1.5L14 6l-3 2 1 3.5c2.5-1 5.5-.5 7 1.5s1 6.5-3 7H4z"/></symbol><symbol id="i-burger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5C4 7 7.5 4.5 12 4.5S20 7 20 10.5z"/><path d="M3 14h18M5 14l1.5 2 1.5-2 1.5 2 1.5-2 1.5 2 1.5-2 1.5 2 1.5-2M4.5 17h15a0 0 0 0 1 0 0 2.5 2.5 0 0 1-2.5 2.5H7A2.5 2.5 0 0 1 4.5 17z"/></symbol><symbol id="i-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4 0-7-2.8-7-6.5 0-3.8 3-5.5 3.5-9.5 2.5 1.5 3.5 3.5 3.5 5.5 1-1 1.5-2 1.5-3.5 2.5 2 5.5 4.5 5.5 7.5 0 3.7-3 6.5-7 6.5z"/></symbol><symbol id="i-sync" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.3-4.5L4 8.5M4 13a8 8 0 0 0 14.3 4.5L20 15.5"/><path d="M4 4v4.5h4.5M20 20v-4.5h-4.5"/></symbol><symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-8-4.6-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.4 12 20 12 20z"/><path d="M4 12h4l1.5-2.5 2.5 5 1.5-2.5H20"/></symbol><symbol id="i-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol></svg>
 <div class="intro" id="intro" aria-hidden="true">
   <div class="introIn">
-    <svg class="introDb" viewBox="0 0 120 60"><g fill="currentColor"><rect x="4" y="16" width="10" height="28" rx="3"/><rect x="15" y="8" width="12" height="44" rx="3.5"/><rect x="93" y="8" width="12" height="44" rx="3.5"/><rect x="106" y="16" width="10" height="28" rx="3"/><rect x="27" y="26" width="66" height="8" rx="3"/></g></svg>
-    <div class="introT">Winterplan</div>
+    <svg class="introDb introLogo" viewBox="100 300 824 540"><defs><linearGradient id="ilArc" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#F0A15A"/><stop offset=".5" stop-color="#F6D3A8"/><stop offset="1" stop-color="#A9DCF7"/></linearGradient><linearGradient id="ilMt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4A6E94"/><stop offset="1" stop-color="#1B3149"/></linearGradient></defs><path d="M232 640 A280 280 0 0 1 792 640" fill="none" stroke="url(#ilArc)" stroke-width="64" stroke-linecap="round"/><path d="M120 820 L380 520 L470 620 L560 470 L900 820 Z" fill="url(#ilMt)"/><path d="M380 520 L322 594 L352 584 L378 608 L410 576 L432 596 Z" fill="#EEF6FC"/><path d="M560 470 L486 566 L522 556 L548 584 L580 552 L612 582 L634 566 Z" fill="#F4FAFF"/></svg>
+    <div class="introT">Winterarc</div>
     <div class="introS" id="introS">Stark durch den Winter</div>
   </div>
 </div>
@@ -493,6 +501,7 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
       <h3><svg class="hi"><use href="#i-cal"/></svg>Schichten</h3>
       <div class="note">Ganze Woche mit einem Tipp setzen. Samstag und Sonntag werden dabei frei. Einzelne Tage kannst du danach ändern.</div>
       <div id="weekList"></div>
+      <button class="btn ghost wide" id="calOpen">Kalender für die nächsten Monate</button>
     </div>
     <div class="card">
       <h3><svg class="hi"><use href="#i-plane"/></svg>Urlaub eintragen</h3>
@@ -589,6 +598,7 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
           <div><span class="label">Fett</span><span class="mid" id="mF"></span><div class="bar fa"><i id="bF"></i></div></div>
         </div>
         <div class="note" id="macroLeft"></div>
+        <div id="dayType"></div>
       </div>
       <div class="actions">
         <button id="aScan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7V4h3M21 7V4h-3M3 17v3h3M21 17v3h-3M7 8v8M10 8v8M13 8v8M17 8v8"/></svg>Scannen</button>
@@ -1212,7 +1222,7 @@ function field(label, type, value){ const l=el("label","f",label), i=el("input")
 
 // ---------- Render
 let tab = "heute", foodView = "log";
-const goals = () => ({kcal:goalKcal(), p:P().p||150, c:P().c||250, f:P().f||70});
+const goals = () => ({kcal:goalKcal(), p:P().p||150, c:dayCarbs(), f:P().f||70});
 let widgetT=null, widgetLast="";
 function widgetPush(){ clearTimeout(widgetT); widgetT=setTimeout(async ()=>{ try{
   if(!Prefs) return; const k=activeDay(), items=[]; const now=Date.now();
@@ -1379,6 +1389,30 @@ function renderSleepCalc(){
   out.append(el("div","cat","Am Abend davor"), mkT([["Letzter Kaffee oder Monster",bed-8*60],["Letztes großes Essen",bed-150],["Licht dimmen, Handy weg",bed-60],["Supplements vor dem Schlafen",bed-45]]),
              el("div","cat","Essenszeiten am Tag"), mkT([["Frühstück",w+30],["Mittag",w+300],["Snack",w+450],["Abendessen",w+630]]));
 }
+function openShiftCal(m0){
+  const sel=new Set(); let mo=m0||0;
+  openSheet(p=>{
+    const draw=()=>{ p.innerHTML=""; sheetHead(p,"Schichtkalender");
+      const base=parseKey(calToday()); const first=new Date(base.getFullYear(), base.getMonth()+mo, 1), days=new Date(first.getFullYear(), first.getMonth()+1, 0).getDate();
+      const nav=el("div","between daynav"); const a=el("button","btn small ghost","‹"), b=el("button","btn small ghost","›"); a.disabled=mo<=0; b.disabled=mo>=5; a.onclick=()=>{ mo--; draw(); }; b.onclick=()=>{ mo++; draw(); };
+      nav.append(a, el("b",null,first.toLocaleDateString("de-DE",{month:"long",year:"numeric"})), b); p.append(nav);
+      p.append(el("div","note","Tage antippen (auch mehrere), dann unten die Schicht wählen. 🏋 = Trainingstag laut Plan."));
+      const g=el("div","calgrid"); ["Mo","Di","Mi","Do","Fr","Sa","So"].forEach(x=>g.append(el("span","wd",x)));
+      const pad0=(first.getDay()+6)%7; for(let i=0;i<pad0;i++) g.append(el("span"));
+      const L={frueh:["F","var(--f)"],spaet:["S","var(--s)"],nacht:["N","var(--n)"],frei:["Frei","var(--muted)"],urlaub:["U","var(--u)"]};
+      for(let dd=1; dd<=days; dd++){ const d=keyOf(new Date(first.getFullYear(), first.getMonth(), dd)), past=d<calToday(), sh=state.shift[d];
+        const bt=el("button",(past?"past":"")+(d===calToday()?" today":"")); bt.setAttribute("aria-pressed",sel.has(d)?"true":"false"); bt.append(el("b",null,String(dd)));
+        const ii=el("i",null,sh?L[sh][0]:"·"); if(sh) ii.style.color=L[sh][1]; bt.append(ii); const tp=trainPlanned(d); if(tp && !past) bt.append(el("span","tr","🏋"));
+        bt.addEventListener("click",()=>{ if(sel.has(d)) sel.delete(d); else sel.add(d); draw(); }); g.append(bt); }
+      p.append(g);
+      const row=el("div","shifts"); [["frueh","F","Früh"],["spaet","S","Spät"],["nacht","N","Nacht"],["frei","Frei","frei"],["urlaub","U","Urlaub"],["","×","leer"]].forEach(([k2,b2,t2])=>{ const bt=el("button"); if(k2) bt.dataset.k=k2; bt.innerHTML="<b>"+b2+"</b><span>"+t2+"</span>"; bt.disabled=!sel.size;
+        bt.addEventListener("click",()=>{ sel.forEach(d=>{ if(k2) state.shift[d]=k2; else delete state.shift[d]; }); const n=sel.size; sel.clear(); persist(); render(); draw(); toast(n+" Tag"+(n===1?"":"e")+" eingetragen"); }); row.append(bt); });
+      p.append(row);
+      if(sel.size){ const c=el("button","link","Auswahl aufheben ("+sel.size+")"); c.addEventListener("click",()=>{ sel.clear(); draw(); }); p.append(c); }
+    };
+    draw();
+  });
+}
 function renderWoche(){
   const wl=$("weekList"); wl.innerHTML=""; const k0=calToday();
   const mon=addDays(k0, -((parseKey(k0).getDay()+6)%7));
@@ -1393,6 +1427,7 @@ function renderWoche(){
       const k=addDays(ws,i); if(k<k0) continue;
       const row=el("div","wday"+(k===k0?" today":""));
       const dd=el("div","d"); dd.append(el("b",null, k===k0?"Heute": parseKey(k).toLocaleDateString("de-DE",{weekday:"short"})), document.createTextNode(fmtDate(k)));
+      { const tp=trainPlanned(k); if(tp!=null) dd.append(el("div","tr", tp?"🏋 Training":"🛋 Ruhetag")); }
       row.append(dd, shiftPicker(k,true)); box.append(row);
     }
     wl.append(box);
@@ -1409,6 +1444,7 @@ function renderWoche(){
   toggleRow(tg,"Alle Erinnerungen", state.notif.on, ()=>{ state.notif.on=!state.notif.on; persist(); render(); });
   if(state.notif.on) CATS.forEach(([c,l])=>toggleRow(tg,l, !!state.notif.cats[c], ()=>{ state.notif.cats[c]=!state.notif.cats[c]; persist(); render(); }));
 }
+$("calOpen").addEventListener("click",()=>openShiftCal(0));
 $("sickAdd").addEventListener("click",()=>{
   const a=$("sickFrom").value, b=$("sickTo").value||a; if(!a||b<a){ toast("Bitte Von und Bis wählen"); return; }
   let d=a, n=0; while(d<=b && n<30){ state.sick[d]=true; d=addDays(d,1); n++; }
@@ -2170,10 +2206,14 @@ function freeCount(k){
 const macroTxt = f => de(f.kcal)+" kcal · P "+fmtAmt(f.p||0)+" · K "+fmtAmt(f.c||0)+" · F "+fmtAmt(f.f||0);
 function renderLog(k){
   const list=dayFood(k), T={kcal:0,p:0,c:0,f:0}; list.forEach(f=>{ T.kcal+=f.kcal||0; T.p+=f.p||0; T.c+=f.c||0; T.f+=f.f||0; });
-  const G={kcal:goalKcal(), p:P().p||150, c:P().c||250, f:P().f||70};
+  const G={kcal:goalKcal(k), p:P().p||150, c:dayCarbs(k), f:P().f||70};
   renderBalance();
   [["K","kcal",""],["P","p"," g"],["C","c"," g"],["F","f"," g"]].forEach(([id,key,u])=>{ $("m"+id).textContent=de(T[key])+u; $("b"+id).style.width=Math.min(100,T[key]/G[key]*100)+"%"; });
   $("macroLeft").textContent = "Ziel "+de(G.kcal)+" kcal · P "+G.p+" · K "+G.c+" · F "+G.f+". Noch "+de(Math.max(0,G.kcal-T.kcal))+" kcal und "+de(Math.max(0,G.p-T.p))+" g Eiweiß.";
+  { const box=$("dayType"); box.innerHTML=""; const tp=trainPlanned(k), cd=carbDelta(k);
+    if(P().carbCycle!==false && tp!=null){ const t=el("div","between"); const lb=el("span","note", tp ? "🏋 Trainingstag: "+(cd?"+"+cd+" g Kohlenhydrate für Kraft im Gym":"normale Kohlenhydrate") : "🛋 Ruhetag: "+(-cd)+" g weniger Kohlenhydrate ("+de(-cd*4)+" kcal), Eiweiß bleibt gleich");
+      const b=el("button","link", tp?"Doch Ruhetag":"Doch Training"); b.addEventListener("click",()=>{ state.trainOv=state.trainOv||{}; state.trainOv[k]=!tp; persist(); render(); }); t.append(lb,b); box.append(t);
+      if((state.trainOv||{})[k]!=null){ const r=el("button","link","Automatisch"); r.addEventListener("click",()=>{ delete state.trainOv[k]; persist(); render(); }); box.append(r); } } }
   const fc=freeCount(k); $("freeInfo").textContent=list.length+" Einträge · Freie Mahlzeiten diese Woche "+fc+" von 2"; $("freeInfo").classList.toggle("warnTxt", fc>2);
   const q=$("quick"); q.innerHTML="";
   QUICK.concat((state.myRecipes||[]).map(r=>({n:r.n, kcal:r.kcal, p:r.p, c:r.c, f:r.f, rid:r.id}))).forEach(f=>{ const b=el("button"); b.append(el("span","emo",foodEmoji(f.n)), document.createTextNode(f.n)); b.append(el("small",null,f.kcal+" kcal · "+f.p+" g P"));
@@ -2371,7 +2411,7 @@ const BASIC_FOODS=[
 const OFF_FIELDS="code,product_name,product_name_de,brands,nutriments,serving_quantity";
 async function getJSON(url, ms){
   // In der App über die native Verbindung laden (keine Browser Sperren), sonst normal per fetch
-  if(isNative && window.CapHttp){ const r=await window.CapHttp.get({url, connectTimeout:ms||9000, readTimeout:ms||9000, headers:{"User-Agent":"Winterplan/2.0 (privat)"}}); if(r.status>=400 && r.status!==404) throw new Error("HTTP "+r.status); return typeof r.data==="string" ? JSON.parse(r.data) : r.data; }
+  if(isNative && window.CapHttp){ const r=await window.CapHttp.get({url, connectTimeout:ms||9000, readTimeout:ms||9000, headers:{"User-Agent":"Winterarc/2.0 (privat)"}}); if(r.status>=400 && r.status!==404) throw new Error("HTTP "+r.status); return typeof r.data==="string" ? JSON.parse(r.data) : r.data; }
   const ac=typeof AbortController!=="undefined"?new AbortController():null; const to=setTimeout(()=>ac&&ac.abort(), ms||9000); try{ const r=await fetch(url,{signal:ac?ac.signal:undefined}); if(!r.ok && r.status!==404) throw new Error("HTTP "+r.status); return await r.json(); } finally{ clearTimeout(to); } }
 let offErr=null;
 // Eingebaute Datenbank: deutsche Produkte aus Open Food Facts (ODbL), nach Beliebtheit sortiert, funktioniert ohne Netz
@@ -2409,7 +2449,7 @@ function readCode(){
   return new Promise(async (resolve)=>{
     scanResolve=resolve; const v=$("scanVideo");
     try{ scanStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}, width:{ideal:1280}, height:{ideal:720}}, audio:false}); }
-    catch(e){ toast("Kamera nicht erlaubt. In den Android Einstellungen bei Winterplan die Kamera erlauben"); resolve(null); return; }
+    catch(e){ toast("Kamera nicht erlaubt. In den Android Einstellungen bei Winterarc die Kamera erlauben"); resolve(null); return; }
     v.srcObject=scanStream; $("scanModal").hidden=false; scanning=true; try{ await v.play(); }catch(e){}
     let detector=null;
     try{ if("BarcodeDetector" in window){ const f=await window.BarcodeDetector.getSupportedFormats(); if(f.includes("ean_13")) detector=new window.BarcodeDetector({formats:["ean_13","ean_8","upc_a","upc_e","qr_code"]}); } }catch(e){ detector=null; }
@@ -2574,7 +2614,17 @@ function renderCart(){
 function foodSum(d){ const T={kcal:0,p:0,c:0,f:0,n:0}; (state.food[d]||[]).forEach(f=>{ T.kcal+=f.kcal||0; T.p+=f.p||0; T.c+=f.c||0; T.f+=f.f||0; T.n++; }); return T; }
 function wAvg(fromAgo,toAgo){ const k=calToday(); const v=Object.entries(state.weights).filter(([d])=>{ const x=dayDiff(d,k); return x>=fromAgo && x<toAgo; }).map(e=>Number(e[1])).filter(isFinite); return v.length>=3 ? v.reduce((a,b)=>a+b,0)/v.length : null; }
 function exKcalToday(){ const k=calToday(); return (state.hc.acts||[]).filter(a=>keyOf(new Date(a.s))===k).reduce((s,a)=>s+(a.kcal||0),0); }
-function goalKcal(){ const base=P().kcal||2400; return P().addEx ? base+Math.round(exKcalToday()*0.5) : base; }
+// Trainingstag oder Ruhetag? Vergangenes aus dem Log, Zukunft nach der Reihenfolge, von Hand änderbar
+function trainPlanned(d){
+  if(state.sick[d]) return false; const ov=(state.trainOv||{})[d]; if(ov!=null) return ov;
+  const lg=state.train.log.filter(e=>e.d===d); if(lg.some(e=>e.u!=="P"&&!e.skip)) return true; if(lg.some(e=>e.u==="P")) return false;
+  const k=calToday(); if(d<k) return null; if(d<startKey()) return null;
+  let off=dayDiff(k,d); if(state.train.log.some(e=>e.d===k)) off-=1; if(off<0) return null;
+  return SEQ[(state.train.idx+off)%SEQ.length]!=="P";
+}
+function carbDelta(d){ if(P().carbCycle===false) return 0; const t=trainPlanned(d); if(t==null) return 0; const rest=SEQ.filter(x=>x==="P").length, tr=SEQ.length-rest, down=P().carbDown||60; return t ? Math.round(down*rest/tr) : -down; }
+function dayCarbs(d){ return Math.max(60,(P().c||250)+carbDelta(d||calToday())); }
+function goalKcal(d){ d=d||calToday(); const base=(P().kcal||2400)+((P().c||250)+carbDelta(d)<60?0:carbDelta(d)*4); return P().addEx && d===calToday() ? base+Math.round(exKcalToday()*0.5) : base; }
 // Echter Verbrauch aus Essen und Gewichtsverlauf (wie MacroFactor): Verbrauch = Schnitt gegessen minus Gewichtsänderung mal 7700 kcal pro kg
 function foodDays(n){ const k=calToday(), days=[]; for(let i=1;i<=n;i++){ const d=addDays(k,-i), T=foodSum(d); if(T.n>=2 && T.kcal>800) days.push(T.kcal); } return days; }
 function tdeeEstimate(){
@@ -2821,9 +2871,9 @@ function openBcCal(){
   const e=bcEntries(), last=e[e.length-1]; if(!last) return;
   openSheet(p=>{
     sheetHead(p,"Mit Renpho abgleichen");
-    p.append(el("div","note","Wenn du die Renpho Werte gewohnt bist: Wieg dich einmal mit der Renpho App und direkt danach mit Winterplan. Trag hier ein, was Renpho angezeigt hat. Ab dann rechnet Winterplan mit dem gleichen Versatz, auch rückwirkend. Leer lassen, was du nicht abgleichen willst."));
+    p.append(el("div","note","Wenn du die Renpho Werte gewohnt bist: Wieg dich einmal mit der Renpho App und direkt danach mit Winterarc. Trag hier ein, was Renpho angezeigt hat. Ab dann rechnet Winterarc mit dem gleichen Versatz, auch rückwirkend. Leer lassen, was du nicht abgleichen willst."));
     const c=bodyComp(last.w,last.imp,true);
-    p.append(el("div","note","Winterplan ohne Abgleich (letzte Messung): Körperfett "+dec1(c.bf)+" %, Muskelmasse "+dec1(c.muscle)+" kg, Viszeralfett "+c.vf));
+    p.append(el("div","note","Winterarc ohne Abgleich (letzte Messung): Körperfett "+dec1(c.bf)+" %, Muskelmasse "+dec1(c.muscle)+" kg, Viszeralfett "+c.vf));
     const g=el("div","grid3"); const [l1,iB]=field("Körperfett %","text",""), [l2,iM]=field("Muskeln kg","text",""), [l3,iV]=field("Viszeralfett","text","");
     [iB,iM,iV].forEach(i=>i.inputMode="decimal"); g.append(l1,l2,l3); p.append(g);
     const b=el("button","btn wide","Abgleich speichern"); b.addEventListener("click",()=>{ const cal={}; const vb=num(String(iB.value).replace(",",".")), vm=num(String(iM.value).replace(",",".")), vv=num(String(iV.value).replace(",","."));
@@ -3143,7 +3193,7 @@ async function hcConnect(force){
   }
   try{ const r=await HC.requestHealthPermissions({read:HC_READ, write:[], history:true});
     hcInfo.req=(r.grantedPermissions||[]).map(x=>String(x).split(".").pop()).join(", ")||"nichts erlaubt"; hcInfo.reqErr=null;
-    if(r.grantedPermissions && r.grantedPermissions.length){ state.hc.on=true; persist(); toast("Verbunden, gleiche ab …"); await hcSync(); } else toast("Keine Freigabe erteilt. Öffne Health Connect und erlaube dem Winterplan den Zugriff"); }
+    if(r.grantedPermissions && r.grantedPermissions.length){ state.hc.on=true; persist(); toast("Verbunden, gleiche ab …"); await hcSync(); } else toast("Keine Freigabe erteilt. Öffne Health Connect und erlaube Winterarc den Zugriff"); }
   catch(e){ hcInfo.reqErr=String(e && (e.message||e)).slice(0,160); toast("Verbinden hat nicht geklappt. Details unter Technische Infos"); }
   render();
 }
@@ -3414,7 +3464,7 @@ function renderHC(){
     const tb=el("table"), body=el("tbody"); rows.forEach(([a,b])=>{ const tr=el("tr"); tr.append(el("td",null,a), el("td","r macros",b)); body.append(tr); }); tb.append(body); box.append(tb);
     const src=Object.keys(dg.src).join(" ");
     let tip=null;
-    if(!(dg.granted||[]).length) tip="Die App hat noch keine Freigabe. Tipp auf Freigaben ändern oder öffne Health Connect und erlaube dem Winterplan alles unter App Berechtigungen.";
+    if(!(dg.granted||[]).length) tip="Die App hat noch keine Freigabe. Tipp auf Freigaben ändern oder öffne Health Connect und erlaube Winterarc alles unter App Berechtigungen.";
     else if(!/garmin/i.test(src)) tip="In Health Connect kommen noch keine Daten von Garmin an. Das liegt an Garmin Connect: dort muss Health Connect eingeschaltet sein und Garmin braucht die Schreibrechte. Neue Daten kommen erst nach dem nächsten Sync der Uhr.";
     if(tip) box.append(el("div","alert",tip));
   }
@@ -3495,7 +3545,7 @@ function openSettings(first){
   const pr=JSON.parse(JSON.stringify(P())); if(!pr.wake) pr.wake={frueh:"05:00", spaet:"08:00", nacht:"15:00", frei:"09:00", urlaub:"09:00"};
   if(first) Object.assign(pr,{name:"", sex:"m", age:"", height:"", weight:"", target:"", goal:"cut", act:1.5, start:keyOf(new Date(Date.now()+86400000)), weeks:20, injury:false, sleepGoal:8, measEvery:14, kcal:"", p:"", c:"", f:""});
   openSheet(p=>{
-    sheetHead(p, first ? "Willkommen beim Winterplan" : "Einstellungen", first);
+    sheetHead(p, first ? "Willkommen bei Winterarc" : "Einstellungen", first);
     if(first){ p.append(el("div","note","Kurz einrichten, dann rechnet die App deine Ziele aus. Alles lässt sich später über das Zahnrad oben rechts ändern."));
       if(FB()){ const a=el("button","btn ghost wide","Ich habe schon ein Konto: anmelden"); a.onclick=()=>openAccount(); p.append(a); } }
     const sec=t=>p.append(el("div","cat",t));
@@ -3525,6 +3575,8 @@ function openSettings(first){
     if(state.alphaData && !first){ const sA=toggleRow(tg,"Alpha Progression Daten anzeigen", alpha, null, "Startgewichte und alter Verlauf"); sA.addEventListener("click",()=>{ alpha=!alpha; sA.setAttribute("aria-checked",alpha?"true":"false"); }); }
     p.append(tg);
     const [lme,iMe]=field("Körpermaße alle ... Tage","number",pr.measEvery||14); p.append(lme);
+    sec("Kohlenhydrate");
+    const tcc=el("div"); let cc=P().carbCycle!==false; const sCC=toggleRow(tcc,"An Trainingstage anpassen", cc, null, "Ruhetag: 60 g weniger Kohlenhydrate. Trainingstag: etwas mehr. Über die Woche gleich viel, Eiweiß bleibt immer gleich."); sCC.addEventListener("click",()=>{ cc=!cc; sCC.setAttribute("aria-checked",cc?"true":"false"); P().carbCycle=cc; persist(); }); p.append(tcc);
     sec("Daten aus anderen Apps");
     p.append(el("div","note","Waage und Uhr: Renpho, Withings, Garmin, Xiaomi, Samsung und viele mehr schreiben in Health Connect, das holt die App unter Körper automatisch. Waagen mit QN Technik (Renpho, Fitindex und viele günstige) gehen auch direkt per Bluetooth. Alte Verläufe als Datei: hier übernehmen."));
     { const ib=el("button","btn ghost small","CSV Datei übernehmen"); ib.addEventListener("click",()=>openImport()); p.append(ib); }
@@ -3605,7 +3657,7 @@ $("undoTrain").addEventListener("click",()=>{ const e=state.train.log.shift(); i
   persist(); render(); toast("Eintrag vom "+fmtDate(e.d)+" zurückgenommen"+(Object.keys(removed).length?", samt Sätzen":""),()=>{ state.train.log.unshift(e); state.train.idx=idx0; Object.entries(removed).forEach(([n,s])=>insertLift(n,s)); persist(); render(); }); });
 $("backfill").addEventListener("click",openBackfill);
 $("notifAllow").addEventListener("click", async ()=>{ if(!LN) return; try{ await LN.requestPermissions(); }catch(e){} await refreshPerm(); render(); scheduleAll(); });
-$("notifTest").addEventListener("click", async ()=>{ if(!LN) return; try{ await LN.schedule({notifications:[{id:9999, title:"Test vom Winterplan", body:"So sehen deine Erinnerungen aus.", channelId:"plan", schedule:{at:new Date(Date.now()+10000), allowWhileIdle:true}}]}); toast("Kommt in 10 Sekunden"); }catch(e){ toast("Test hat nicht geklappt"); } });
+$("notifTest").addEventListener("click", async ()=>{ if(!LN) return; try{ await LN.schedule({notifications:[{id:9999, title:"Test von Winterarc", body:"So sehen deine Erinnerungen aus.", channelId:"plan", schedule:{at:new Date(Date.now()+10000), allowWhileIdle:true}}]}); toast("Kommt in 10 Sekunden"); }catch(e){ toast("Test hat nicht geklappt"); } });
 $("exactBtn").addEventListener("click", async ()=>{ try{ await LN.changeExactNotificationSetting(); }catch(e){} await refreshPerm(); render(); scheduleAll(); });
 $("bkCopy").addEventListener("click", async ()=>{
   const ta=$("backup"); ta.value=JSON.stringify(state);
