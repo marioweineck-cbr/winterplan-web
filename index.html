@@ -385,6 +385,10 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
 .scalenum.stable{color:var(--done);animation:pop .5s var(--ease)}
 .scalemsg{text-align:center;min-height:20px;font-weight:600}
 .scalebtn{display:flex;align-items:center;justify-content:center}
+
+.wlist .wrow{all:unset;box-sizing:border-box;width:100%;display:grid;grid-template-columns:52px 1fr auto 14px;gap:8px;align-items:center;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+.wlist li:first-child .wrow{border-top:0}.wlist .wrow:active{background:var(--bg)}.wlist .wv{font-weight:700}
+.wtrow{padding:6px 0;border-top:1px solid var(--line);gap:10px}.wtrow .note{flex:1;text-align:right}
 </style>
 </head>
 <body>
@@ -620,11 +624,12 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
       <h3><svg class="hi"><use href="#i-scale"/></svg>Gewicht eintragen</h3>
       <div class="note">Morgens, nüchtern, nach dem Klo. Bewertet wird nur der Wochenschnitt.</div>
       <div class="row nowrap">
-        <input type="number" class="num" id="wInput" step="0.05" min="40" max="200" inputmode="decimal" placeholder="z. B. 85,4" aria-label="Gewicht in kg" style="max-width:140px">
+        <input type="text" class="num" id="wInput" inputmode="decimal" autocomplete="off" placeholder="z. B. 85,4" aria-label="Gewicht in kg" style="max-width:140px">
         <span class="note">kg</span>
         <button class="btn" id="wSave">Speichern</button>
       </div>
       <button class="btn ghost wide scalebtn" id="wScale"><svg class="hi"><use href="#i-scale"/></svg>Mit der Renpho Waage wiegen</button>
+      <div id="wToday"></div>
     </div>
     <div class="card">
       <div class="stat">
@@ -944,7 +949,7 @@ function normalize(s){
   s.wManual = s.wManual || {};
   s.caf = s.caf || []; s.wake = s.wake || {}; s.meas = s.meas || [];
   s.lifts = s.lifts || {}; s.customEx = s.customEx || {}; s.srOv = s.srOv || {}; s.exNotes = s.exNotes || {}; s.sick = s.sick || {}; s.ready = s.ready || {}; s.photos = s.photos || []; s.wlog = s.wlog || []; s.wDel = s.wDel || [];
-  { const first={}; s.wlog.forEach(x=>{ const d=keyOf(new Date(x.t)); if(!first[d] || x.t<first[d].t) first[d]=x; }); Object.entries(first).forEach(([d,x])=>{ s.weights[d]=x.w; }); }
+  { const by={}; s.wlog.slice().sort((a,b)=>a.t-b.t).forEach(x=>{ const d=keyOf(new Date(x.t)); (by[d]=by[d]||[]).push(x); }); Object.entries(by).forEach(([d,e])=>{ const h=e.filter(x=>x.src==="von Hand"); s.weights[d]=(h.length?h[h.length-1]:e[0]).w; }); }
   if(s.train.run && !s.train.run.ex) s.train.run = null;
   s.hc && (s.hc.rhr = s.hc.rhr || {}, s.hc.hrv = s.hc.hrv || {}, s.hc.burn = s.hc.burn || {});
   s.supps = s.supps || SUPP_DEFAULT.map(x=>Object.assign({},x));
@@ -2094,13 +2099,33 @@ const BASIC_FOODS=[
  ["Banane","",93,1.2,20,0.2],["Apfel","",52,0.3,11.4,0.2],["Himbeeren TK","",45,1.3,5,0.3],["Beerenmix TK","",45,1,8,0.4],["Brokkoli TK","",35,3,4,0.4],["Gemüsemix TK","",40,2.5,5,0.4],["Paprika","",30,1,5,0.4],["Gurke","",12,0.6,1.8,0.1],["Tomaten","",18,1,3,0.2],["Zucchini","",20,1.6,2,0.4],["Zwiebeln","",40,1.2,7.5,0.1],["Mais Dose abgetropft","",80,2.5,13,1],["Kidneybohnen Dose abgetropft","",100,7,14,0.6],["Passierte Tomaten","Eigenmarke",30,1.4,5,0.2],["Tomatenmark","",90,4.5,15,0.5],
  ["Whey Protein","",380,75,8,6],["Proteinriegel","",360,33,30,12],["Erdnussbutter","",600,25,13,50],["Nüsse gemischt","",620,18,10,55],["Zartbitterschokolade 70 %","",545,7,33,42],["Vollmilchschokolade","Milka, Eigenmarke",535,6.5,57,31],["Gummibärchen","Haribo",343,7,77,0.5],["Chips","",535,6,52,33],["Eis Vanille","",200,3.5,24,10],
  ["Olivenöl","",884,0,0,100],["Butter","",741,0.7,0.6,83],["Honig","",320,0.4,80,0],["Ketchup","",110,1.5,25,0.1],["Ketchup light","",50,1,10,0.1],["Mayonnaise","",680,1,3,74],["Senf","",80,5,4,4.5],["Sojasauce","",60,8,6,0],
+ ["Burger Patty Rind roh","",230,18,0,17],["Cheeseburger (TK, Stück ca. 130 g)","",260,13,26,11],["Burger Brötchen","",270,9,48,4.5],["Hamburger McDonald's (Stück 104 g)","McDonald's",249,12.5,29.8,8.7],["Pizza Margherita TK","",230,9,30,8],["Döner im Brot","",200,10,20,9],["Pommes frites","",290,3.4,36,15],["Chicken Nuggets","",270,15,17,16],["Lasagne TK","",130,6,12,6],["Fischstäbchen","",200,12,18,9],
  ["Cola","",42,0,10.6,0],["Cola Zero","",0.3,0,0,0],["Monster Energy","",47,0,12,0],["Monster Ultra","",1,0,0.9,0],["Orangensaft","",43,0.7,9,0.1],["Apfelschorle","",24,0,5.5,0]
 ].map(([n,brand,k,p,c,f])=>({n, brand:brand||"Basis", k100:k, p100:p, c100:c, f100:f, basic:true}));
 const OFF_FIELDS="code,product_name,product_name_de,brands,nutriments,serving_quantity";
-async function getJSON(url, ms){ const ac=typeof AbortController!=="undefined"?new AbortController():null; const to=setTimeout(()=>ac&&ac.abort(), ms||9000); try{ const r=await fetch(url,{signal:ac?ac.signal:undefined}); if(!r.ok && r.status!==404) throw new Error("HTTP "+r.status); return await r.json(); } finally{ clearTimeout(to); } }
+async function getJSON(url, ms){
+  // In der App über die native Verbindung laden (keine Browser Sperren), sonst normal per fetch
+  if(isNative && window.CapHttp){ const r=await window.CapHttp.get({url, connectTimeout:ms||9000, readTimeout:ms||9000, headers:{"User-Agent":"Winterplan/2.0 (privat)"}}); if(r.status>=400 && r.status!==404) throw new Error("HTTP "+r.status); return typeof r.data==="string" ? JSON.parse(r.data) : r.data; }
+  const ac=typeof AbortController!=="undefined"?new AbortController():null; const to=setTimeout(()=>ac&&ac.abort(), ms||9000); try{ const r=await fetch(url,{signal:ac?ac.signal:undefined}); if(!r.ok && r.status!==404) throw new Error("HTTP "+r.status); return await r.json(); } finally{ clearTimeout(to); } }
 let offErr=null;
+// Eingebaute Datenbank: deutsche Produkte aus Open Food Facts (ODbL), nach Beliebtheit sortiert, funktioniert ohne Netz
+let FOODDB=null, FOODIDX=null, FOODN=null, foodDbP=null;
+const normTxt = t => String(t||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/ß/g,"ss");
+function loadFoodDb(){
+  if(FOODDB) return Promise.resolve(FOODDB); if(foodDbP) return foodDbP;
+  foodDbP=(async()=>{ try{ const r=await fetch("food-de.json.gz"); if(!r.ok || typeof DecompressionStream==="undefined") throw new Error("nicht verfügbar");
+      const txt=await new Response(r.body.pipeThrough(new DecompressionStream("gzip"))).text(); FOODDB=JSON.parse(txt); }
+    catch(e){ FOODDB=[]; }
+    FOODIDX=new Map(FOODDB.map((x,i)=>[x[0],i])); FOODN=FOODDB.map(x=>normTxt(x[1]+" "+x[2])); return FOODDB; })();
+  return foodDbP;
+}
+const dbItem = x => ({n:x[1], brand:x[2]||"", code:x[0], k100:x[3], p100:x[4], c100:x[5], f100:x[6], serving:x[7]||null});
+function dbSearch(q, n){ if(!FOODDB) return []; const ws=normTxt(q).split(/\s+/).filter(Boolean); if(!ws.length) return []; const out=[];
+  for(let i=0;i<FOODDB.length && out.length<n;i++){ const h=FOODN[i]; if(ws.every(w=>h.includes(w))) out.push(dbItem(FOODDB[i])); } return out; }
 async function lookupCode(code){
   const own = state.myfoods.find(m=>m.code===code); if(own) return own;
+  await loadFoodDb(); const alts=[code, code.length===13&&code[0]==="0"?code.slice(1):null, code.length===12?"0"+code:null].filter(Boolean);
+  for(const c of alts){ if(FOODIDX && FOODIDX.has(c)) return Object.assign(dbItem(FOODDB[FOODIDX.get(c)]),{code}); }
   const codes=[code]; if(code.length===13 && code[0]==="0") codes.push(code.slice(1)); if(code.length===12) codes.push("0"+code);
   offErr=null; let reached=false;
   for(const c of codes){
@@ -2156,9 +2181,12 @@ function openSearch(k){
     const row=el("div","row nowrap"); const inp=el("input"); inp.type="search"; inp.placeholder="z. B. Skyr, Hähnchenbrust, Monster"; inp.setAttribute("aria-label","Suchbegriff");
     const b=el("button","btn small","Suchen"); row.append(inp,b); p.append(row);
     const out=el("div"); p.append(out);
-    const own=()=>{ const q=inp.value.trim().toLowerCase(), ws=q.split(/\s+/).filter(Boolean); const hit=m=>ws.every(w=>(m.n+" "+(m.brand||"")).toLowerCase().includes(w));
-      return state.myfoods.filter(m=>!q || hit(m)).slice(0,6).concat(q ? BASIC_FOODS.filter(hit).slice(0,8) : []); };
+    const own=()=>{ const q=inp.value.trim(), ws=normTxt(q).split(/\s+/).filter(Boolean); const hit=m=>ws.every(w=>normTxt(m.n+" "+(m.brand||"")).includes(w));
+      return state.myfoods.filter(m=>!q || hit(m)).slice(0,6).concat(q ? BASIC_FOODS.filter(hit).slice(0,6) : [], q ? dbSearch(q, 30) : []); };
+    loadFoodDb().then(()=>{ if(inp.value.trim()) show(own(),""); });
+    let tmr=null; inp.addEventListener("input",()=>{ clearTimeout(tmr); tmr=setTimeout(()=>{ const q=inp.value.trim(); if(q.length<2){ show(own(),""); return; } const r=own(); show(r, r.length? (FOODDB&&FOODDB.length? "" : "") : "Nichts in der eingebauten Datenbank. Tippe auf Suchen für die Online Suche."); },220); });
     function show(items, msg){
+      const seen=new Set(); items=items.filter(m=>{ const k=m.code||(m.n+"|"+m.brand); if(seen.has(k)) return false; seen.add(k); return true; });
       out.innerHTML=""; if(msg) out.append(el("div","note",msg));
       items.forEach(m=>{ const r=el("div","opt"); const l=el("div"); l.append(el("div","nm",foodEmoji(m.n)+" "+m.n)); l.append(el("div","macros",[m.brand, m.k100!=null?de(m.k100)+" kcal":"kcal fehlt", "P "+fmtAmt(m.p100||0), "K "+fmtAmt(m.c100||0), "F "+fmtAmt(m.f100||0)].filter(Boolean).join(" · ")+" je 100 g"));
         const a=el("button","btn small ghost","Wählen"); a.addEventListener("click",()=>openAmount(k,m)); r.append(l,a); out.append(r); });
@@ -2174,6 +2202,7 @@ function openSearch(k){
       show(own().concat(res), res.length ? "" : err ? "Online Suche gerade nicht erreichbar. Oben stehen Basis Lebensmittel und deine eigenen." : "Online nichts gefunden. Oben stehen Basis Lebensmittel, sonst unter Eigenes eintragen.");
     }
     b.addEventListener("click",go); inp.addEventListener("keydown",e=>{ if(e.key==="Enter") go(); });
+    p.append(el("div","note","Eingebaute Datenbank: Produkte aus Open Food Facts (ODbL), funktioniert auch ohne Netz."));
     setTimeout(()=>inp.focus(),50);
   });
 }
@@ -2455,7 +2484,7 @@ function scaleUI(){
 }
 const fmtAmt2 = v => v.toFixed(2).replace(".",",");
 async function scaleStop(){
-  const r=scaleRun; scaleRun=null; if(!r) return; clearTimeout(r.to);
+  const r=scaleRun; scaleRun=null; if(!r) return; clearTimeout(r.to); r.done=true;
   try{ await BLE().stopLEScan(); }catch(e){}
   if(r.dev){ try{ await BLE().disconnect(r.dev); }catch(e){} }
 }
@@ -2465,8 +2494,8 @@ async function scaleFinish(w, imp){
   const d=calToday(); const bf=bodyFat(w,imp); wLogAdd(Date.now(), w, "Waage", bf!=null?{bf}:null); wDay(d);
   if(bf!=null) state.hc.fat={v:bf, d};
   state.scale=state.scale||{}; state.scale.last={t:Date.now(), w, imp:imp||null, bf, mode:r.mode};
-  r.msgText = "Gespeichert"+(bf!=null?" · Körperfett ca. "+String(bf).replace(".",",")+" %":"")+". Du kannst runtergehen.";
-  scaleUI(); persist(); render(); setTimeout(scaleStop, 800);
+  scaleRun=r; r.msgText = "Gespeichert"+(bf!=null?" · Körperfett ca. "+String(bf).replace(".",",")+" %":"")+". Du kannst runtergehen.";
+  scaleUI(); persist(); render(); scaleStop(); setTimeout(()=>{ if(!scaleRun && !$("sheet").hidden && $("pane").dataset.kind==="scale") closeSheet(); }, 2200);
 }
 async function qnConnect(id){
   const r=scaleRun; if(!r || r.connecting) return; r.connecting=true; r.mode="gatt";
@@ -2495,7 +2524,7 @@ async function qnConnect(id){
   }catch(e){ r.msgText="Verbinden ging nicht ("+String(e&&e.message||e).slice(0,60)+"). Nochmal versuchen."; scaleUI(); r.connecting=false; }
 }
 function onScaleAdv(res){
-  const r=scaleRun; if(!r || r.done) return;
+  const r=scaleRun; if(!r || r.done || r.connecting) return;
   const md=res.manufacturerData||{}, aabb=md["65535"] && dvBytes(md["65535"]);
   if(aabb && aabb.length>=19 && aabb[0]===0xAA && aabb[1]===0xBB){
     r.mode="adv"; const w=(aabb[17]|(aabb[18]<<8))/100; if(w<0.5 || w>300) return;
@@ -2531,7 +2560,7 @@ async function openScale(){
     if(!(await BLE().isEnabled())){ scaleRun && (scaleRun.msgText="Bitte Bluetooth einschalten und neu starten.", scaleUI()); return; }
     scaleRun.msgText="Stell dich jetzt auf die Waage."; scaleUI();
     await BLE().requestLEScan({allowDuplicates:true, scanMode:2}, onScaleAdv);
-    scaleRun.to=setTimeout(()=>{ if(scaleRun && !scaleRun.done && !scaleRun.connecting){ scaleRun.msgText="Keine Waage gefunden. Draufstellen, dann Neu starten. Ist die Renpho App offen, kurz schließen."; scaleUI(); try{ BLE().stopLEScan(); }catch(e){} } }, 60000);
+    scaleRun.to=setTimeout(()=>{ if(scaleRun && !scaleRun.done){ scaleRun.msgText="Keine Waage gefunden. Draufstellen, dann Neu starten. Ist die Renpho App offen, kurz schließen."; scaleUI(); try{ BLE().stopLEScan(); }catch(e){} } }, 60000);
   }catch(e){ if(scaleRun){ scaleRun.msgText="Bluetooth ging nicht: "+String(e&&e.message||e).slice(0,80)+". Erlaubnis für Geräte in der Nähe geben."; scaleUI(); } }
 }
 
@@ -2541,18 +2570,21 @@ function wLogAdd(t, w, src, extra){
   state.wlog.push(Object.assign({t, w:Math.round(w*100)/100, src}, extra||{})); state.wlog.sort((a,b)=>a.t-b.t);
   if(state.wlog.length>500) state.wlog=state.wlog.slice(-500); return true;
 }
+// Von Hand eingetragen gewinnt (letzte Eingabe), sonst die erste Messung des Tages
+function dayPick(e){ const h=e.filter(x=>x.src==="von Hand"); return h.length ? h[h.length-1] : e[0]; }
 function wDay(d){
-  const e=(state.wlog||[]).filter(x=>keyOf(new Date(x.t))===d);
-  if(e.length) state.weights[d]=e[0].w; else { delete state.weights[d]; delete state.wManual[d]; }
+  const e=(state.wlog||[]).filter(x=>keyOf(new Date(x.t))===d).sort((a,b)=>a.t-b.t);
+  if(e.length) state.weights[d]=dayPick(e).w; else { delete state.weights[d]; delete state.wManual[d]; }
 }
 function openWeightDay(d){
   openSheet(p=>{
     sheetHead(p,"Messungen "+parseKey(d).toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"}));
     const e=(state.wlog||[]).filter(x=>keyOf(new Date(x.t))===d);
-    p.append(el("div","note","Gezählt wird die erste Messung des Tages, also morgens. Doppelte oder falsche Messungen einfach löschen."));
+    p.append(el("div","note","Gezählt wird die erste Messung am Morgen. Trägst du von Hand etwas ein, zählt das. Doppelte oder falsche Messungen einfach löschen."));
     const ul=el("ul","list");
     if(!e.length){ ul.append(el("li","note","Für diesen Tag gibt es nur den Tageswert "+kg(state.weights[d]||0)+" kg ohne Uhrzeit.")); }
-    e.forEach((x,i)=>{ const li=el("li","item nt"+(i===0?" wfirst":"")); const tx=el("div","txt"); tx.append(el("span","num",kg(x.w)+" kg"+(i===0?"  ✓ zählt":"")));
+    const pick=e.length?dayPick(e):null;
+    e.forEach((x,i)=>{ const li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span","num",kg(x.w)+" kg"+(x===pick?"  ✓ zählt":"")));
       tx.append(el("div","sub",hm(new Date(x.t))+" Uhr · "+x.src+(x.bf!=null?" · Fett "+String(x.bf).replace(".",",")+" %":"")));
       const del=el("button","x","×"); del.setAttribute("aria-label","Messung löschen");
       del.addEventListener("click",()=>{ state.wlog=state.wlog.filter(z=>z!==x); state.wDel=state.wDel||[]; state.wDel.push(x.t); state.wDel=state.wDel.slice(-300); wDay(d); persist(); closeSheet(); render(); toast("Messung "+hm(new Date(x.t))+" gelöscht",()=>{ state.wlog.push(x); state.wlog.sort((a,b)=>a.t-b.t); state.wDel=state.wDel.filter(t=>t!==x.t); wDay(d); persist(); render(); }); });
@@ -2584,11 +2616,16 @@ function renderGewicht(k){
   $("chartNote").textContent = (P().alpha ? "Grau: Verlauf aus Alpha Progression und der Waage. " : "")+"Orange: ab Start."+(P().target ? " Grüne Linie: Ziel "+String(P().target).replace(".",",")+" kg." : "");
   const wl=$("wList"); wl.innerHTML="";
   if(!entries.length) wl.textContent="Noch kein Eintrag.";
-  else { const t=el("table"), tb=el("tbody");
-    entries.slice().reverse().slice(0,60).forEach(([d,v])=>{ const tr=el("tr"); tr.style.cursor="pointer"; const n=(state.wlog||[]).filter(x=>keyOf(new Date(x.t))===d);
-      const first=n[0]; tr.append(el("td","num",fmtDate(d)), el("td","note",first ? hm(new Date(first.t))+" · "+first.src : "Tageswert"), el("td","r num",kg(v)+" kg"), el("td","r note",n.length>1?n.length+"×":""), el("td","chev","›"));
-      tr.addEventListener("click",()=>openWeightDay(d)); tb.appendChild(tr); });
-    t.appendChild(tb); wl.appendChild(t); }
+  else { const ul=el("ul","list wlist");
+    entries.slice().reverse().slice(0,60).forEach(([d,v])=>{ const n=(state.wlog||[]).filter(x=>keyOf(new Date(x.t))===d).sort((a,b)=>a.t-b.t), pk=n.length?dayPick(n):null;
+      const li=el("li"); const b=el("button","wrow"); b.append(el("span","num",fmtDate(d)), el("span","note",pk ? hm(new Date(pk.t))+" · "+pk.src+(n.length>1?" · "+n.length+" Messungen":"") : "Tageswert"), el("span","num wv",kg(v)+" kg"), el("span","chev","›"));
+      b.addEventListener("click",()=>openWeightDay(d)); li.append(b); ul.append(li); });
+    wl.append(ul); }
+  { const box=$("wToday"); box.innerHTML=""; const k=calToday(), e=(state.wlog||[]).filter(x=>keyOf(new Date(x.t))===k).sort((a,b)=>a.t-b.t);
+    if(e.length){ const pk=dayPick(e); box.append(el("div","cat","Heute gemessen"));
+      e.forEach(x=>{ const r=el("div","between wtrow"); r.append(el("span","num",hm(new Date(x.t))+"  "+kg(x.w)+" kg"+(x===pk?" ✓":"")), el("span","note",x.src));
+        const del=el("button","x","×"); del.setAttribute("aria-label","Messung löschen"); del.addEventListener("click",()=>{ state.wlog=state.wlog.filter(z=>z!==x); state.wDel=(state.wDel||[]).concat([x.t]).slice(-300); wDay(k); persist(); render(); toast("Messung gelöscht",()=>{ state.wlog.push(x); state.wlog.sort((a,b)=>a.t-b.t); state.wDel=state.wDel.filter(t=>t!==x.t); wDay(k); persist(); render(); }); });
+        r.append(del); box.append(r); }); } }
   const f=state.hc.fat; $("fatLine").hidden=!f; if(f) $("fatLine").textContent="Körperfett laut Waage: "+String(f.v).replace(".",",")+" % ("+fmtDate(f.d)+")";
 }
 function drawChart(entries){
@@ -3110,7 +3147,7 @@ $("cartReset").addEventListener("click",()=>{ state.cart.checked={}; persist(); 
 $("wSave").addEventListener("click",()=>{
   const v=num($("wInput").value);
   if(!(v>30 && v<250)){ toast("Bitte ein gültiges Gewicht eingeben"); return; }
-  wLogAdd(Date.now(), v, "von Hand"); wDay(calToday()); $("wInput").value=""; $("wInput").blur(); persist(); render(); toast("Gewicht gespeichert");
+  wLogAdd(Date.now(), v, "von Hand"); wDay(calToday()); $("wInput").value=""; toast(kg(v)+" kg für heute gespeichert"); $("wInput").blur(); persist(); render(); toast("Gewicht gespeichert");
 });
 function undoLast(){ const e=state.train.log.shift(); if(!e) return; if(e.adv) state.train.idx=(state.train.idx-1+SEQ.length)%SEQ.length; (e.ex||[]).forEach(n=>{ const arr=state.lifts[n]; if(!arr) return; const s=arr.find(x=>x.d===e.d); if(s){ arr.splice(arr.indexOf(s),1); if(!arr.length) delete state.lifts[n]; } }); persist(); render(); }
 $("undoTrain").addEventListener("click",()=>{ const e=state.train.log.shift(); if(!e) return; const idx0=state.train.idx; if(e.adv) state.train.idx=(state.train.idx-1+SEQ.length)%SEQ.length;
