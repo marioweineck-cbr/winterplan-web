@@ -840,8 +840,8 @@ const SUPP_REC = [
 ];
 function suppRecList(box, has, add){
   const L={1:["gut belegt","l1"],2:["sinnvoll","l2"],3:["optional","l3"],4:["lieber nicht","l4"]};
-  SUPP_REC.forEach(([n,t,l,txt])=>{ const r=el("div","recrow"), tt=el("div","tt"); const top=el("div","between"); top.append(el("b",null,n), el("span","lvl "+L[l][1],L[l][0])); tt.append(top, el("div","note",txt+(t?" Zeit: "+(t==="M"?"morgens":"abends")+".":""))); r.append(tt);
-    if(t && l<4){ const on=has(n); const b=el("button","btn small "+(on?"ghost":""),on?"Drin":"Dazu"); b.disabled=on; b.addEventListener("click",()=>{ add({id:"r"+Date.now(), n, t, on:true}); b.textContent="Drin"; b.disabled=true; b.classList.add("ghost"); }); r.append(b); }
+  SUPP_REC.forEach(([n,t,l,txt])=>{ const r=el("div","recrow"), tt=el("div","tt"); const top=el("div","between"); top.append(el("b",null,n), el("span","lvl "+L[l][1],L[l][0])); tt.append(top, el("div","note",txt+(suppDoseHint(n)?" Menge: "+suppDoseHint(n)+".":"")+(t?" Zeit: "+(t==="M"?"morgens":"abends")+".":""))); r.append(tt);
+    if(t && l<4){ const on=has(n); const b=el("button","btn small "+(on?"ghost":""),on?"Drin":"Dazu"); b.disabled=on; b.addEventListener("click",()=>{ add({id:"r"+Date.now(), n, t, on:true, dose:hasAmt(n)?"":suppDoseHint(n)}); b.textContent="Drin"; b.disabled=true; b.classList.add("ghost"); }); r.append(b); }
     box.append(r); });
 }
 function openSuppRec(){
@@ -851,6 +851,11 @@ function openSuppRec(){
     p.append(el("div","note","Kein Ersatz für ärztlichen Rat, vor allem bei Vorerkrankungen oder Medikamenten."));
   });
 }
+// Übliche Menge pro Tag (Richtwert, an die eigene Packung anpassen)
+const SUPP_DOSE=[[/kreatin/i,"5 g"],[/d3|vitamin d/i,"1.000 bis 2.000 IE D3, 50 bis 100 µg K2"],[/omega/i,"250 bis 1.000 mg EPA und DHA"],[/bor/i,"3 mg Bor, 1 bis 3 g MSM"],[/zink/i,"10 mg"],[/magnes/i,"200 bis 300 mg Magnesium"],[/ashwa/i,"300 bis 600 mg Extrakt"],[/whey|eiweiß/i,"25 bis 30 g"],[/koffein/i,"3 mg pro kg"],[/b12/i,"25 bis 100 µg"],[/eisen/i,"nur nach Blutwert"]];
+const suppDoseHint = n => (SUPP_DOSE.find(([r])=>r.test(n))||[])[1] || "";
+const hasAmt = n => /\d+([.,]\d+)?\s*(g|mg|µg|mcg|ie|i\.e\.)\b/i.test(n);
+const suppTxt = x => x.n + (x.dose && !x.n.includes(x.dose) ? " ("+x.dose+")" : "");
 const SUPP_DEFAULT = [
   {id:"kreatin", n:"Kreatin 5 g", t:"M", on:true},
   {id:"vitd", n:"Vitamin D3/K2", t:"M", on:true},
@@ -1015,6 +1020,7 @@ function normalize(s){
   if(s.train.run && !s.train.run.ex) s.train.run = null;
   s.hc && (s.hc.rhr = s.hc.rhr || {}, s.hc.hrv = s.hc.hrv || {}, s.hc.burn = s.hc.burn || {});
   s.supps = s.supps || SUPP_DEFAULT.map(x=>Object.assign({},x));
+  s.supps.forEach(x=>{ if(x.dose==null){ const h=(SUPP_DOSE.find(([r])=>r.test(x.n))||[])[1]; x.dose = h && !hasAmt(x.n) ? h : ""; } });
   s.myRecipes = s.myRecipes || []; s.updatedAt = s.updatedAt || 0;
   if(!s.profile) s.profile = existing ? marioProfile() : {setup:false};
   const p=s.profile; p.wake = p.wake || {frueh:"05:00", spaet:"08:00", nacht:"15:00", frei:"09:00", urlaub:"09:00"};
@@ -1067,7 +1073,7 @@ function phase(w){
 
 // ---------- Tagesablauf
 function wakeFor(k, sh){ return state.wake[k] || P().wake[sh] || "07:00"; }
-function suppLabel(t){ const l=state.supps.filter(s=>s.on && s.t===t).map(s=>s.n); return l.length ? (t==="M"?"Supplements: ":"Supplements vor dem Schlafen: ")+l.join(", ") : null; }
+function suppLabel(t){ const l=state.supps.filter(s=>s.on && s.t===t).map(suppTxt); return l.length ? (t==="M"?"Supplements: ":"Supplements vor dem Schlafen: ")+l.join(", ") : null; }
 function timeline(k, sh){
   const base = parseKey(k), w = toMin(wakeFor(k, sh)), out=[];
   TPL[sh].forEach(([off,label,key],i)=>{
@@ -1216,7 +1222,8 @@ function shiftPicker(k, small){
 function openSheet(build, kind){ clearTimeout(sheetT); $("sheet").classList.remove("closing"); const p=$("pane"); p.innerHTML=""; p.dataset.kind=kind||""; build(p); $("sheet").hidden=false; p.scrollTop=0; }
 let sheetT=null;
 function closeSheet(){ const sh=$("sheet"); if(sh.hidden) return; clearTimeout(sheetT); sh.classList.add("closing"); sheetT=setTimeout(()=>{ sh.hidden=true; sh.classList.remove("closing"); $("pane").innerHTML=""; },200); }
-$("sheet").addEventListener("click", e=>{ if(e.target.id==="sheet" && P().setup) closeSheet(); });
+let sheetDown=null; $("sheet").addEventListener("pointerdown", e=>{ sheetDown=e.target.id==="sheet" ? Date.now() : null; });
+$("sheet").addEventListener("click", e=>{ if(e.target.id==="sheet" && sheetDown && Date.now()-sheetDown<600 && P().setup) closeSheet(); sheetDown=null; });
 function sheetHead(p, title, noClose){ const h=el("div","between"); h.append(el("h2",null,title)); if(!noClose){ const x=el("button","x","×"); x.setAttribute("aria-label","Schließen"); x.addEventListener("click",closeSheet); h.append(x); } p.append(h); }
 function field(label, type, value){ const l=el("label","f",label), i=el("input"); i.type=type; if(value!=null) i.value=value; if(type==="number"){ i.className="num"; i.inputMode="decimal"; } l.append(i); return [l,i]; }
 
@@ -2566,11 +2573,12 @@ function openRecipeForm(edit){
     if(edit){ const del=el("button","link","Rezept löschen"); del.onclick=()=>{ state.myRecipes=state.myRecipes.filter(x=>x.id!==edit.id); delete state.cart.plan[edit.id]; closeSheet(); persist(); render(); toast("Rezept gelöscht"); }; p.append(del); }
   });
 }
+const openRec=new Set();
 function renderRecipes(){
-  const box=$("recipes"); box.innerHTML="";
+  const box=$("recipes"); const y=window.scrollY; box.innerHTML="";
   const nb=el("button","btn wide","Eigenes Rezept anlegen"); nb.onclick=()=>openRecipeForm(); box.append(nb);
   allRecipes().forEach(r=>{
-    const d=el("details","recipe"); const s=el("summary"); const t=el("div","rhead"); t.append(el("span","remo",foodEmoji(r.n))); const tt=el("div"); t.append(tt); tt.append(el("span",null,r.n));
+    const d=el("details","recipe"); if(openRec.has(r.id)) d.open=true; d.addEventListener("toggle",()=>{ if(d.open) openRec.add(r.id); else openRec.delete(r.id); }); const s=el("summary"); const t=el("div","rhead"); t.append(el("span","remo",foodEmoji(r.n))); const tt=el("div"); t.append(tt); tt.append(el("span",null,r.n));
     tt.append(el("div","macros",(r.box? r.por+" Boxen, je Box: " : r.unit? "je "+r.unit+": " : "1 Portion: ")+macroTxt(r))); s.append(t); d.append(s);
     const tb=el("table"), body=el("tbody"); r.z.forEach(([a,u,n])=>{ const tr=el("tr"); tr.append(el("td","num",fmtAmt(a)+" "+u), el("td",null,n)); body.append(tr); }); tb.append(body); d.append(tb);
     const ol=el("ol","steps"); r.st.forEach(x=>ol.append(el("li",null,x))); d.append(ol);
@@ -2581,6 +2589,7 @@ function renderRecipes(){
     if(r.mine){ const ed=el("button","btn small ghost","Bearbeiten"); ed.onclick=()=>openRecipeForm(r); row.append(ed); s.querySelector("span").textContent=r.n+" (eigenes)"; }
     d.append(row); box.append(d);
   });
+  if(openRec.size) requestAnimationFrame(()=>window.scrollTo(0,y));
 }
 function cartItems(){
   const map=new Map();
@@ -2787,7 +2796,7 @@ function openWhey(){
 function renderStock(){
   const ul=$("stockList"); ul.innerHTML="";
   { const wi=wheyInfo(), li=el("li","item nt"), tx=el("div","txt"); tx.append(el("span",null,"Whey Protein")); tx.append(el("div","sub"+(wi&&wi.days<=7?" warnTxt":""), !wi ? "Vorrat noch nicht eingetragen" : "noch ca. "+de(wi.left)+" g, reicht "+wi.days+" Tage")); const b=el("button","btn small ghost", wi?"Neue Dose":"Eintragen"); b.addEventListener("click",openWhey); li.append(tx,b); ul.append(li); }
-  state.supps.filter(s=>s.on).forEach(s=>{ const left=suppLeft(s), li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span",null,s.n));
+  state.supps.filter(s=>s.on).forEach(s=>{ const left=suppLeft(s), li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span",null,suppTxt(s)));
     tx.append(el("div","sub"+(left!=null&&left<=7?" warnTxt":""), left==null ? "Vorrat noch nicht eingetragen" : left===0 ? "leer, nachkaufen" : "noch ca. "+left+" Tag"+(left===1?"":"e")+" (bis "+fmtDate(addDays(calToday(),left))+")"));
     const b=el("button","btn small ghost", left==null?"Eintragen":"Neue Dose"); b.addEventListener("click",()=>openStock(s)); li.append(tx,b); ul.append(li); });
 }
@@ -3592,15 +3601,16 @@ function openSettings(first){
     p.append(el("div","note","Waage und Uhr: Renpho, Withings, Garmin, Xiaomi, Samsung und viele mehr schreiben in Health Connect, das holt die App unter Körper automatisch. Waagen mit QN Technik (Renpho, Fitindex und viele günstige) gehen auch direkt per Bluetooth. Alte Verläufe als Datei: hier übernehmen."));
     { const ib=el("button","btn ghost small","CSV Datei übernehmen"); ib.addEventListener("click",()=>openImport()); p.append(ib); }
     sec("Supplements");
-    p.append(el("div","note","M = morgens nach dem Aufstehen, A = abends vor dem Schlafen. Die Erinnerungen kommen passend zu deiner Schicht."));
+    p.append(el("div","note","M = morgens nach dem Aufstehen, A = abends vor dem Schlafen. Unter dem Namen steht die Menge pro Tag: vorgeschlagen ist ein üblicher Richtwert, trag ein, was auf deiner Packung steht. Die Erinnerungen kommen passend zu deiner Schicht."));
     const sl=el("div"); const supps=JSON.parse(JSON.stringify(state.supps));
     const drawS=()=>{ sl.innerHTML=""; supps.forEach((s,si)=>{ const r=el("div","toggle"); const nm=el("div","tt"); nm.append(el("div",null,s.n));
+      const di=el("input"); di.type="text"; di.value=s.dose||""; di.placeholder=suppDoseHint(s.n)?"z. B. "+suppDoseHint(s.n):"Menge, z. B. 500 mg"; di.style.cssText="font-size:13px;padding:4px 8px;margin-top:3px;width:100%"; di.setAttribute("aria-label","Menge "+s.n); di.addEventListener("input",()=>{ s.dose=di.value.trim(); }); nm.append(di);
       const right=el("div","row nowrap"); const seg=el("div","seg"); seg.style.width="84px"; const bm=el("button",null,"M"), be=el("button",null,"A"); bm.setAttribute("aria-pressed",s.t==="M"?"true":"false"); be.setAttribute("aria-pressed",s.t==="E"?"true":"false"); bm.onclick=()=>{ s.t="M"; drawS(); }; be.onclick=()=>{ s.t="E"; drawS(); }; seg.append(bm,be);
       const del=el("button","x","×"); del.setAttribute("aria-label",s.n+" entfernen"); del.addEventListener("click",()=>{ supps.splice(si,1); drawS(); });
       right.append(seg, sw(s.on,()=>{ s.on=!s.on; drawS(); },s.n), del); r.append(nm,right); sl.append(r); }); };
     drawS(); p.append(sl);
     { const det=el("details"); det.append(el("summary","note","Empfehlungen anzeigen")); const rb=el("div"); suppRecList(rb, n=>supps.some(x=>x.n.toLowerCase().split(" ")[0]===n.toLowerCase().split(" ")[0]), x=>{ supps.push(x); drawS(); }); det.append(rb); p.append(det); }
-    const addRow=el("div","row nowrap"); const iAdd=el("input"); iAdd.type="text"; iAdd.placeholder="Eigenes Supplement"; const bAdd=el("button","btn small ghost","Dazu"); bAdd.onclick=()=>{ const n=iAdd.value.trim(); if(!n) return; supps.push({id:"c"+Date.now(), n, t:"M", on:true}); iAdd.value=""; drawS(); }; addRow.append(iAdd,bAdd); p.append(addRow);
+    const addRow=el("div","row nowrap"); const iAdd=el("input"); iAdd.type="text"; iAdd.placeholder="Eigenes Supplement"; const bAdd=el("button","btn small ghost","Dazu"); bAdd.onclick=()=>{ const n=iAdd.value.trim(); if(!n) return; supps.push({id:"c"+Date.now(), n, t:"M", on:true, dose:suppDoseHint(n)}); iAdd.value=""; drawS(); }; addRow.append(iAdd,bAdd); p.append(addRow);
     const save=el("button","btn wide", first ? "Los geht's" : "Speichern");
     save.addEventListener("click",()=>{
       if(first && (!num(iW.value) || !num(iH.value))){ toast("Bitte mindestens Größe und Gewicht eintragen"); return; }
@@ -3698,7 +3708,7 @@ document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ refresh
   await hcCheck(); await hcPerms(); render();
   if(crashed && Date.now()-Number(crashed)<10*60000){ toast("Letzter Abgleich ist abgestürzt, automatischer Abgleich pausiert. Tipp auf Abgleichen zum Testen."); }
   else hcSync(true);
-  setInterval(render, 60000);
+  setInterval(()=>{ if(document.activeElement && /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) return; render(); }, 60000);
 })();
 })();
 </script>
