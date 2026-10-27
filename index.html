@@ -392,6 +392,14 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
 .bcgrid > div{border:1px solid var(--line);border-radius:12px;padding:9px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .bcgrid .big{font-size:20px}.bcgrid .dl{font-size:12px;font-weight:700}.bcgrid .dl.up{color:var(--warn,#d9822b)}.bcgrid .dl.dn{color:var(--done)}
 .bcgrid .tag{font-size:11px;color:var(--muted)}.bcgrid .tag.bad{color:var(--warn,#d9822b)}.bcgrid .tag.ok{color:var(--done)}
+.donet{font-family:var(--mono);font-size:12px;color:var(--done);background:none;border:0;padding:0;text-decoration:underline dotted;cursor:pointer}
+.coffeebox{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.recrow{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)}.recrow .tt{flex:1;min-width:0}.recrow .lvl{font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;border:1px solid var(--line)}
+.lvl.l1{color:var(--done);border-color:var(--done)}.lvl.l2{color:var(--accent);border-color:var(--accent)}.lvl.l3{color:var(--muted)}.lvl.l4{color:var(--warn,#d9822b);border-color:var(--warn,#d9822b)}
+.stressbar{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;margin:6px 0 2px}.stressbar i{height:16px;border-radius:3px;background:var(--line)}
+.stresslbl{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
+.badges{display:grid;grid-template-columns:1fr 1fr;gap:8px}.badge{border:1px solid var(--line);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:3px}
+.badge .bi{font-size:24px}.badge.off{opacity:.55}.badge.off .bi{filter:grayscale(1)}.badge b{font-size:14px}
 .rawlog{font-family:ui-monospace,monospace;font-size:10px;word-break:break-all;white-space:pre-wrap;color:var(--muted)}
 .wtrow{padding:6px 0;border-top:1px solid var(--line);gap:10px}.wtrow .note{flex:1;text-align:right}
 </style>
@@ -431,6 +439,8 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
       <div class="between"><h3><svg class="hi"><use href="#i-chart"/></svg>Wochenrückblick</h3><button class="btn small" id="reviewOpen">Ansehen</button></div>
       <div class="note">Deine Woche in Zahlen und was du nächste Woche besser machen kannst.</div>
     </div>
+    <div class="card" id="checkCard" hidden></div>
+    <div class="card" id="shiftHelp" hidden></div>
     <div class="card focus" id="nextCard"></div>
     <div class="card" id="vitCard" hidden>
       <div class="between"><h3><svg class="hi"><use href="#i-heart"/></svg>Von der Uhr</h3><button class="link syncl" id="vitSync"><svg class="hi"><use href="#i-sync"/></svg>Abgleichen</button></div>
@@ -456,7 +466,7 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
     <div class="card">
       <div class="between"><h3><svg class="hi"><use href="#i-cup"/></svg>Koffein</h3><span class="mid" id="cafNow"></span></div>
       <div class="note" id="cafInfo"></div>
-      <details class="cafset"><summary>Mein Kaffeevollautomat <span class="note">Stärke und Tasse</span></summary><div id="cafCoffee" style="display:flex;flex-direction:column;gap:6px;margin-top:6px"></div><div class="note" style="margin-top:6px">Stärke 1 ca. 70 mg, 2 ca. 90 mg, 3 ca. 110 mg. Große Tasse etwa 20 % mehr. Grobe Schätzung, je nach Bohne.</div></details>
+      <details class="cafset"><summary>Mein Kaffee <span class="note">Mahlzeit, Bohne, Milch</span></summary><div id="cafCoffee" class="coffeebox"></div></details>
       <div class="caf" id="cafBtns"></div>
       <ul class="list" id="cafLog"></ul>
     </div>
@@ -590,8 +600,14 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
         <div class="quick" id="quick"></div>
       </div>
       <div class="card">
+        <div class="between"><h3><svg class="hi"><use href="#i-bowl"/></svg>Prep My Meal TK</h3><span class="note">½ XL Tüte = 500 g</span></div>
+        <div class="note">Für faule Tage statt Pizza: halbe Tüte in die Pfanne, macht satt und hat viel Eiweiß.</div>
+        <div class="quick" id="pmmQuick"></div>
+      </div>
+      <div class="card">
         <div class="between"><h3><svg class="hi"><use href="#i-apple"/></svg>Heute gegessen</h3><span class="note" id="freeInfo"></span></div>
         <ul class="list" id="foodLog"></ul>
+        <button class="link" id="copyYest">Von gestern übernehmen</button>
       </div>
       <div class="card" id="recentCard">
         <h3>Zuletzt verwendet</h3>
@@ -605,6 +621,7 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
       <div class="card">
         <h3><svg class="hi"><use href="#i-pill"/></svg>Supplement Vorrat</h3>
         <ul class="list" id="stockList"></ul>
+        <button class="link" id="suppRecB">Welche Supplements lohnen sich?</button>
         <div class="note">Was in den nächsten 7 Tagen leer wird, steht automatisch auf der Einkaufsliste.</div>
       </div>
       <div class="card">
@@ -661,16 +678,21 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
       <button class="btn" id="measAdd">Maße eintragen</button>
       <div class="note">Morgens nüchtern, entspannt stehen, Maßband waagerecht. Oberarm angespannt an der dicksten Stelle.</div>
     </div>
+    <div class="card" id="heartCard" hidden>
+      <div class="between"><h3><svg class="hi"><use href="#i-heart"/></svg>Puls</h3><button class="link" id="pulseDayB">Heute im Detail ›</button></div>
+      <div id="pulseStats"></div>
+      <span class="label">Puls heute</span>
+      <svg class="chart" id="pulseToday" viewBox="0 0 340 150" role="img" aria-label="Puls heute"></svg>
+      <div id="pulseExtra"></div>
+      <span class="label">Ruhepuls 30 Tage</span>
+      <svg class="chart" id="rhrChart" viewBox="0 0 340 130" role="img" aria-label="Ruhepuls 30 Tage"></svg>
+      <div class="note" id="rhrNote"></div>
+      <div id="hrvWrap" hidden><span class="label">HRV in ms, höher ist besser erholt</span><svg class="chart" id="hrvChart" viewBox="0 0 340 110" role="img" aria-label="HRV 30 Tage"></svg></div>
+    </div>
     <div class="card" id="stepCard" hidden>
       <div class="between"><h3><svg class="hi"><use href="#i-steps"/></svg>Schritte</h3><span class="pill" id="stepAvg"></span></div>
       <svg class="chart" id="stepChart" viewBox="0 0 340 140" role="img" aria-label="Schritte der letzten 14 Tage"></svg>
       <div class="note" id="stepNote"></div>
-    </div>
-    <div class="card" id="heartCard" hidden>
-      <h3><svg class="hi"><use href="#i-heart"/></svg>Ruhepuls und HRV</h3>
-      <svg class="chart" id="rhrChart" viewBox="0 0 340 130" role="img" aria-label="Ruhepuls 30 Tage"></svg>
-      <div class="note" id="rhrNote"></div>
-      <div id="hrvWrap" hidden><span class="label">HRV in ms, höher ist besser erholt</span><svg class="chart" id="hrvChart" viewBox="0 0 340 110" role="img" aria-label="HRV 30 Tage"></svg></div>
     </div>
     <div class="card" id="hcCard">
       <div class="between"><h3><svg class="hi"><use href="#i-watch"/></svg>Garmin und Waage</h3><span class="pill" id="hcPill">nicht verbunden</span></div>
@@ -743,7 +765,6 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
 
 <script src="cap.js"></script>
 <script src="zxing.min.js"></script>
-<script src="alpha-daten.js"></script>
 <script src="fb.js"></script>
 <script>
 (function(){
@@ -795,6 +816,30 @@ const HABITS = [["steps","8.000 Schritte geschafft"],["water","Viel Wasser getru
 const CAF_DRINKS = [["Kaffee",90],["Monster 0,5 l",160],["Red Bull 0,25 l",80],["Cola 0,5 l",50]];
 const CAF_HALF = 5; // Stunden
 const STEP_GOAL = 8000;
+// Empfehlungen: Stufe 1 gut belegt, 2 sinnvoll in bestimmten Fällen, 3 optional, 4 eher nicht
+const SUPP_REC = [
+  ["Kreatin 5 g","M",1,"Am besten belegtes Supplement für Kraft und Muskeln. Täglich, Uhrzeit egal, auch an Ruhetagen. Monohydrat reicht."],
+  ["Vitamin D3/K2","M",2,"Von Oktober bis März macht die Sonne in Deutschland kaum Vitamin D. 1.000 bis 2.000 IE zum Frühstück mit etwas Fett. Bei Unsicherheit Wert beim Hausarzt messen lassen."],
+  ["Omega 3","M",3,"Lohnt sich, wenn du kaum fetten Fisch isst (weniger als 1 bis 2 Mal pro Woche). Mit dem Essen nehmen."],
+  ["Magnesium","E",3,"Abends. Hilft bei Krämpfen und Mangel, für besseren Schlaf ist es nur schwach belegt. Citrat oder Bisglycinat vertragen sich gut."],
+  ["Eiweißpulver (Whey)","",2,"Kein Muss, aber praktisch, wenn du dein Eiweißziel sonst nicht schaffst. Zählt als Essen, Vorrat steht oben."],
+  ["Zink","E",3,"Nur sinnvoll bei wenig Fleisch oder viel Schwitzen. Nicht dauerhaft hoch dosieren."],
+  ["Koffein vor dem Training","",2,"3 mg pro kg etwa 45 Minuten vorher steigert die Leistung. Kaffee reicht, zählt im Koffeinrechner. Nicht spät am Tag."],
+  ["BCAA, Fatburner, Testobooster","",4,"Lohnt sich nicht: BCAA bringt nichts, wenn du genug Eiweiß isst. Fatburner und Testobooster sind meist teuer und wirkungslos."]
+];
+function suppRecList(box, has, add){
+  const L={1:["gut belegt","l1"],2:["sinnvoll","l2"],3:["optional","l3"],4:["lieber nicht","l4"]};
+  SUPP_REC.forEach(([n,t,l,txt])=>{ const r=el("div","recrow"), tt=el("div","tt"); const top=el("div","between"); top.append(el("b",null,n), el("span","lvl "+L[l][1],L[l][0])); tt.append(top, el("div","note",txt+(t?" Zeit: "+(t==="M"?"morgens":"abends")+".":""))); r.append(tt);
+    if(t && l<4){ const on=has(n); const b=el("button","btn small "+(on?"ghost":""),on?"Drin":"Dazu"); b.disabled=on; b.addEventListener("click",()=>{ add({id:"r"+Date.now(), n, t, on:true}); b.textContent="Drin"; b.disabled=true; b.classList.add("ghost"); }); r.append(b); }
+    box.append(r); });
+}
+function openSuppRec(){
+  openSheet(p=>{ sheetHead(p,"Supplements: was lohnt sich?");
+    p.append(el("div","note","Die Basis ist immer Essen, Schlaf und Training. Supplements sind nur der Rest. Tipp auf Dazu, dann kommt es in deinen Tagesablauf und die Erinnerungen."));
+    const box=el("div"); suppRecList(box, n=>state.supps.some(x=>x.n.toLowerCase().split(" ")[0]===n.toLowerCase().split(" ")[0] && x.on), x=>{ const ex=state.supps.find(z=>z.n===x.n); if(ex) ex.on=true; else state.supps.push(x); persist(); render(); toast(x.n+" dazu"); }); p.append(box);
+    p.append(el("div","note","Kein Ersatz für ärztlichen Rat, vor allem bei Vorerkrankungen oder Medikamenten."));
+  });
+}
 const SUPP_DEFAULT = [
   {id:"kreatin", n:"Kreatin 5 g", t:"M", on:true},
   {id:"vitd", n:"Vitamin D3/K2", t:"M", on:true},
@@ -939,10 +984,7 @@ const LN = isNative ? plug("LocalNotifications") : null;
 const HC = isNative ? plug("HealthConnect") : null;
 
 let state = normalize({});
-function marioProfile(){
-  return {setup:true, name:"Mario", sex:"m", age:22, height:180, weight:89.15, target:79, goal:"cut", act:1.55,
-    start:"2026-11-01", weeks:22, kcal:2400, p:180, c:260, f:70, injury:true, alpha:true, sleepGoal:8,
-    wake:{frueh:"05:00", spaet:"08:00", nacht:"15:00", frei:"09:00", urlaub:"09:00"}, measEvery:14};
+function marioProfile(){ return {setup:false}; };
 }
 function normalize(s){
   s = s && typeof s==="object" ? s : {};
@@ -1033,14 +1075,49 @@ function activeDay(){
   if(sh){ const tl = timeline(y, sh), sleep = tl[tl.length-1].at; if(now < new Date(sleep.getTime()+60*60000) && keyOf(sleep)!==y) return y; }
   return k;
 }
+function atTime(k, hhmm){ const [h,m]=String(hhmm).split(":").map(Number); const d=parseKey(k); d.setHours(h||0,m||0,0,0); return d; }
+function shiftHelpInfo(k){
+  const sh=state.shift[k], t1=addDays(k,1), sh1=state.shift[t1]; if(!sh || !sh1 || sh===sh1 || sh1==="urlaub") return null;
+  const goal=(P().sleepGoal||8)*60, nm=SHIFT_NAMES[sh1];
+  if(sh==="nacht") return {t:"Letzte Nachtschicht, morgen "+nm, l:["Nach der Schicht nur 3 bis 4 Stunden schlafen, Wecker auf ca. 11 Uhr.","Dann raus ans Tageslicht und kein Nickerchen mehr.","Abends zur normalen Zeit ins Bett, so bist du am nächsten Tag wieder im Rhythmus."]};
+  if(sh1==="nacht") return {t:"Morgen erste Nachtschicht", l:["Heute normal schlafen, morgen ohne Wecker ausschlafen.","Morgen Nachmittag 60 bis 90 Minuten hinlegen, ca. 15 bis 17 Uhr.","In der Nacht Kaffee nur bis ca. 3 Uhr, sonst schläfst du danach schlecht.","Auf dem Heimweg Sonnenbrille, zuhause abdunkeln."]};
+  const bed=bedtimeFor(k), w1=atTime(t1, wakeFor(t1,sh1)), need=new Date(w1.getTime()-(goal+15)*60000); if(!bed) return null;
+  const diff=Math.round((bed-need)/60000);
+  if(diff>=45){ const caf=new Date(need.getTime()-8*3600000), dim=new Date(need.getTime()-90*60000);
+    return {t:"Morgen "+nm+", Wecker "+hm(w1), l:["Heute um "+hm(need)+" ins Bett statt "+hm(bed)+". Das sind "+fmtMin(diff)+" früher.","Letzter Kaffee bis "+hm(caf)+" Uhr.","Ab "+hm(dim)+" Uhr Licht dimmen, Handy weg, kein schweres Essen mehr.","Morgen direkt nach dem Aufstehen helles Licht, das stellt die innere Uhr am schnellsten um."], warn: diff>=150 ? "Das ist ein großer Sprung. Klappt das Einschlafen nicht, nicht wälzen: kurz aufstehen, ruhig lesen, wieder hinlegen." : null};
+  }
+  if(diff<=-90) return {t:"Morgen "+nm+", du darfst länger schlafen", l:["Heute darfst du bis ca. "+hm(need)+" aufbleiben.","Morgen erst um "+hm(w1)+" aufstehen, dann direkt Tageslicht."]};
+  return null;
+}
+function renderShiftHelp(k){
+  const box=$("shiftHelp"); box.innerHTML=""; const x=shiftHelpInfo(k); box.hidden=!x; if(!x) return;
+  const h=el("div","between"); h.append(el("h3",null,"Schichtwechsel"), el("span","pill","🌙")); box.append(h, el("div","label",x.t));
+  const ul=el("ul","list"); x.l.forEach(t=>ul.append(el("li","item nt",t))); box.append(ul); if(x.warn) box.append(el("div","note",x.warn));
+}
 function bedtimeFor(k){ const sh=state.shift[k]; if(!sh) return null; const tl=timeline(k,sh); return tl[tl.length-1].at; }
 function stepsDone(k){ return !!dayChecks(k)["h_steps"] || (state.hc.steps[k]||0)>=STEP_GOAL; }
 function itemDone(k,it){ if(it.info) return new Date()>=it.at; if(it.key in MEALS) return mealOn(k,it.key); if(it.key==="steps") return stepsDone(k); return !!dayChecks(k)[it.key+"@"+it.i]; }
-function mealOn(k,key){ return dayFood(k).some(f=>f.m===key); }
+function mealOn(k,key){ return dayFood(k).some(f=>f.m===key || f.slot===key); }
 function setMeal(k,key,on){
-  const list = dayFood(k), i = list.findIndex(f=>f.m===key);
-  if(on && i<0){ const m=MEALS[key]; list.push({n:m.name, kcal:m.kcal, p:m.p, c:m.c, f:m.f, m:key, t:Date.now()}); }
-  if(!on && i>=0) list.splice(i,1);
+  const list = dayFood(k), i = list.findIndex(f=>f.m===key), j = list.findIndex(f=>f.slot===key);
+  if(on && i<0 && j<0){ const m=MEALS[key]; list.push({n:m.name, kcal:m.kcal, p:m.p, c:m.c, f:m.f, m:key, t:Date.now()}); }
+  if(!on){ if(i>=0) list.splice(i,1); else if(j>=0) delete list[j].slot; }
+}
+// Passenden Essens Punkt im Tagesablauf finden (offen, zeitlich am nächsten, max. 3 Std. weg)
+function slotFor(k, f){
+  const sh=state.shift[k]; if(!sh) return null; const now=f.t||Date.now(); const shake=/shake|whey/i.test(f.n||"");
+  const c=timeline(k,sh).filter(it=>it.key in MEALS && !mealOn(k,it.key) && (shake ? it.key==="sh" : it.key!=="sh"));
+  let best=null, bd=1e15; c.forEach(it=>{ const d=Math.abs(it.at.getTime()-now); if(d<bd){ bd=d; best=it; } });
+  return best && bd<=3*3600000 ? best : null;
+}
+function doneAt(k,it){ if(it.key in MEALS){ const f=dayFood(k).find(x=>x.m===it.key || x.slot===it.key); return f&&f.t||null; } const v=dayChecks(k)[it.key+"@"+it.i]; return typeof v==="number" ? v : null; }
+function openDoneTime(k,it){
+  const t0=doneAt(k,it); if(!t0) return;
+  openSheet(p=>{ sheetHead(p,"Erledigt um"); p.append(el("div","note",it.label));
+    const d0=new Date(t0); const [l,i]=field("Uhrzeit","time",pad(d0.getHours())+":"+pad(d0.getMinutes())); p.append(l);
+    const b=el("button","btn wide","Speichern"); b.addEventListener("click",()=>{ if(!i.value) return; const [h,m]=i.value.split(":").map(Number); const nd=new Date(t0); nd.setHours(h,m,0,0); if(nd.getTime()-t0>12*3600000) nd.setDate(nd.getDate()-1); if(t0-nd.getTime()>12*3600000) nd.setDate(nd.getDate()+1);
+      if(it.key in MEALS){ const f=dayFood(k).find(x=>x.m===it.key || x.slot===it.key); if(f) f.t=nd.getTime(); } else dayChecks(k)[it.key+"@"+it.i]=nd.getTime();
+      persist(); closeSheet(); render(); toast("Auf "+i.value+" Uhr gesetzt"); }); p.append(b); });
 }
 
 // ---------- Koffein
@@ -1122,14 +1199,25 @@ function field(label, type, value){ const l=el("label","f",label), i=el("input")
 
 // ---------- Render
 let tab = "heute", foodView = "log";
+const goals = () => ({kcal:goalKcal(), p:P().p||150, c:P().c||250, f:P().f||70});
+let widgetT=null, widgetLast="";
+function widgetPush(){ clearTimeout(widgetT); widgetT=setTimeout(async ()=>{ try{
+  if(!Prefs) return; const k=activeDay(), items=[]; const now=Date.now();
+  [k, addDays(k,1)].forEach(d=>{ const sh=state.shift[d]; if(!sh) return; timeline(d,sh).forEach(it=>{ if(it.at.getTime()>now-30*60000 && !itemDone(d,it) && it.label) items.push([it.at.getTime(), it.t, it.label.replace(/^Supplements: .*/,"Supplements").slice(0,60)]); }); });
+  items.sort((a,b)=>a[0]-b[0]); const G=goals(), T=foodSum(calToday());
+  const data={items:items.slice(0,12), kcal:Math.round(Math.max(0,G.kcal-T.kcal)), p:Math.round(Math.max(0,G.p-T.p)), caf:(()=>{ const t=cafBelow(50); return t?hm(t):""; })(), sh:state.shift[k]?SHIFT_NAMES[state.shift[k]]:"", u:now};
+  const js=JSON.stringify(Object.assign({},data,{u:0})); if(js===widgetLast) return; widgetLast=js;
+  await Prefs.set({key:"widget", value:JSON.stringify(data)}); const WB=plug("WidgetBridge"); if(WB && WB.update) await WB.update();
+}catch(e){} }, 1500); }
 function render(){
+  widgetPush(); setTimeout(checkBadges, 50);
   const k = activeDay(), w = planWeek(k), ph = phase(w);
   $("dateLabel").textContent = (P().name ? "Hi "+P().name+" · " : "") + parseKey(k).toLocaleDateString("de-DE",{weekday:"long", day:"numeric", month:"long"}) + (k!==calToday() ? " · Schicht läuft noch" : "");
   $("weekLabel").textContent = w===0 ? "Start in "+dayDiff(k, startKey())+" Tagen" : "Woche "+w+" von "+(P().weeks||22);
   $("phasePill").textContent = ph.name + (P().injury ? " · Hand Stufe "+ph.hand : "");
   $("pageTitle").textContent = TITLES[tab];
   if(tab==="koerper"){ renderSteps(); renderHeart(); }
-  if(tab==="heute"){ renderHeute(k, ph); renderVitals(); renderCaf(k); renderSleepCalc(); $("reviewCard").hidden=!reviewDue(); }
+  if(tab==="heute"){ renderHeute(k, ph); renderCheckin(); renderShiftHelp(k); renderVitals(); renderCaf(k); renderSleepCalc(); $("reviewCard").hidden=!reviewDue(); }
   if(tab==="woche") renderWoche();
   if(tab==="training") renderTraining(k, ph);
   if(tab==="essen") renderEssen(k);
@@ -1163,7 +1251,8 @@ function renderHeute(k, ph){
       if(it.key==="steps" && state.hc.on){ const st=state.hc.steps[k]; tx.append(el("div","sub", st!=null ? "Uhr: "+de(st)+" Schritte, wird automatisch abgehakt" : "wird automatisch abgehakt, sobald die Uhr 8.000 meldet")); }
       const wrap=el("div","wi"); wrap.append(icoEl(KEY_ICON[it.key]), tx);
       if(it.info){ li.classList.add("info"); li.append(el("span","t",it.t), wrap, el("span")); ul.appendChild(li); return; }
-      li.append(el("span","t",it.t), wrap, tickBtn(on, ()=>{ if(isMeal) setMeal(k,it.key,!on); else if(it.key==="steps") c["h_steps"]=!on; else c[id]=!on; persist(); render(); }, it.label));
+      const da=on?doneAt(k,it):null; if(da){ const db=el("button","donet","✓ "+hm(new Date(da))+" Uhr"); db.setAttribute("aria-label","Uhrzeit ändern"); db.addEventListener("click",e=>{ e.stopPropagation(); openDoneTime(k,it); }); tx.append(db); }
+      li.append(el("span","t",it.t), wrap, tickBtn(on, ()=>{ if(isMeal) setMeal(k,it.key,!on); else if(it.key==="steps") c["h_steps"]=!on; else c[id]=on?false:Date.now(); persist(); render(); }, it.label));
       ul.appendChild(li);
     });
     if(next){
@@ -1193,13 +1282,10 @@ function renderCaf(k){
   const cb=$("cafBtns"); cb.innerHTML="";
   const addCaf=(n,mg,t)=>{ const atBed = bed && bed>new Date() ? cafLevel(bed)+mg*Math.pow(0.5,(bed-t)/3600000/CAF_HALF) : 0; state.caf.unshift({n,mg,t}); state.caf.sort((a,b)=>b.t-a.t); state.caf=state.caf.filter(c=>Date.now()-c.t<48*3600000); persist(); render(); toast(atBed>50 ? n+" eingetragen. Achtung, wird knapp für den Schlaf" : n+" eingetragen um "+hm(new Date(t))+" Uhr"); };
   const cf=coffeeSet();
-  CAF_DRINKS.forEach(([n0,mg0,sub])=>{ const isK=n0==="Kaffee", n=isK?coffeeName():n0, mg=isK?coffeeMg():mg0; const b=el("button"); b.append(document.createTextNode(isK?"Kaffee":n)); b.append(el("small",null,(isK?"Stärke "+cf.lvl+(cf.big?" groß":"")+" · ":"")+mg+" mg"));
-    b.addEventListener("click",()=>addCaf(n,mg,Date.now())); cb.append(b); });
+  CAF_DRINKS.forEach(([n0,mg0,sub])=>{ const isK=n0==="Kaffee", n=isK?coffeeName():n0, mg=isK?coffeeMg():mg0; const b=el("button"); b.append(document.createTextNode(isK?"Kaffee":n)); b.append(el("small",null,(isK?de(cf.ml)+" ml"+(coffeeMilk()?" + Milch":"")+" · ":"")+mg+" mg"));
+    b.addEventListener("click",()=>{ if(isK){ const mk=coffeeMilk(); if(mk) dayFood(calToday()).push(Object.assign({t:Date.now()},mk)); } addCaf(n,mg,Date.now()); }); cb.append(b); });
   const own=el("button"); own.append(document.createTextNode("Eigenes")); own.append(el("small",null,"mit Uhrzeit")); own.addEventListener("click",()=>openCaf(null)); cb.append(own);
-  const cr=$("cafCoffee"); cr.innerHTML="";
-  const sg=el("div","seg"); [1,2,3].forEach(l=>{ const b=el("button",null,"Stärke "+l); b.setAttribute("aria-pressed",cf.lvl===l?"true":"false"); b.addEventListener("click",()=>{ state.coffee={lvl:l,big:cf.big}; persist(); render(); }); sg.append(b); });
-  const sz=el("div","seg"); [[false,"Tasse normal"],[true,"Tasse groß"]].forEach(([v,t])=>{ const b=el("button",null,t); b.setAttribute("aria-pressed",cf.big===v?"true":"false"); b.addEventListener("click",()=>{ state.coffee={lvl:cf.lvl,big:v}; persist(); render(); }); sz.append(b); });
-  cr.append(sg,sz);
+  if(!(document.activeElement && $("cafCoffee").contains(document.activeElement))) drawCoffee();
   const ul=$("cafLog"); ul.innerHTML="";
   const list=state.caf.filter(c=>Date.now()-c.t<24*3600000).slice(0,8);
   list.forEach(c=>{
@@ -1209,9 +1295,32 @@ function renderCaf(k){
   });
   if(list.length) ul.append(el("li","note","Später getrunken oder falsche Zeit? Auf Ändern tippen."));
 }
-function coffeeSet(){ const c=state.coffee||{}; return {lvl:[1,2,3].includes(c.lvl)?c.lvl:2, big:!!c.big}; }
-function coffeeMg(){ const c=coffeeSet(); return Math.round([70,90,110][c.lvl-1]*(c.big?1.2:1)); }
-function coffeeName(){ const c=coffeeSet(); return "Kaffee Stärke "+c.lvl+(c.big?" groß":""); }
+// Kaffee: Mahldauer mal ca. 1,2 g pro Sekunde, Koffein je g Pulver nach Bohne (ca. 85 % gehen in die Tasse)
+const BEANS={ara:["100 % Arabica",10],mix:["Mix, mild",11.5],rob:["viel Robusta",14]};
+const MILK={none:["ohne",0,0,0,0],m15:["Milch 1,5 %",47,3.4,4.9,1.5],m35:["Milch 3,5 %",64,3.3,4.8,3.5],oat:["Haferdrink",45,0.5,7,1.5]};
+function coffeeSet(){ const c=state.coffee||{}; return {sec:num(c.sec)>0?num(c.sec):7, g:num(c.g)>0?num(c.g):null, gps:num(c.gps)>0?num(c.gps):1.2, bean:BEANS[c.bean]?c.bean:"mix", ml:num(c.ml)>0?num(c.ml):100, milk:MILK[c.milk]?c.milk:"m15", milkMl:num(c.milkMl)>=0&&c.milkMl!=null?num(c.milkMl):50}; }
+function coffeeG(){ const c=coffeeSet(); return num(c.g)>0 ? num(c.g) : Math.round(c.sec*c.gps*10)/10; }
+function coffeeMg(){ const c=coffeeSet(); return Math.round(coffeeG()*BEANS[c.bean][1]); }
+function coffeeMilk(){ const c=coffeeSet(), m=MILK[c.milk], f=c.milkMl/100; if(!m[1]||!c.milkMl) return null; return {n:"Kaffee mit "+de(c.milkMl)+" ml "+m[0], kcal:Math.round(m[1]*f), p:Math.round(m[2]*f*10)/10, c:Math.round(m[3]*f*10)/10, f:Math.round(m[4]*f*10)/10}; }
+function coffeeName(){ const c=coffeeSet(), mk=coffeeMilk(); return "Kaffee "+de(c.ml)+" ml"+(mk?" mit Milch":""); }
+function drawCoffee(){
+  const cr=$("cafCoffee"); if(!cr) return; cr.innerHTML=""; const c=coffeeSet(); const save=o=>{ state.coffee=Object.assign(coffeeSet(),o); persist(); render(); };
+  const g=el("div","grid3"); const [l1,iS]=field("Pulver g","text",String(coffeeG()).replace(".",",")), [l2,iM]=field("Kaffee ml","text",de(c.ml)), [l3,iMm]=field("Milch ml","text",de(c.milkMl));
+  [iS,iM,iMm].forEach(i=>{ i.inputMode="decimal"; i.className="num"; }); iS.addEventListener("change",()=>save({g:num(iS.value)||null})); iM.addEventListener("change",()=>save({ml:num(iM.value)||100})); iMm.addEventListener("change",()=>save({milkMl:num(iMm.value)||0}));
+  g.append(l1,l2,l3); cr.append(g);
+  cr.append(el("span","label","Bohne"));
+  const sb=el("div","seg"); Object.entries(BEANS).forEach(([k,[n]])=>{ const b=el("button",null,n); b.setAttribute("aria-pressed",c.bean===k?"true":"false"); b.addEventListener("click",()=>save({bean:k})); sb.append(b); }); cr.append(sb);
+  cr.append(el("span","label","Milch"));
+  const sm=el("div","seg"); Object.entries(MILK).forEach(([k,[n]])=>{ const b=el("button",null,n.replace("Milch ","")); b.setAttribute("aria-pressed",c.milk===k?"true":"false"); b.addEventListener("click",()=>save({milk:k})); sm.append(b); }); cr.append(sm);
+  const mk=coffeeMilk();
+  cr.append(el("div","alert ok","Pro Tasse: ca. "+dec1(coffeeG())+" g Pulver, "+coffeeMg()+" mg Koffein"+(mk?", "+mk.kcal+" kcal aus der Milch (zählt automatisch beim Essen mit)":", keine kcal")+"."));
+  const tips=[]; if(c.milk==="m35" && c.milkMl>0){ const sv=Math.round((64-47)*c.milkMl/100); tips.push("Mit 1,5 % Milch sparst du ca. "+sv+" kcal pro Tasse, bei 3 Tassen am Tag sind das ca. "+sv*3+" kcal. Schmeckt kaum anders."); }
+  if(c.milk==="none") tips.push("Schwarz hat praktisch keine kcal.");
+  if(c.milk==="m15") tips.push("1,5 % Milch ist ein guter Mittelweg: cremig, aber weniger Fett als 3,5 %.");
+  tips.push("Bis 400 mg Koffein am Tag und 200 mg auf einmal gelten für gesunde Erwachsene als unbedenklich. Das wären bei dir ca. "+Math.floor(400/Math.max(1,coffeeMg()))+" Tassen.");
+  tips.push("Pulver pro Tasse: Bei Vollautomaten sind es meist 7 bis 10 g. Mahlgrad ändert am Koffein kaum etwas, die Menge Pulver und die Bohne schon.");
+  cr.append(el("div","note",tips.join(" ")));
+}
 function openCaf(c){
   openSheet(p=>{
     sheetHead(p, c ? "Eintrag ändern" : "Koffein eintragen");
@@ -1432,11 +1541,11 @@ function baseIngredients(f){
   return r.z.map(([a,u,n])=>({a:rd(a*src[1]/r.por,u)||(PER100[u]?1:0.25),u,n}));
 }
 const sumIng = list => list.reduce((t,x)=>{ const m=ingMacro(x.n,num(x.a)||0,x.u); return t.map((v,i)=>v+m[i]); },[0,0,0,0]);
-function openFoodItem(k, f){
+function openFoodItem(k, f, ed){
   const base=baseIngredients(f), last=(state.lastVar||{})[f.n];
   let mode = last ? "last" : "base", fac = last ? last.fac : 1, rows = null;
-  const reset = m => { mode=m; if(!base){ rows=null; fac = m==="last"&&last ? last.fac : 1; return; } rows = base.map(x=>({...x})); fac=1; if(m==="last" && last){ fac=last.fac||1; rows.forEach(x=>{ if(last.am && last.am[x.n]!=null) x.a=last.am[x.n]; }); (last.extra||[]).forEach(e=>rows.push({...e})); } };
-  reset(mode);
+  const reset = m => { if(m==="edit"){ mode="custom"; fac=ed.fac||1; rows = base ? (ed.e.ing ? ed.e.ing.map(x=>({...x})) : base.map(x=>({...x}))) : null; return; } mode=m; if(!base){ rows=null; fac = m==="last"&&last ? last.fac : 1; return; } rows = base.map(x=>({...x})); fac=1; if(m==="last" && last){ fac=last.fac||1; rows.forEach(x=>{ if(last.am && last.am[x.n]!=null) x.a=last.am[x.n]; }); (last.extra||[]).forEach(e=>rows.push({...e})); } };
+  reset(ed ? "edit" : mode);
   openSheet(p=>{
     const h=el("div","foodhead"); h.append(el("span","bigemo",foodEmoji(f.n))); const ht=el("div"); ht.append(el("h2",null,f.n)); h.append(ht);
     const x=el("button","x","×"); x.setAttribute("aria-label","Schließen"); x.addEventListener("click",closeSheet); h.append(x); p.append(h);
@@ -1444,7 +1553,8 @@ function openFoodItem(k, f){
     const tot=el("div","stat4 foodtot"); p.append(tot);
     p.append(el("div","cat","Menge"));
     const fs=el("div","chips"); [0.5,0.75,1,1.25,1.5,2].forEach(v=>{ const b=el("button",null,v===1?"1 Portion":String(v).replace(".",",")+" ×"); b.dataset.v=v; b.addEventListener("click",()=>{ fac=v; draw(); }); fs.append(b); }); p.append(fs);
-    const go=el("button","btn wide","Eintragen"); p.append(go);
+    const go=el("button","btn wide",ed?"Änderung speichern":"Eintragen"); p.append(go);
+    if(ed) p.append(el("div","note","Du änderst den Eintrag von "+hm(new Date(ed.e.t||Date.now()))+" Uhr. Einfach Mengen anpassen und speichern."));
     const ingBox=el("div"); p.append(ingBox);
     const calc=()=>{ const sc=[f.kcal,f.p,f.c,f.f]; if(!rows) return sc.map(v=>v*fac);
       const now=sumIng(rows), ref=sumIng(base); return sc.map((v,i)=>{ const r = ref[i]>0.5 ? now[i]/ref[i] : 1; return (ref[i]>0.5 ? v*r : v + now[i]-ref[i]) * fac; }); };
@@ -1473,13 +1583,16 @@ function openFoodItem(k, f){
       const m=calc().map(v=>Math.round(v)); const changed = fac!==1 || mode!=="base";
       if(rows){ state.lastVar=state.lastVar||{}; const am={}; rows.filter(x=>!x.extra).forEach(x=>am[x.n]=num(x.a)||0); state.lastVar[f.n]={fac, am, extra:rows.filter(x=>x.extra && num(x.a)>0).map(x=>({n:x.n,u:x.u,a:num(x.a),extra:true}))}; }
       else { state.lastVar=state.lastVar||{}; state.lastVar[f.n]={fac}; }
-      closeSheet(); addFood(k,{n:f.n+(changed?(fac!==1?" ("+String(fac).replace(".",",")+" ×)":" (angepasst)"):""), kcal:m[0], p:m[1], c:m[2], f:m[3], free:f.free});
+      const out={n:f.n+(changed?(fac!==1?" ("+String(fac).replace(".",",")+" ×)":" (angepasst)"):""), kcal:m[0], p:m[1], c:m[2], f:m[3], free:f.free, src:{n:f.n,kcal:f.kcal,p:f.p,c:f.c,f:f.f,free:f.free,rid:f.rid}, fac};
+      if(rows) out.ing=rows.filter(x=>num(x.a)>0 || !x.extra).map(x=>({n:x.n,u:x.u,a:num(x.a)||0,extra:x.extra}));
+      if(ed){ const e=ed.e; delete e.ing; Object.assign(e,out); if(!out.free) delete e.free; persist(); closeSheet(); render(); toast("Geändert: "+out.n); return; }
+      closeSheet(); addFood(k,out);
     });
   }, "food");
 }
 
 // ---------- Essen Symbole
-const FOOD_EMO=[[/porridge|oats|hafer|müsli/i,"🥣"],[/bolognese|lasagne|nudel|pasta/i,"🍝"],[/chili/i,"🌶️"],[/teriyaki|curry|reis/i,"🍛"],[/gyros|döner|dürüm|lahmacun/i,"🥙"],[/burger|whopper|big mac|mcchicken|royal|cheeseburger|hamburger/i,"🍔"],[/pizza/i,"🍕"],[/wrap|twister/i,"🌯"],[/paprika|pfanne/i,"🥘"],[/pfannkuchen/i,"🥞"],[/waffel/i,"🧇"],[/quark|skyr|pudding/i,"🥛"],[/shake|whey|drink/i,"🥤"],[/obst|banane|schoki|snack/i,"🍌"],[/frei/i,"🎉"],[/nugget|chicken|hähnchen|wings|original recipe|zinger/i,"🍗"],[/brötchen|brezel|sandwich|teriyaki 15|turkey|steak/i,"🥪"],[/pommes/i,"🍟"],[/jerky/i,"🥩"],[/riegel/i,"🍫"],[/salat|bowl/i,"🥗"],[/ei\b|eier/i,"🥚"]];
+const FOOD_EMO=[[/porridge|oats|hafer|müsli/i,"🥣"],[/bolognese|lasagne|nudel|pasta/i,"🍝"],[/chili/i,"🌶️"],[/paella/i,"🥘"],[/spätzle/i,"🧀"],[/seelachs|fisch/i,"🐟"],[/kartoffel/i,"🥔"],[/teriyaki|curry|reis/i,"🍛"],[/gyros|döner|dürüm|lahmacun/i,"🥙"],[/burger|whopper|big mac|mcchicken|royal|cheeseburger|hamburger/i,"🍔"],[/pizza/i,"🍕"],[/wrap|twister/i,"🌯"],[/paprika|pfanne/i,"🥘"],[/pfannkuchen/i,"🥞"],[/waffel/i,"🧇"],[/quark|skyr|pudding/i,"🥛"],[/shake|whey|drink/i,"🥤"],[/obst|banane|schoki|snack/i,"🍌"],[/frei/i,"🎉"],[/nugget|chicken|hähnchen|wings|original recipe|zinger/i,"🍗"],[/brötchen|brezel|sandwich|teriyaki 15|turkey|steak/i,"🥪"],[/pommes/i,"🍟"],[/jerky/i,"🥩"],[/riegel/i,"🍫"],[/salat|bowl/i,"🥗"],[/ei\b|eier/i,"🥚"]];
 const CHAIN_EMO={"McDonald's":"🍔","Burger King":"👑","KFC":"🍗","Subway":"🥪","Döner":"🥙","Bäcker":"🥨","Supermarkt":"🛒","Tankstelle":"⛽"};
 function foodEmoji(n){ const m=FOOD_EMO.find(([r])=>r.test(n||"")); return m?m[1]:"🍽️"; }
 
@@ -1487,6 +1600,8 @@ function foodEmoji(n){ const m=FOOD_EMO.find(([r])=>r.test(n||"")); return m?m[1
 function nextSlot(){ return SEQ[state.train.idx % SEQ.length]; }
 function streakBefore(k){ const days = new Set(state.train.log.filter(e=>e.u!=="P").map(e=>e.d)); let n=0, d=addDays(k,-1); while(days.has(d)){ n++; d=addDays(d,-1); } return n; }
 function options(pk){ return PAT[pk].o.concat((state.customEx[pk]||[]).map(c=>[c.n,c.e,1,"eigene Übung"])); }
+// Hinweise rund um die Hand nur im Verletzungsmodus zeigen
+function exHint(o){ const h=o[3]||""; return !P().injury && /hand|griff|einarmig|last auf/i.test(h) ? "" : h; }
 function usable(o, hand){ return o[2]<=hand && (state.equip[o[1]] || o[1]==="KG"); }
 function pickFor(u, i, hand){
   const pk = UNITS[u].s[i][0], opts=options(pk), key = u+i;
@@ -1530,6 +1645,14 @@ function suggest(o,sr,L){
   const txt="Ziel: "+targetTxt(t);
   return t.kind==="up" ? txt+" (Gewicht rauf)" : t.kind==="hold" ? txt+" (Gewicht halten, längere Pause)" : t.kind==="down" ? txt+" (zweimal zu schwer, kurz runter und neu aufbauen)" : txt;
 }
+// Stillstand: 3 Einheiten über mindestens 12 Tage ohne messbaren Fortschritt
+function stallInfo(name,o){
+  const L=liftInfo(name); if(!L || L.length<3) return null; const s=L.slice(0,5), b=s.map(x=>{ const v=sessBest(x,o); return repsMode(o)?v:conv(v,x.u,"kg"); });
+  let n=1; for(let i=1;i<s.length;i++){ if(b[0]<=b[i]*1.015) n++; else break; }
+  if(n<3) return null; const days=dayDiff(s[n-1].d, s[0].d); if(days<12) return null;
+  return {n, weeks:Math.max(2,Math.round(days/7))};
+}
+const STALL_TIP="Gleiches Gewicht, gleiche Wiederholungen bringen dem Muskel keinen neuen Reiz. Nächstes Mal: eine Wiederholung mehr pro Satz oder 2,5 kg mehr, auch wenn die Wdh dann kurz sinken. Klappt das 2 Mal nicht: einen Satz mehr oder die Übung für 4 Wochen tauschen. Basis: genug Eiweiß und Schlaf.";
 function bestBefore(name,o,exclD){ const L=liftInfo(name); if(!L) return 0; return Math.max(0,...L.filter(s=>s.d!==exclD).map(s=>{ const v=sessBest(s,o); return repsMode(o)?v:conv(v,s.u,"kg"); })); }
 // ---------- Kraft Fortschritt
 const LB=0.45359237;
@@ -1599,6 +1722,35 @@ function progressBlock(p, name, sr, o){
   p.append(el("div","note","Steigerung gerechnet mit "+String(Math.round(rate*1000)/10).replace(".",",")+" % pro Woche ("+src+"). In der Diät ist Kraft halten schon gut, alles darüber ist Bonus."));
 }
 function openProgress(name){ const {sr,o}=srFor(name); openSheet(p=>{ sheetHead(p,name); { const pk=exByName(name).pk; if(pk) p.append(exPicEl(name, pk, true)); } progressBlock(p,name,sr,o); const b=el("button","btn wide ghost","Sätze eintragen oder nachtragen"); b.addEventListener("click",()=>openLog(o,sr,calToday())); p.append(b); }); }
+function prCount(){ let n=0; Object.entries(state.lifts||{}).forEach(([name,L])=>{ const o=exByName(name).o; let best=0; L.slice().sort((a,b)=>a.d.localeCompare(b.d)).forEach((s,i)=>{ const v=sessBest(s,o), vv=repsMode(o)?v:conv(v,s.u,"kg"); if(i>0 && vv>best*1.005) n++; best=Math.max(best,vv); }); }); return n; }
+function strengthGain(){ let best=null; Object.entries(state.lifts||{}).forEach(([name,L])=>{ if(L.length<2) return; const o=exByName(name).o, a=L[L.length-1], b=L[0]; const va=sessBest(a,o), vb=sessBest(b,o); if(!(va>0)) return; const g=(vb/va-1)*100; if(!best || g>best.g) best={g,name}; }); return best; }
+function runDays(test){ let n=0; for(let i=1;i<400;i++){ if(test(addDays(calToday(),-i))) n++; else break; } return n; }
+function badgeList(){
+  const out=[], tier=(id,icon,name,unit,val,steps,fmt)=>{ steps.forEach((t,i)=>{ out.push({id:id+t, icon, n:name.replace("#",fmt?fmt(t):t).replace(/^1 Rekorde/,"Erster Rekord").replace(/^1 Trainings/,"Erstes Training"), got:val>=t, prog:Math.min(1,val/t), val, t, unit, first:i===0}); }); };
+  const tr=state.train.log.filter(e=>e.u!=="P"&&!e.skip).length; tier("tr","🏋️","# Trainings","Trainings",tr,[1,10,25,50,100]);
+  tier("sr","🔥","# Tage Serie","Tage",streakInfo().n,[7,14,30,60]);
+  tier("pr","🏆","# Rekorde","Rekorde",prCount(),[1,10,25,50]);
+  const sg=strengthGain(); tier("st","💪","# % stärker","%",sg?Math.round(sg.g):0,[10,25,50],t=>"+"+t);
+  if(["cut","cutHard","mini","recomp"].includes(P().goal)){ const st=Number(P().weight), cur=wAvg(0,7); const lost=st&&cur?Math.round((st-cur)*10)/10:0; tier("kg","⚖️","# kg weniger","kg",lost,[1,3,5,8,10]); }
+  const G=goals(); tier("fd","🍽️","# Tage Essen eingetragen","Tage am Stück",runDays(d=>foodSum(d).n>=2),[7,14,30]);
+  let pd=0; for(let i=1;i<=30;i++){ if(foodSum(addDays(calToday(),-i)).p>=G.p*0.9) pd++; } tier("pd","🥩","# Tage Eiweißziel (30 Tage)","Tage",pd,[7,15,25]);
+  const st=state.hc.steps||{}; tier("sp","👟","# Tage über "+de(STEP_GOAL)+" Schritte","Tage",Object.values(st).filter(v=>v>=STEP_GOAL).length,[10,30,60]);
+  const sl=state.hc.sleep||{}, sg2=(P().sleepGoal||8)*60-30; tier("sl","😴","# gute Nächte","Nächte",Object.values(sl).filter(v=>v>=sg2).length,[7,20,50]);
+  return out;
+}
+function openBadges(){
+  const L=badgeList(); state.badgeSeen=L.filter(b=>b.got).map(b=>b.id); persist();
+  openSheet(p=>{ sheetHead(p,"Erfolge");
+    const got=L.filter(b=>b.got); p.append(el("div","note",got.length+" von "+L.length+" geschafft. Hier zählt echter Fortschritt, kein Punktesammeln."));
+    const groups={}; L.forEach(b=>{ const g=b.id.replace(/[\d.]+$/,""); (groups[g]=groups[g]||[]).push(b); });
+    const gr=el("div","badges"); Object.values(groups).forEach(arr=>{ const last=arr.filter(b=>b.got).pop(), next=arr.find(b=>!b.got), show=last||arr[0];
+      const d=el("div","badge"+(last?"":" off")); d.append(el("span","bi",show.icon), el("b",null,last?last.n:arr[0].n));
+      if(next){ d.append(el("span","note","Nächstes: "+next.n)); const br=el("div","bar p"); const i=el("i"); i.style.width=Math.round(next.prog*100)+"%"; br.append(i); d.append(br); } else d.append(el("span","note","Alles geschafft"));
+      gr.append(d); }); p.append(gr);
+  });
+}
+let badgeT=0;
+function checkBadges(){ if(Date.now()-badgeT<5000) return; badgeT=Date.now(); try{ const L=badgeList(), seen=state.badgeSeen; if(!seen){ state.badgeSeen=L.filter(b=>b.got).map(b=>b.id); persist(); return; } const nw=L.filter(b=>b.got && !seen.includes(b.id)); if(nw.length){ state.badgeSeen=seen.concat(nw.map(b=>b.id)); persist(); const b=nw[nw.length-1]; toast("🏅 Neuer Erfolg: "+b.n, openBadges); } }catch(e){} }
 function renderProgress(){
   const box=$("progList"); box.innerHTML="";
   const names=Object.keys(state.lifts||{}).filter(n=>state.lifts[n]&&state.lifts[n].length).sort((a,b)=>state.lifts[b][0].d.localeCompare(state.lifts[a][0].d));
@@ -1606,9 +1758,10 @@ function renderProgress(){
   const tb=el("table"), body=el("tbody");
   names.forEach(n=>{ const ser=liftSeries(n), f=ser.pts[0][1], c=ser.pts[ser.pts.length-1][1], ch=f>0?(c/f-1)*100:0;
     const tr=el("tr"); tr.style.cursor="pointer"; const nm=el("td"); nm.append(el("button","link",n)); nm.firstChild.style.textAlign="left";
+    const ex=exByName(n); if(stallInfo(n,ex.o)) nm.append(el("span","warnTxt"," ⏸"));
     tr.append(nm, el("td","r num",(ser.rm?"":"~")+de(c)+" "+ser.u), el("td","r num"+(ch>0.5?" up":""), ser.pts.length<2?"neu":(ch>=0?"+":"")+String(Math.round(ch*10)/10).replace(".",",")+" %"));
     tr.addEventListener("click",()=>openProgress(n)); body.append(tr); });
-  tb.append(body); box.append(tb, el("div","note","Mitte: geschätzte Maximalkraft. Rechts: seit dem ersten Eintrag. Tippe auf eine Übung für Diagramm und Ziele."));
+  tb.append(body); box.append(tb, el("div","note","Mitte: geschätzte Maximalkraft. Rechts: seit dem ersten Eintrag. ⏸ heißt: seit mindestens 2 Wochen kein Fortschritt. Tippe auf eine Übung für Diagramm und Ziele."));
 }
 
 // ---------- Serie, Woche, Muskeln
@@ -1646,16 +1799,17 @@ function renderMuscles(){
 }
 
 // ---------- Trainingsübersicht
+function lowForm(k){ const rd=state.ready && state.ready[k]; return k===calToday() && rd && rd.v<50 && !(state.formFull||{})[k] ? rd : null; }
 function unitSetup(u, k, ph){
-  const w=planWeek(k);
-  return UNITS[u].s.map(([pk],i)=>{ const o=options(pk)[pickFor(u,i,ph.hand)], sr=srOf(u,i), r=parseSR(sr); let sets = r ? r.sets : 0; if(r && w>0 && w<=2) sets=Math.min(2,sets); if(r && ph.deload) sets=Math.max(1,Math.ceil(sets/2)); return {i,pk,o,sr,r,sets}; });
+  const w=planWeek(k), lf=lowForm(k);
+  return UNITS[u].s.map(([pk],i)=>{ const o=options(pk)[pickFor(u,i,ph.hand)], sr=srOf(u,i), r=parseSR(sr); let sets = r ? r.sets : 0; if(r && w>0 && w<=2) sets=Math.min(2,sets); if(r && ph.deload) sets=Math.max(1,Math.ceil(sets/2)); if(r && lf && !ph.deload) sets=Math.max(1,sets-1); return {i,pk,o,sr,r,sets}; });
 }
 function estMin(list){ const n=list.reduce((a,x)=>a+(x.r?x.sets:0),0), cardio=list.some(x=>!x.r)?15:0; return {n, min:Math.round((10+n*3+cardio)/5)*5}; }
 function renderTraining(k, ph){
   const seq=$("seq"); seq.innerHTML=""; const cur = state.train.idx % SEQ.length;
   SEQ.forEach((u,i)=>seq.appendChild(el("span", i===cur?"cur": i<cur?"past":"", u)));
   const si=streakInfo(), wc=weekCount();
-  $("streakLine").innerHTML=""; $("streakLine").append(el("span","pill",(si.ice?"❄ ":"🔥 ")+"Serie "+si.n+" Tag"+(si.n===1?"":"e")), el("span","pill","Woche "+wc+" von 5"));
+  $("streakLine").innerHTML=""; const bdg=el("button","pill","🏅 Erfolge"); bdg.addEventListener("click",openBadges); $("streakLine").append(el("span","pill",(si.ice?"❄ ":"🔥 ")+"Serie "+si.n+" Tag"+(si.n===1?"":"e")), el("span","pill","Woche "+wc+" von 5"), bdg);
   const u = nextSlot(), warn=$("trainWarn"); warn.innerHTML="";
   const al=(t,cls)=>warn.appendChild(el("div","alert"+(cls?" "+cls:""),t));
   if(si.ice) al("Gestern nichts eingetragen. Deine Serie ist eingefroren, heute trainieren oder Pause abhaken und sie läuft weiter.");
@@ -1663,7 +1817,11 @@ function renderTraining(k, ph){
   else if(state.train.log.some(e=>e.d===k && e.u!=="P")) al("Heute schon trainiert. Nächstes Mal geht es mit der nächsten Einheit weiter.");
   else if(streakBefore(k)>=3 && u!=="P") al("3 Tage am Stück trainiert. Heute lieber Pause und spazieren gehen.","bad");
   if(ph.deload) al("Leichte Woche: nur die Hälfte der Sätze, gleiches Gewicht.");
-  const rd=state.ready && state.ready[k]; if(rd && rd.v<50 && u!=="P") al("Bereitschaft heute nur "+rd.v+". Gewicht halten und einen Satz weniger, oder Pause.","bad");
+  const rd=state.ready && state.ready[k];
+  if(rd && rd.v<50 && u!=="P" && k===calToday()){ const a=el("div","alert bad"); const full=(state.formFull||{})[k];
+    a.append(document.createTextNode(full ? "Tagesform heute nur "+rd.v+". Du trainierst trotzdem voll, hör auf deinen Körper. " : "Tagesform heute nur "+rd.v+" (Schlaf, Puls). Deshalb je Übung ein Satz weniger, Gewicht halten. "));
+    const b=el("button","btn small ghost", full?"Wieder anpassen":"Trotzdem voll trainieren"); b.addEventListener("click",()=>{ state.formFull=state.formFull||{}; if(full) delete state.formFull[k]; else state.formFull[k]=true; persist(); render(); }); a.append(b); warn.append(a); }
+  else if(rd && rd.v>=80 && u!=="P" && k===calToday()) al("Tagesform heute "+rd.v+", richtig gut erholt. Guter Tag, um beim Gewicht eine Stufe draufzulegen.","ok");
   const list=$("unitList"), btns=$("unitBtns"); list.innerHTML=""; btns.innerHTML="";
   const run=liveRun();
   if(run){
@@ -1680,11 +1838,12 @@ function renderTraining(k, ph){
       const pat=PAT[pk], L=liftInfo(o[0]);
       const r=el("div","ex"), left=el("div"), pic=exPicEl(o[0],pk);
       left.append(el("div","nm",o[0]));
-      const h=el("div","hint"); h.append(tagEl(o[1]), document.createTextNode(o[3]||pat.n)); left.append(h);
+      const h=el("div","hint"); h.append(tagEl(o[1]), document.createTextNode(exHint(o)||pat.n)); left.append(h);
       if(state.exNotes[o[0]]) left.append(el("div","hint","📝 "+state.exNotes[o[0]]));
       if(L){ const s=L[0]; const line=el("div","last"); line.textContent="Zuletzt "+fmtDate(s.d)+": "+s.s.map(x=>fmtW(x[0])+"×"+x[1]).join("  ")+" "+s.u;
         if(L[1]){ const b0=sessBest(s,o), b1=sessBest(L[1],o); if(b0>b1*1.005){ line.append(" "); line.append(el("span","up","▲ stärker")); } }
-        left.append(line); const sug=suggest(o,sr,L); if(sug) left.append(el("div","hint goal",sug)); }
+        left.append(line); const sug=suggest(o,sr,L); if(sug) left.append(el("div","hint goal",sug));
+        const stl=stallInfo(o[0],o); if(stl){ const sb=el("button","link warnlink","⏸ Seit "+stl.weeks+" Wochen kein Fortschritt"); sb.style.textAlign="left"; sb.addEventListener("click",()=>openSheet(q=>{ sheetHead(q,o[0]); q.append(el("div","alert bad","Die letzten "+stl.n+" Einheiten über "+stl.weeks+" Wochen lagen alle auf demselben Niveau.")); q.append(el("div","note",STALL_TIP)); })); left.append(sb); } }
       else { const stt=startText(o,ph.hand); if(stt) left.append(el("div","hint num",stt)); }
       const right=el("div","exR"); right.append(el("div","sr",sr));
       const rr=el("div","row nowrap"); rr.style.gap="12px";
@@ -1768,7 +1927,7 @@ function openSwap(u,i,hand){
     opts.forEach((o,idx)=>{
       const ok=usable(o,hand), r=el("div","opt"+(idx===cur?" cur":"")+(ok?"":" off"));
       const l=el("div"); l.append(el("div","nm",o[0]));
-      const h=el("div","note"); h.append(tagEl(o[1]), document.createTextNode(!ok ? (o[2]>hand ? "ab Hand Stufe "+o[2] : "Gerät ausgeschaltet") : (o[3]||""))); l.append(h);
+      const h=el("div","note"); h.append(tagEl(o[1]), document.createTextNode(!ok ? (o[2]>hand ? "ab Hand Stufe "+o[2] : "Gerät ausgeschaltet") : exHint(o))); l.append(h);
       const L=liftInfo(o[0]); const stt = L ? "Zuletzt "+L[0].s.map(x=>fmtW(x[0])+"×"+x[1]).join(", ")+" "+L[0].u : startText(o,hand); if(stt) l.append(el("div","note num",stt));
       const b=el("button","btn small"+(idx===cur?"":" ghost"), idx===cur?"Aktiv":"Nehmen"); b.disabled=!ok||idx===cur;
       b.addEventListener("click",()=>{ state.swap[u+i]=idx; liveSwapped(u,i,o); persist(); closeSheet(); render(); toast(o[0]+" gewählt"); });
@@ -1897,7 +2056,8 @@ function renderLive(){
     if(state.exNotes[x.name]) card.append(el("div","hint","📝 "+state.exNotes[x.name]));
     if(x.cardio){ const r=el("div","between"); r.append(el("span","note","Locker, Puls so dass du noch reden kannst.")); r.append(tickBtn(x.done,()=>{ x.done=!x.done; persist(); renderLive(); },"Cardio erledigt")); card.append(r); body.append(card); return; }
     const L=liftInfo(x.name), t=nextTarget(x.o,x.sr,L);
-    if(t) card.append(el("div","goal","Ziel "+targetTxt(t)+(t.kind==="up"?" ▲":"")));
+    if(t) card.append(el("div","goal","Ziel "+targetTxt(t)+(t.kind==="up"?" ▲ Gewicht rauf, letztes Mal alle Sätze oben geschafft":"")));
+    { const stl=stallInfo(x.name,x.o); if(stl) card.append(el("div","hint warnTxt","⏸ Seit "+stl.weeks+" Wochen gleich. Heute eine Wdh mehr oder etwas mehr Gewicht, sonst tut sich nichts.")); }
     const us=el("button","unitbtn",x.unit); us.title="kg oder lb"; us.addEventListener("click",()=>{ const nu=x.unit==="kg"?"lb":"kg"; x.sets.forEach(s=>{ if(s.w!==""&&!s.done) s.w=Math.round(conv(num(s.w),x.unit,nu)*100)/100; }); x.unit=nu; persist(); renderLive(); });
     const hdr=el("div","lrow lhdr"); const uh=el("span","label"); uh.append(document.createTextNode("Gewicht "), us); hdr.append(el("span","label","#"), uh, el("span","label","Wdh"), el("span","label","Letztes Mal"), el("span"));
     card.append(hdr);
@@ -2003,14 +2163,18 @@ function renderLog(k){
   const q=$("quick"); q.innerHTML="";
   QUICK.concat((state.myRecipes||[]).map(r=>({n:r.n, kcal:r.kcal, p:r.p, c:r.c, f:r.f, rid:r.id}))).forEach(f=>{ const b=el("button"); b.append(el("span","emo",foodEmoji(f.n)), document.createTextNode(f.n)); b.append(el("small",null,f.kcal+" kcal · "+f.p+" g P"));
     b.addEventListener("click",()=>openFoodItem(k,f)); q.appendChild(b); });
+  { const pq=$("pmmQuick"); pq.innerHTML=""; const used=n=>{ let t=0; Object.values(state.food||{}).forEach(l=>l.forEach(f=>{ if(f.n && f.n.indexOf(n)>=0) t++; })); return t; };
+    PMM.map(x=>[x,used("PMM "+x[0])]).sort((a,b)=>b[1]-a[1]).forEach(([x])=>{ const f=pmmItem(x); const b=el("button"); b.append(el("span","emo",foodEmoji(x[0])), document.createTextNode(x[0])); b.append(el("small",null,f.kcal+" kcal · "+f.p+" g P")); b.addEventListener("click",()=>openFoodItem(k,f)); pq.appendChild(b); }); }
   const ul=$("foodLog"); ul.innerHTML="";
   if(!list.length) ul.append(el("li","note","Noch nichts eingetragen. Baukasten antippen, scannen oder suchen."));
   list.forEach((f,idx)=>{
     const li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span",null,foodEmoji(f.n)+" "+f.n));
-    tx.append(el("div","macros",(f.g?fmtAmt(f.g)+" g · ":"")+macroTxt(f)));
-    const x=el("button","x","×"); x.setAttribute("aria-label",f.n+" entfernen"); x.addEventListener("click",()=>{ list.splice(idx,1); persist(); render(); });
+    tx.append(el("div","macros",(f.t?hm(new Date(f.t))+" · ":"")+(f.g?fmtAmt(f.g)+" g · ":"")+macroTxt(f)));
+    tx.style.cursor="pointer"; tx.addEventListener("click",()=>openFoodEdit(k,idx));
+    const x=el("button","x","×"); x.setAttribute("aria-label",f.n+" entfernen"); x.addEventListener("click",()=>{ list.splice(idx,1); persist(); render(); toast(f.n+" entfernt",()=>{ list.splice(idx,0,f); persist(); render(); }); });
     li.append(tx,x); ul.appendChild(li);
   });
+  if(list.length) ul.append(el("li","note","Eintrag antippen, um Menge, Zutaten oder Uhrzeit zu ändern."));
   const rc=$("recent"); rc.innerHTML=""; $("recentCard").hidden = !state.myfoods.length;
   state.myfoods.slice(0,8).forEach(m=>{
     const li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span",null,m.n)); tx.append(el("div","macros","je 100 g: "+de(m.k100||0)+" kcal · P "+fmtAmt(m.p100||0)+" · K "+fmtAmt(m.c100||0)+" · F "+fmtAmt(m.f100||0)));
@@ -2062,9 +2226,37 @@ function openOut(k){
 }
 
 function addFood(k,f){
-  dayFood(k).push(Object.assign({t:Date.now()},f));
-  toast(f.free && freeCount(k)>2 ? "Das ist schon die "+freeCount(k)+". freie Mahlzeit diese Woche" : f.n+" eingetragen");
+  const e=Object.assign({t:Date.now()},f); let sl=null; if(!e.m && !e.noslot){ sl=slotFor(k,e); if(sl) e.slot=sl.key; } delete e.noslot;
+  dayFood(k).push(e);
+  toast(f.free && freeCount(k)>2 ? "Das ist schon die "+freeCount(k)+". freie Mahlzeit diese Woche" : f.n+" eingetragen"+(sl?", im Tagesablauf um "+hm(new Date(e.t))+" abgehakt":""));
   persist(); render();
+}
+function openCopyYest(k){
+  const y=addDays(k,-1), src=(state.food[y]||[]); if(!src.length){ toast("Gestern ist nichts eingetragen"); return; }
+  const sel=src.map(()=>true);
+  openSheet(p=>{ sheetHead(p,"Von gestern übernehmen");
+    p.append(el("div","note","Haken weg bei dem, was du heute nicht gegessen hast."));
+    const box=el("div"); src.forEach((f,i)=>toggleRow(box, foodEmoji(f.n)+" "+f.n, true, function(){ sel[i]=!sel[i]; this.setAttribute("aria-checked",sel[i]?"true":"false"); }, macroTxt(f))); p.append(box);
+    const b=el("button","btn wide","Übernehmen"); b.addEventListener("click",()=>{ const list=dayFood(k); let n=0; src.forEach((f,i)=>{ if(!sel[i]) return; if(f.m && list.some(z=>z.m===f.m)) return; const c=Object.assign({},f,{t:Date.now()+n}); delete c.slot; list.push(c); n++; }); persist(); closeSheet(); render(); toast(n+" Einträge von gestern übernommen"); }); p.append(b);
+  });
+}
+// Eintrag im Tagebuch später ändern: Bausteine mit Zutaten, sonst Gramm und Werte
+function openFoodEdit(k, idx){
+  const list=dayFood(k), e=list[idx]; if(!e) return;
+  let src=e.src; if(!src){ const q=QUICK.find(x=>e.n===x.n || e.n.startsWith(x.n+" (")) || PMM.map(pmmItem).find(x=>e.n===x.n || e.n.startsWith(x.n+" (")); if(q && baseIngredients(q)!=null || q && /^PMM /.test(q.n)){ src=q; const m=e.n.match(/\(([\d,]+) ×\)$/); e.fac = m ? num(m[1]) : (e.fac||1); } }
+  if(src) return openFoodItem(k, src, {idx, e, fac:e.fac||1});
+  openSheet(p=>{ sheetHead(p,"Eintrag ändern");
+    const [ln,iN]=field("Name","text",e.n); p.append(ln);
+    const per = e.g>0 ? {k:e.k100!=null?e.k100:e.kcal/e.g*100, p:e.p100!=null?e.p100:e.p/e.g*100, c:e.c100!=null?e.c100:e.c/e.g*100, f:e.f100!=null?e.f100:e.f/e.g*100} : null;
+    let ig=null; if(per){ const [lg,i]=field("Menge in g","text",fmtAmt(e.g)); i.inputMode="decimal"; i.className="num"; ig=i; p.append(lg); }
+    const g4=el("div","grid4"); const mk=(l,v)=>{ const [lab,i]=field(l,"text",String(Math.round(v*10)/10).replace(".",",")); i.inputMode="decimal"; i.className="num"; g4.append(lab); return i; };
+    const iK=mk("kcal",e.kcal||0), iP=mk("Eiweiß",e.p||0), iC=mk("Kohlenh.",e.c||0), iF=mk("Fett",e.f||0); p.append(g4);
+    if(ig) ig.addEventListener("input",()=>{ const g=num(ig.value)||0, fk=g/100; iK.value=Math.round(per.k*fk); iP.value=String(Math.round(per.p*fk*10)/10).replace(".",","); iC.value=String(Math.round(per.c*fk*10)/10).replace(".",","); iF.value=String(Math.round(per.f*fk*10)/10).replace(".",","); });
+    const d0=new Date(e.t||Date.now()); const [lt,iT]=field("Uhrzeit","time",pad(d0.getHours())+":"+pad(d0.getMinutes())); p.append(lt);
+    const b=el("button","btn wide","Speichern"); b.addEventListener("click",()=>{ e.n=iN.value.trim()||e.n; if(ig){ e.g=num(ig.value)||e.g; } e.kcal=Math.round(num(iK.value)||0); e.p=num(iP.value)||0; e.c=num(iC.value)||0; e.f=num(iF.value)||0;
+      if(iT.value){ const [h,m]=iT.value.split(":").map(Number); const nd=new Date(d0); nd.setHours(h,m,0,0); e.t=nd.getTime(); } persist(); closeSheet(); render(); toast("Eintrag geändert"); }); p.append(b);
+    const del=el("button","link warnlink","Eintrag löschen"); del.addEventListener("click",()=>{ list.splice(idx,1); persist(); closeSheet(); render(); toast("Gelöscht",()=>{ list.splice(idx,0,e); persist(); render(); }); }); p.append(del);
+  });
 }
 function rememberFood(m){ state.myfoods = [m].concat(state.myfoods.filter(x=>!(x.n===m.n && (x.code||"")===(m.code||"")))).slice(0,200); }
 function openAmount(k, m){
@@ -2086,7 +2278,7 @@ function openAmount(k, m){
     b.addEventListener("click",()=>{
       const x=calc(); if(!x.g || !num(ik.value)){ toast("Bitte kcal und Menge angeben"); return; }
       rememberFood({n:m.n, brand:m.brand, code:m.code, k100:num(ik.value), p100:num(ip.value)||0, c100:num(ic.value)||0, f100:num(ifa.value)||0, serving:m.serving});
-      closeSheet(); addFood(k,Object.assign({n:m.n},x));
+      closeSheet(); addFood(k,Object.assign({n:m.n, k100:num(ik.value), p100:num(ip.value)||0, c100:num(ic.value)||0, f100:num(ifa.value)||0},x));
     });
     p.append(b);
     setTimeout(()=>ig.focus(),50);
@@ -2101,6 +2293,12 @@ function fromOFF(prod, code){
 }
 
 // Supermarkt Basis (Netto, Edeka, Rewe, Aldi, Lidl): typische Werte je 100 g, auch ohne Netz suchbar
+// Prep My Meal XL Tüten (1 kg, 2 Portionen). Werte je Portion = halbe Tüte (500 g), laut Hersteller
+const PMM=[["Paella",490,40,45,15],["Chicken Teriyaki",474,43,55,8],["Butter Chicken",625,45,66,19],["Rotes Thai Curry",555,43,47,21],["Chicken Fajita Bowl",550,55,58,11],["Buffalo Chicken Bowl",460,41,43,11],
+  ["Protein Pasta Bolognese",630,43,75,16],["Vegane Protein Pasta Bolognese",552,41,75,7],["Käsespätzle mit Hähnchen",690,55,70,21],["Hähnchen, Reis, Brokkoli",455,42,59,5],["Bratkartoffeln mit Hähnchen",410,43,40,8],
+  ["Seelachs, Reis und Gemüse",395,32,36,13],["Protein Pasta mit Frischkäsesauce",590,32,70,19],["Chicken Bowl Thai",330,50,13,7],["Süßkartoffel Hähnchen Bowl",405,41,36,9],["Noodles Asian Style",510,48,48,12],
+  ["Chili con Carne",600,35,55,23],["Asia Nudeln in Erdnusssauce",570,43,42,24],["Gebratener Reis in Erdnusssauce",585,43,55,21]];
+const pmmItem = ([n,kcal,p,c,f]) => ({n:"PMM "+n+" (½ Tüte)", kcal, p, c, f});
 const BASIC_FOODS=[
  ["Skyr natur","Eigenmarke",63,11,4,0.2],["Magerquark","Eigenmarke",67,12,4,0.2],["Speisequark 20 %","Eigenmarke",109,12,3.5,5],["Hüttenkäse","Eigenmarke",98,12.5,2.5,4.5],["Griechischer Joghurt 10 %","Eigenmarke",120,4,4,10],["Naturjoghurt 1,5 %","Eigenmarke",47,4,5,1.5],["High Protein Pudding","Ehrmann, Milbona",75,10,6,1.5],["Protein Joghurt","Milbona, Ehrmann",61,10,4,0.2],
  ["Milch 1,5 %","Eigenmarke",47,3.4,4.9,1.5],["Milch 3,5 %","Eigenmarke",64,3.3,4.8,3.5],["Haferdrink","Eigenmarke",45,0.5,7,1.5],["Eier (Stück ca. 60 g)","",142,12.6,0.7,9.8],["Gouda jung","Eigenmarke",356,24,0,29],["Gouda light 16 %","Eigenmarke",260,30,0,16],["Mozzarella light","Eigenmarke",165,19,1,9],["Mozzarella","Eigenmarke",250,18,1,19],["Feta","Eigenmarke",270,16,0.5,22.5],["Frischkäse light","Eigenmarke",145,7,4,11],["Reibekäse light","Eigenmarke",280,30,0,17],
@@ -2111,7 +2309,7 @@ const BASIC_FOODS=[
  ["Olivenöl","",884,0,0,100],["Butter","",741,0.7,0.6,83],["Honig","",320,0.4,80,0],["Ketchup","",110,1.5,25,0.1],["Ketchup light","",50,1,10,0.1],["Mayonnaise","",680,1,3,74],["Senf","",80,5,4,4.5],["Sojasauce","",60,8,6,0],
  ["Burger Patty Rind roh","",230,18,0,17],["Cheeseburger (TK, Stück ca. 130 g)","",260,13,26,11],["Burger Brötchen","",270,9,48,4.5],["Hamburger McDonald's (Stück 104 g)","McDonald's",249,12.5,29.8,8.7],["Pizza Margherita TK","",230,9,30,8],["Döner im Brot","",200,10,20,9],["Pommes frites","",290,3.4,36,15],["Chicken Nuggets","",270,15,17,16],["Lasagne TK","",130,6,12,6],["Fischstäbchen","",200,12,18,9],
  ["Cola","",42,0,10.6,0],["Cola Zero","",0.3,0,0,0],["Monster Energy","",47,0,12,0],["Monster Ultra","",1,0,0.9,0],["Orangensaft","",43,0.7,9,0.1],["Apfelschorle","",24,0,5.5,0]
-].map(([n,brand,k,p,c,f])=>({n, brand:brand||"Basis", k100:k, p100:p, c100:c, f100:f, basic:true}));
+].map(([n,brand,k,p,c,f])=>({n, brand:brand||"Basis", k100:k, p100:p, c100:c, f100:f, basic:true})).concat(PMM.map(([n,k,p,c,f])=>({n:n+" TK", brand:"Prep My Meal", k100:Math.round(k/5), p100:Math.round(p/5*10)/10, c100:Math.round(c/5*10)/10, f100:Math.round(f/5*10)/10, serving:500, basic:true})));
 const OFF_FIELDS="code,product_name,product_name_de,brands,nutriments,serving_quantity";
 async function getJSON(url, ms){
   // In der App über die native Verbindung laden (keine Browser Sperren), sonst normal per fetch
@@ -2320,18 +2518,37 @@ function wAvg(fromAgo,toAgo){ const k=calToday(); const v=Object.entries(state.w
 function exKcalToday(){ const k=calToday(); return (state.hc.acts||[]).filter(a=>keyOf(new Date(a.s))===k).reduce((s,a)=>s+(a.kcal||0),0); }
 function goalKcal(){ const base=P().kcal||2400; return P().addEx ? base+Math.round(exKcalToday()*0.5) : base; }
 // Echter Verbrauch aus Essen und Gewichtsverlauf (wie MacroFactor): Verbrauch = Schnitt gegessen minus Gewichtsänderung mal 7700 kcal pro kg
+function foodDays(n){ const k=calToday(), days=[]; for(let i=1;i<=n;i++){ const d=addDays(k,-i), T=foodSum(d); if(T.n>=2 && T.kcal>800) days.push(T.kcal); } return days; }
 function tdeeEstimate(){
-  const k=calToday(), days=[]; for(let i=1;i<=14;i++){ const d=addDays(k,-i), T=foodSum(d); if(T.n>=2 && T.kcal>800) days.push(T.kcal); }
-  const now=wAvg(0,7), then=wAvg(7,14);
-  if(days.length<10 || now==null || then==null) return null;
-  const intake=days.reduce((a,b)=>a+b,0)/days.length, perDay=(now-then)/7;
-  return {tdee:Math.round(intake - perDay*7700), intake:Math.round(intake), kgWeek:Math.round((now-then)*100)/100, n:days.length};
+  const k=calToday(), days=foodDays(21);
+  // Gewichtstrend: Gerade durch alle Tageswerte der letzten 21 Tage
+  const pts=Object.entries(state.weights).map(([d,v])=>[dayDiff(d,k),Number(v)]).filter(([x,v])=>x>=0 && x<21 && isFinite(v));
+  if(days.length<10 || pts.length<8) return null;
+  const span=Math.max(...pts.map(p=>p[0]))-Math.min(...pts.map(p=>p[0])); if(span<10) return null;
+  const mx=pts.reduce((a,p)=>a+p[0],0)/pts.length, my=pts.reduce((a,p)=>a+p[1],0)/pts.length;
+  const slope=-pts.reduce((a,p)=>a+(p[0]-mx)*(p[1]-my),0)/pts.reduce((a,p)=>a+(p[0]-mx)**2,0); // kg pro Tag, vorwärts
+  const intake=days.reduce((a,b)=>a+b,0)/days.length;
+  return {tdee:Math.round((intake - slope*7700)/10)*10, intake:Math.round(intake), kgWeek:Math.round(slope*7*100)/100, n:days.length};
+}
+function kcalSuggest(est){ const cur=P().kcal||2400, raw=est.tdee + goalDelta(P(), wAvg(0,7)||80, est.tdee); return Math.round(Math.max(1600, Math.min(cur+300, Math.max(cur-300, raw)))/10)*10; }
+function goalKgWeek(){ const g=P().goal, w=wAvg(0,7)||Number(P().weight)||80; const pct={cut:0.005,cutHard:0.008,mini:0.01}[g]; if(pct) return -Math.round(w*pct*100)/100; return {bulk:0.25,leanBulk:0.15}[g]||0; }
+function renderCheckin(){
+  const box=$("checkCard"); box.innerHTML=""; const est=tdeeEstimate(), k=calToday(), last=state.checkin&&state.checkin.d;
+  const due = est && (!last || dayDiff(last,k)>=7); box.hidden=!due; if(!due) return;
+  const cur=P().kcal||2400, sug=kcalSuggest(est), gw=goalKgWeek();
+  box.append(el("div","between")); box.firstChild.append(el("h3",null,"Wochen-Check"), el("span","pill","Verbrauch"));
+  const st=el("div","stat3"); [["Echter Verbrauch",de(est.tdee)+" kcal"],["Gegessen Ø",de(est.intake)+" kcal"],["Gewicht",(est.kgWeek>0?"+":"")+String(est.kgWeek).replace(".",",")+" kg/Wo"]].forEach(([a,b])=>{ const d=el("div"); d.append(el("span","label",a), el("span","mid",b)); st.append(d); }); box.append(st);
+  const ok=Math.abs(sug-cur)<100;
+  box.append(el("div","note","Berechnet aus "+est.n+" Tagen Essen und deinem Gewichtsverlauf, so wie MacroFactor das macht. Dein Ziel"+(gw?" ist "+(gw>0?"+":"")+String(gw).replace(".",",")+" kg pro Woche":" ist Gewicht halten")+". "+(ok?"Passt, dein Kalorienziel kann so bleiben.":"Vorschlag: "+de(sug)+" kcal statt "+de(cur)+" kcal.")));
+  const r=el("div","row"); const done=()=>{ state.checkin={d:k}; persist(); render(); };
+  if(!ok){ const b=el("button","btn small","Auf "+de(sug)+" kcal setzen"); b.addEventListener("click",()=>{ setKcal(sug); done(); }); r.append(b); }
+  const n=el("button","btn small ghost",ok?"Super":"So lassen"); n.addEventListener("click",done); r.append(n); box.append(r);
 }
 function burnAvg(n){ const k=calToday(), v=[]; for(let i=1;i<=n;i++){ const b=(state.hc.burn||{})[addDays(k,-i)]; if(b) v.push(b); } return v.length>=3 ? Math.round(v.reduce((a,b)=>a+b,0)/v.length) : null; }
 function renderBalance(){
   const box=$("balBody"); box.innerHTML=""; const k=calToday(), y=addDays(k,-1), burn=state.hc.burn||{};
   const has=Object.keys(burn).length>0, est=tdeeEstimate(), bA=burnAvg(7);
-  $("balCard").hidden = !has && !est;
+  $("balCard").hidden = false;
   if($("balCard").hidden) return;
   const rows=[];
   if(burn[y]!=null){ const ate=foodSum(y).kcal; rows.push(["Gestern", de(ate)+" gegessen · "+de(burn[y])+" verbrannt", ate-burn[y]]); }
@@ -2339,10 +2556,10 @@ function renderBalance(){
   if(bA){ const eat=[]; for(let i=1;i<=7;i++){ const T=foodSum(addDays(k,-i)); if(T.n>=2) eat.push(T.kcal); } if(eat.length>=3){ const ea=eat.reduce((a,b)=>a+b,0)/eat.length; rows.push(["Schnitt 7 Tage", de(ea)+" gegessen · "+de(bA)+" verbrannt", ea-bA]); } }
   const t=el("table"), tb=el("tbody"); rows.forEach(([a,b,c])=>{ const tr=el("tr"); const td=el("td"); td.append(el("div",null,a), el("div","note num",b)); tr.append(td, el("td","r num"+(c!=null?(c<0?" up":" warnTxt"):""), c==null?"":(c>0?"+":"")+de(c)+" kcal")); tb.append(tr); }); t.append(tb); if(rows.length) box.append(t);
   if(est){
-    const goal=gKind(), cur=P().kcal||2400, raw = est.tdee + goalDelta(P(), wAvg(0,7)||80, est.tdee), sug = Math.round(Math.max(1600, Math.min(cur+300, Math.max(cur-300, raw)))/10)*10;
+    const cur=P().kcal||2400, sug=kcalSuggest(est);
     box.append(el("div","note","Dein echter Verbrauch aus den letzten "+est.n+" Tagen (Essen und Gewichtsverlauf): ca. "+de(est.tdee)+" kcal. Gewicht: "+(est.kgWeek>0?"+":"")+String(est.kgWeek).replace(".",",")+" kg pro Woche."+(bA?" Die Uhr sagt "+de(bA)+" kcal.":"")));
     if(Math.abs(sug-cur)>=100){ const b=el("button","btn small","Ziel auf "+de(sug)+" kcal setzen"); b.addEventListener("click",()=>setKcal(sug)); box.append(b); }
-  } else box.append(el("div","note","Nach ca. 2 Wochen mit Essen und Gewicht rechnet die App deinen echten Verbrauch aus und schlägt ein neues Ziel vor. Die Uhr schätzt den Verbrauch nur grob."));
+  } else { const fd=foodDays(21).length, wd=Object.keys(state.weights).filter(d=>dayDiff(d,calToday())>=0 && dayDiff(d,calToday())<21).length; box.append(el("div","note","Echter Verbrauch: Sobald 10 Tage Essen und 8 Gewichtswerte da sind, rechnet die App aus, was du wirklich verbrauchst, und schlägt einmal pro Woche ein Ziel vor. Stand: "+Math.min(fd,10)+" von 10 Tagen Essen, "+Math.min(wd,8)+" von 8 Gewichtswerten. Die Uhr schätzt den Verbrauch nur grob.")); }
   const tg=el("div"); toggleRow(tg,"Training einrechnen", !!P().addEx, ()=>{ P().addEx=!P().addEx; persist(); render(); }, "Die Hälfte der Kalorien aus Trainings von der Uhr kommt aufs Tagesziel"+(exKcalToday()?" (heute +"+de(exKcalToday()*0.5)+")":"")); box.append(tg);
 }
 function setKcal(kcal){
@@ -2513,7 +2730,9 @@ function bcBlock(x, prev){
   const rows=[["bf","Körperfett",c.bf," %",1,true],["fat","Fettmasse",c.fat," kg",1,true],["muscle","Muskelmasse",c.muscle," kg",1,false],["smmP","Skelettmuskel",c.smmP," %",1,false],
     ["vf","Viszeralfett",c.vf,"",0,true],["water","Körperwasser",c.water," %",1,false],["bone","Knochenmasse",c.bone," kg",1,false],["protein","Eiweiß",c.protein," %",1,false],
     ["bmr","Grundumsatz",c.bmr," kcal",0,false],["bmi","BMI",c.bmi,"",1,true]];
+  if(x.imp) rows.push(["imp","Widerstand",x.imp," Ω",0,false]);
   rows.forEach(([k,lab,v,u,dg,lowGood])=>{ const d=el("div"); d.append(el("span","label",lab), el("span","big num",(dg?dec1(v):de(v))+u));
+    if(k==="imp"){ if(x.imp2) d.append(el("span","tag","zweiter Wert "+x.imp2+" Ω")); if(prev&&prev.imp){ const dv=x.imp-prev.imp; if(Math.abs(dv)>=5) d.append(el("span","tag",(dv>0?"+":"")+dv+" Ω zur Vergleichsmessung")); } g.append(d); return; }
     if(pc){ const dv=Math.round((v-pc[k])*10)/10; if(Math.abs(dv)>=(dg?0.1:1)){ const good = lowGood ? dv<0 : dv>0; d.append(el("span","dl "+(good?"dn":"up"),(dv>0?"+":"")+(dg?dec1(dv):de(dv))+u)); } }
     const rt=bcRate(k,v); if(rt) d.append(el("span","tag "+rt[1],rt[0])); g.append(d); });
   wrap.append(g); return wrap;
@@ -2674,11 +2893,14 @@ function openWeightDay(d){
     const pick=e.length?dayPick(e):null;
     e.forEach((x,i)=>{ const li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span","num",kg(x.w)+" kg"+(x===pick?"  ✓ zählt":"")));
       const cc=x.imp>150?bodyComp(x.w,x.imp):null; tx.append(el("div","sub",hm(new Date(x.t))+" Uhr · "+x.src+(cc?" · Fett "+dec1(cc.bf)+" % · Muskeln "+dec1(cc.muscle)+" kg":"")));
+      if(x.imp>150) tx.append(el("div","sub","Widerstand "+x.imp+" Ω"+(x.imp2?" / "+x.imp2+" Ω":"")+(cc?" · antippen für alle Werte":"")));
       if(cc){ tx.style.cursor="pointer"; tx.addEventListener("click",()=>{ const prev=bcEntries().filter(z=>z.t<x.t).pop(); openSheet(q=>{ sheetHead(q,"Analyse "+hm(new Date(x.t))+" Uhr"); q.append(el("div","note",kg(x.w)+" kg"+(prev?" · Vergleich mit "+fmtDate(keyOf(new Date(prev.t))):""))); q.append(bcBlock(x,prev)); const bk=el("button","btn wide ghost","Zurück"); bk.addEventListener("click",()=>openWeightDay(d)); q.append(bk); }); }); }
       const del=el("button","x","×"); del.setAttribute("aria-label","Messung löschen");
       del.addEventListener("click",()=>{ state.wlog=state.wlog.filter(z=>z!==x); state.wDel=state.wDel||[]; state.wDel.push(x.t); state.wDel=state.wDel.slice(-300); wDay(d); persist(); closeSheet(); render(); toast("Messung "+hm(new Date(x.t))+" gelöscht",()=>{ state.wlog.push(x); state.wlog.sort((a,b)=>a.t-b.t); state.wDel=state.wDel.filter(t=>t!==x.t); wDay(d); persist(); render(); }); });
       li.append(tx,del); ul.append(li); });
     p.append(ul);
+    { const im=e.filter(x=>x.imp>150).map(x=>x.imp); if(im.length>=2){ const lo=Math.min(...im), hi=Math.max(...im), dev=Math.round((hi-lo)/lo*100);
+      p.append(el("div","alert"+(dev>8?" bad":" ok"), dev>8 ? "Der Widerstand schwankt heute um "+dev+" % ("+lo+" bis "+hi+" Ω). Meist liegt das an feuchten oder kalten Füßen, Socken, nicht ruhig stehen oder viel getrunken. Die Messung, die aus der Reihe fällt, lieber löschen." : "Widerstand passt zusammen ("+lo+" bis "+hi+" Ω, "+dev+" % Unterschied). Die Messungen sind stimmig.")); } }
     const all=el("button","link warnlink","Ganzen Tag löschen"); let sure=false;
     all.addEventListener("click",()=>{ if(!sure){ sure=true; all.textContent="Wirklich? Nochmal tippen"; return; } const rm=(state.wlog||[]).filter(x=>keyOf(new Date(x.t))===d); state.wDel=(state.wDel||[]).concat(rm.map(x=>x.t)).slice(-300); state.wlog=(state.wlog||[]).filter(x=>keyOf(new Date(x.t))!==d); delete state.weights[d]; delete state.wManual[d]; persist(); closeSheet(); render(); toast("Tag gelöscht"); });
     p.append(all);
@@ -2712,7 +2934,7 @@ function renderGewicht(k){
     wl.append(ul); }
   { const box=$("wToday"); box.innerHTML=""; const k=calToday(), e=(state.wlog||[]).filter(x=>keyOf(new Date(x.t))===k).sort((a,b)=>a.t-b.t);
     if(e.length){ const pk=dayPick(e); box.append(el("div","cat","Heute gemessen"));
-      e.forEach(x=>{ const r=el("div","between wtrow"); r.append(el("span","num",hm(new Date(x.t))+"  "+kg(x.w)+" kg"+(x===pk?" ✓":"")), el("span","note",x.src));
+      e.forEach(x=>{ const r=el("div","between wtrow"); r.append(el("span","num",hm(new Date(x.t))+"  "+kg(x.w)+" kg"+(x===pk?" ✓":"")), el("span","note",x.src+(x.imp>150?" · "+x.imp+" Ω":"")));
         const del=el("button","x","×"); del.setAttribute("aria-label","Messung löschen"); del.addEventListener("click",()=>{ state.wlog=state.wlog.filter(z=>z!==x); state.wDel=(state.wDel||[]).concat([x.t]).slice(-300); wDay(k); persist(); render(); toast("Messung gelöscht",()=>{ state.wlog.push(x); state.wlog.sort((a,b)=>a.t-b.t); state.wDel=state.wDel.filter(t=>t!==x.t); wDay(k); persist(); render(); }); });
         r.append(del); box.append(r); }); } }
   const f=state.hc.fat, hasBc=bcEntries().length>0; $("fatLine").hidden=!f||hasBc; if(f) $("fatLine").textContent="Körperfett laut Waage: "+String(f.v).replace(".",",")+" % ("+fmtDate(f.d)+")";
@@ -2829,6 +3051,11 @@ async function hcSync(quiet){
   const daily=async(type,field,key)=>{ try{ const rs=await hcReadAll(type, new Date(now.getTime()-15*86400000), now); const by={}; rs.forEach(x=>{ const v=Number(x[field]); if(!isFinite(v)||v<=0) return; const d=tKey(x.time); (by[d]=by[d]||[]).push(v); }); Object.entries(by).forEach(([d,a])=>{ state.hc[key][d]=Math.round(Math.min(...a)*10)/10; }); return rs.length; }catch(e){ return 0; } };
   if(await daily("RestingHeartRate","beatsPerMinute","rhr")) got.push("Ruhepuls");
   if(await daily("HeartRateVariabilityRmssd","heartRateVariabilityMillis","hrv")) got.push("HRV");
+  // Puls je Tag: Schnitt, tief, hoch, Ruhepuls (ruhigste halbe Stunde) und letzter Wert
+  try{ state.hc.hrd=state.hc.hrd||{}; let any=false; const nd=state.hc.hrdFull?3:14;
+    for(let i=0;i<nd;i++){ const d=addDays(calToday(),-i), s0=parseKey(d), s1=i===0?now:new Date(s0.getTime()+86400000); const rs=await hcReadAll("HeartRateSeries", s0, s1);
+      const st=hrDayStats(rs, s0.getTime(), s1.getTime()); if(st){ state.hc.hrd[d]=st; any=true; } }
+    state.hc.hrdFull=true; if(any) got.push("Puls"); }catch(e){}
   try{ const from=new Date(now.getTime()-30*86400000), ss=await hcReadAll("ExerciseSession", from, now);
     if(ss.length){ let ds=[], cs=[]; try{ ds=await hcReadAll("Distance", from, now); }catch(e){} try{ cs=await hcReadAll("ActiveCaloriesBurned", from, now); }catch(e){}
       const inS=(x,a,b)=>new Date(x.startTime)>=a && new Date(x.endTime)<=b;
@@ -3005,10 +3232,79 @@ function openActivity(x){
     p.append(el("div","note","Die Strecke auf der Karte kann die App leider nicht anzeigen: das Health Connect Plugin gibt die GPS Route nicht weiter. Die siehst du in Garmin Connect."));
   });
 }
+function hrDayStats(recs, a, b){
+  const v=[]; (recs||[]).forEach(r=>(r.samples||[]).forEach(x=>{ const t=new Date(x.time).getTime(), bp=Number(x.beatsPerMinute); if(t>=a && t<b && bp>25 && bp<230) v.push([t,bp]); }));
+  if(v.length<5) return null; v.sort((x,y)=>x[0]-y[0]);
+  const bk={}; v.forEach(([t,bp])=>{ const k=Math.floor(t/600000); (bk[k]=bk[k]||[]).push(bp); }); const keys=Object.keys(bk).map(Number).sort((x,y)=>x-y), m=keys.map(k=>bk[k].reduce((s,x)=>s+x,0)/bk[k].length);
+  let rest=null; for(let i=0;i+2<keys.length;i++){ if(keys[i+2]-keys[i]!==2) continue; const av=(m[i]+m[i+1]+m[i+2])/3; if(rest==null||av<rest) rest=av; }
+  const vals=v.map(x=>x[1]); return {avg:Math.round(vals.reduce((s,x)=>s+x,0)/vals.length), min:Math.min(...vals), max:Math.max(...vals), rest:rest!=null?Math.round(rest):null, last:v[v.length-1]};
+}
+function stepsByHour(recs, from, to){
+  const by={}; (recs||[]).forEach(r=>{ const o=(r.metadata&&r.metadata.dataOrigin)||"x"; by[o]=by[o]||new Array(24).fill(0); const a=new Date(r.startTime), b=new Date(r.endTime), n=Number(r.count)||0, span=Math.max(1,b-a);
+    let t=a.getTime(); while(t<b.getTime()){ const h=new Date(t).getHours(), next=Math.min(b.getTime(), new Date(new Date(t).setMinutes(60,0,0)).getTime()); if(t>=from && t<to) by[o][h]+=n*(next-t)/span; t=next; } });
+  return Object.values(by).reduce((a,x)=>x.reduce((q,v)=>q+v,0)>(a?a.reduce((q,v)=>q+v,0):-1)?x:a, null)||new Array(24).fill(0);
+}
+// Ausschläge und Anspannung: Puls deutlich über Ruhepuls ohne viele Schritte = eher Stress oder Aufregung
+function pulseAnalysis(pts, sh, rest){
+  rest=Math.max(50,rest||62); const thr=rest+30, peaks=[]; let cur=null;
+  pts.forEach(([t,b])=>{ if(b>=thr){ if(cur && t-cur.e<=6*60000){ cur.e=t; cur.max=Math.max(cur.max,b); } else { if(cur) peaks.push(cur); cur={s:t,e:t,max:b}; } } }); if(cur) peaks.push(cur);
+  const pk=peaks.filter(x=>x.e-x.s>=4*60000).map(x=>{ const h=new Date(x.s).getHours(); x.move=(sh[h]||0)>=300; return x; }).sort((a,b)=>b.max-a.max).slice(0,5).sort((a,b)=>a.s-b.s);
+  const hours=new Array(24).fill(null); const bh={}; pts.forEach(([t,b])=>{ const h=new Date(t).getHours(); (bh[h]=bh[h]||[]).push(b); });
+  Object.entries(bh).forEach(([h,a])=>{ if(a.length<3) return; const av=a.reduce((q,x)=>q+x,0)/a.length, df=av-rest, st=sh[h]||0; hours[h]= st>=300 ? "move" : df>=25 ? "hoch" : df>=12 ? "mittel" : "ruhig"; });
+  return {peaks:pk, hours};
+}
+function drawPulseExtras(box, an){
+  box.innerHTML=""; const col={ruhig:"#7FB0E0",mittel:"var(--accent)",hoch:"var(--warn)",move:"var(--done)"};
+  box.append(el("span","label","Anspannung über den Tag (Schätzung)"));
+  const bar=el("div","stressbar"); an.hours.forEach((v,h)=>{ const i=el("i"); if(v) i.style.background=col[v]; i.title=h+" Uhr: "+(v||"keine Daten"); bar.append(i); }); box.append(bar);
+  const lb=el("div","stresslbl"); ["0","6","12","18","24"].forEach(x=>lb.append(el("span",null,x))); box.append(lb);
+  const lg=el("div","legend"); [["ruhig","entspannt"],["mittel","etwas angespannt"],["hoch","angespannt"],["move","Bewegung"]].forEach(([k,t])=>{ const sp=el("span"); const d=el("i"); d.style.background=col[k]; sp.append(d, document.createTextNode(t)); lg.append(sp); }); box.append(lg);
+  const n=an.hours.filter(x=>x==="mittel"||x==="hoch").length;
+  if(an.peaks.length){ box.append(el("span","label","Wo dein Puls hochging")); const ul=el("ul","list"); an.peaks.forEach(x=>{ const li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span",null,hm(new Date(x.s))+" bis "+hm(new Date(x.e))+" Uhr · bis "+x.max)); tx.append(el("div","sub",x.move?"mit Bewegung (Gehen, Training, Arbeit)":"kaum Schritte, also eher Stress, Aufregung oder Koffein")); li.append(tx); ul.append(li); }); box.append(ul); }
+  box.append(el("div","note",(n?n+" Stunde"+(n>1?"n":"")+" mit erhöhtem Puls ohne Bewegung. ":"")+"Garmin schickt seinen Stresswert leider nicht an Health Connect, deshalb schätzt die App die Anspannung aus Puls über Ruhepuls und Schritten. Zum Vergleich: der echte Garmin Stress steht in Garmin Connect."));
+}
+let pulseCache={t:0};
+async function loadPulseToday(){
+  if(!HC || !state.hc.on) return; const k=calToday(); if(pulseCache.k===k && Date.now()-pulseCache.t<120000){ paintPulseToday(); return; }
+  pulseCache={t:Date.now(), k}; const from=parseKey(k), to=new Date();
+  const [hr, st]=await Promise.all([hcRange("HeartRateSeries", from, to), hcRange("Steps", from, to)]);
+  pulseCache.pts=hrPoints(hr, from.getTime(), to.getTime()); pulseCache.sh=stepsByHour(st, from.getTime(), to.getTime()+1);
+  const s2=hrDayStats(hr, from.getTime(), to.getTime()+1); if(s2){ state.hc.hrd=state.hc.hrd||{}; state.hc.hrd[k]=s2; renderPulseStats(); }
+  paintPulseToday();
+}
+function paintPulseToday(){
+  const svg=$("pulseToday"); if(!svg) return; const k=calToday(), from=parseKey(k).getTime(), pts=pulseCache.pts||[];
+  const an=pulseAnalysis(pts, pulseCache.sh||[], restOf(k)||restOf(addDays(k,-1)));
+  lineChart(svg, pts, {t0:from, t1:Math.max(from+3600000,Date.now()), color:"var(--warn)", area:true, empty:HC?"Noch kein Puls von heute":"Puls gibt es nur in der App", bands:an.peaks.map(x=>({s:x.s,e:Math.max(x.e,x.s+120000),c:x.move?"var(--done)":"var(--warn)"}))});
+  if(pts.length) drawPulseExtras($("pulseExtra"), an); else $("pulseExtra").innerHTML="";
+}
+function restOf(d){ return state.hc.rhr[d] || ((state.hc.hrd||{})[d]||{}).rest || null; }
+function rhrRate(v){ return v<60?"sehr gut":v<=70?"gut":v<=80?"normal":"eher hoch"; }
+function openPulseDay(d){
+  openSheet(async p=>{
+    sheetHead(p,"Puls"); dayNav(p,d,openPulseDay);
+    const st=(state.hc.hrd||{})[d], rh=restOf(d);
+    statRow(p,[["Ruhepuls",rh?String(rh):"-"],["Schnitt",st?String(st.avg):"-"],["Tief / hoch",st?st.min+" / "+st.max:"-"]]);
+    const svg=svgEl(340,150,"Puls über den Tag"); p.append(svg); const info=el("div","note",HC?"Lade Puls …":"Den Verlauf gibt es nur in der App auf dem Handy."); p.append(info);
+    const from=parseKey(d), to=new Date(from.getTime()+86400000);
+    const recs=await hcRange("HeartRateSeries", from, to), pts=hrPoints(recs, from.getTime(), to.getTime());
+    lineChart(svg, pts, {t0:from.getTime(), t1:Math.min(to.getTime(),Date.now()), color:"var(--warn)", area:true, empty:HC?"Kein Puls von der Uhr":"Nur in der App"});
+    const s2=hrDayStats(recs, from.getTime(), to.getTime()); if(s2){ state.hc.hrd=state.hc.hrd||{}; state.hc.hrd[d]=s2; persist(); }
+    if(pts.length){ const sh=stepsByHour(await hcRange("Steps", from, to), from.getTime(), to.getTime()); const an=pulseAnalysis(pts, sh, rh); lineChart(svg, pts, {t0:from.getTime(), t1:Math.min(to.getTime(),Date.now()), color:"var(--warn)", area:true, bands:an.peaks.map(x=>({s:x.s,e:Math.max(x.e,x.s+120000),c:x.move?"var(--done)":"var(--warn)"}))}); const ex=el("div"); drawPulseExtras(ex, an); info.after(ex); }
+    info.textContent = pts.length ? "Ruhepuls ist der Puls, wenn du ganz entspannt bist, meist nachts oder direkt nach dem Aufwachen. Für Männer in deinem Alter sind 60 bis 80 normal, unter 60 zeigt gute Ausdauer. Sinkt er über Wochen, wirst du fitter. Liegt er morgens 5 Schläge über deinem Schnitt: schlecht geschlafen, Stress, Alkohol oder ein Infekt kommt, dann lieber locker trainieren." : (HC?"Für diesen Tag kam kein Puls von der Uhr.":"");
+  });
+}
+function renderPulseStats(){
+  const box=$("pulseStats"); if(!box) return; box.innerHTML=""; const k=calToday(), y=addDays(k,-1);
+  const st=(state.hc.hrd||{})[k], rh=restOf(k)||restOf(y);
+  const r=el("div","stat3"); [["Ruhepuls",rh?rh+"":"-",rh?rhrRate(rh):""],["Schnitt heute",st?st.avg+"":"-",st?"tief "+st.min+", hoch "+st.max:""],["Zuletzt",st&&st.last?st.last[1]+"":"-",st&&st.last?hm(new Date(st.last[0]))+" Uhr":""]].forEach(([a,b,c])=>{ const d=el("div"); d.append(el("span","label",a), el("span","big",b)); if(c) d.append(el("span","note",c)); r.append(d); }); box.append(r);
+}
 function renderHeart(){
   const k=calToday(), rp=[], hp=[];
-  for(let i=29;i>=0;i--){ const d=addDays(k,-i), t=parseKey(d).getTime(); if(state.hc.rhr[d]) rp.push([t,state.hc.rhr[d]]); if(state.hc.hrv[d]) hp.push([t,state.hc.hrv[d]]); }
-  $("heartCard").hidden = rp.length<2 && hp.length<2; if($("heartCard").hidden) return;
+  for(let i=29;i>=0;i--){ const d=addDays(k,-i), t=parseKey(d).getTime(), rh=restOf(d); if(rh) rp.push([t,rh]); if(state.hc.hrv[d]) hp.push([t,state.hc.hrv[d]]); }
+  const anyHr=Object.keys(state.hc.hrd||{}).length>0;
+  $("heartCard").hidden = rp.length<1 && hp.length<2 && !anyHr && !state.hc.on; if($("heartCard").hidden) return;
+  renderPulseStats(); if(HC && state.hc.on) loadPulseToday(); else { const svg=$("pulseToday"); lineChart(svg, [], {empty:state.hc.on?"Den Tagesverlauf gibt es nur in der App":"Garmin verbinden, dann siehst du hier deinen Puls"}); }
   const fmt=t=>fmtDate(keyOf(new Date(t)));
   lineChart($("rhrChart"), rp, {color:"var(--warn)", dots:true, fmt, t0:parseKey(addDays(k,-29)).getTime(), t1:parseKey(k).getTime(), h:130, empty:"Noch kein Ruhepuls"});
   const avg=a=>a.length?Math.round(a.reduce((x,y)=>x+y[1],0)/a.length):null, a1=avg(rp.slice(-7)), a2=avg(rp.slice(-30,-7));
@@ -3068,6 +3364,8 @@ function renderHC(){
 $("hcConnect").addEventListener("click", ()=>hcConnect(false));
 $("hcForce").addEventListener("click", ()=>hcConnect(true));
 $("hcSync").addEventListener("click", hcSyncNow);
+$("copyYest").addEventListener("click", ()=>openCopyYest(activeDay()));
+$("pulseDayB").addEventListener("click", ()=>openPulseDay(calToday()));
 $("hcSettings").addEventListener("click", async ()=>{ try{ await HC.openHealthConnectSetting(); }catch(e){ toast("Konnte Health Connect nicht öffnen"); } });
 
 // ---------- Konto und Sync (Firebase)
@@ -3164,7 +3462,7 @@ function openSettings(first){
     p.append(el("div","note","Der ganze Tagesablauf mit Essen, Training, Supplements und Erinnerungen richtet sich nach der Aufstehzeit."));
     sec("Sonstiges");
     const tg=el("div");
-    let inj=!!pr.injury; const sInj=toggleRow(tg,"Verletzungsmodus Hand", inj, null, "Übungen in Stufen freigeben"); sInj.addEventListener("click",()=>{ inj=!inj; sInj.setAttribute("aria-checked",inj?"true":"false"); });
+    let inj=!!pr.injury; const sInj=toggleRow(tg,"Verletzungsmodus Hand oder Handgelenk", inj, null, "Nur bei Verletzung einschalten. Dann werden schwere Griffübungen über 8 Wochen in 3 Stufen freigegeben und Hanteln anfangs begrenzt. Aus: normaler Plan ohne Einschränkung."); sInj.addEventListener("click",()=>{ inj=!inj; sInj.setAttribute("aria-checked",inj?"true":"false"); });
     let alpha=!!pr.alpha;
     if(state.alphaData && !first){ const sA=toggleRow(tg,"Alpha Progression Daten anzeigen", alpha, null, "Startgewichte und alter Verlauf"); sA.addEventListener("click",()=>{ alpha=!alpha; sA.setAttribute("aria-checked",alpha?"true":"false"); }); }
     p.append(tg);
@@ -3177,6 +3475,7 @@ function openSettings(first){
       const del=el("button","x","×"); del.setAttribute("aria-label",s.n+" entfernen"); del.addEventListener("click",()=>{ supps.splice(si,1); drawS(); });
       right.append(seg, sw(s.on,()=>{ s.on=!s.on; drawS(); },s.n), del); r.append(nm,right); sl.append(r); }); };
     drawS(); p.append(sl);
+    { const det=el("details"); det.append(el("summary","note","Empfehlungen anzeigen")); const rb=el("div"); suppRecList(rb, n=>supps.some(x=>x.n.toLowerCase().split(" ")[0]===n.toLowerCase().split(" ")[0]), x=>{ supps.push(x); drawS(); }); det.append(rb); p.append(det); }
     const addRow=el("div","row nowrap"); const iAdd=el("input"); iAdd.type="text"; iAdd.placeholder="Eigenes Supplement"; const bAdd=el("button","btn small ghost","Dazu"); bAdd.onclick=()=>{ const n=iAdd.value.trim(); if(!n) return; supps.push({id:"c"+Date.now(), n, t:"M", on:true}); iAdd.value=""; drawS(); }; addRow.append(iAdd,bAdd); p.append(addRow);
     const save=el("button","btn wide", first ? "Los geht's" : "Speichern");
     save.addEventListener("click",()=>{
@@ -3216,7 +3515,7 @@ $("aScan").addEventListener("click",()=>scan(activeDay()));
 $("aSearch").addEventListener("click",()=>openSearch(activeDay()));
 $("aOut").addEventListener("click",()=>openOut(activeDay()));
 $("reviewOpen").addEventListener("click",openReview);
-$("wScale").addEventListener("click",openScale); $("bcCal").addEventListener("click",openBcCal);
+$("wScale").addEventListener("click",openScale); $("suppRecB").addEventListener("click",openSuppRec); $("bcCal").addEventListener("click",openBcCal);
 $("miniStepsB").addEventListener("click",()=>openStepsDay(calToday()));
 $("miniSleepB").addEventListener("click",()=>{ const k=calToday(); openSleep(state.hc.sleep[k]!=null||(state.hc.sleepT||{})[k] ? k : addDays(k,-1)); });
 $("stepChart").addEventListener("click",e=>{ const r=e.target.closest("rect"); if(r && r.dataset.d) openStepsDay(r.dataset.d); }); $("reviewOpen2").addEventListener("click",openReview);
