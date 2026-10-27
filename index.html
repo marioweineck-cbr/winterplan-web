@@ -293,6 +293,9 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
 .tag svg{width:14px;height:14px}
 .item .ic{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);flex:none}
 .item .ic svg{width:17px;height:17px}
+.mini2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mini2>div{display:flex;flex-direction:column;gap:3px}
+.mini{width:100%;height:46px;display:block}
+.pick{min-height:20px;font-family:var(--mono);font-size:12px}
 .item.isdone .ic{background:color-mix(in srgb,var(--done) 14%,transparent);color:var(--done)}
 .wi{display:flex;gap:10px;align-items:center;min-width:0}
 .syncl{display:inline-flex;align-items:center}.syncl .hi{margin-right:4px;width:16px;height:16px}
@@ -327,7 +330,10 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
 .revCard{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 16%,var(--panel)),var(--panel));animation:pop .5s var(--ease)}
 .rev{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .revT{display:flex;flex-direction:column;gap:2px;padding:12px;border-radius:var(--rs);background:var(--bg);position:relative}
-.revT .ic{position:absolute;right:10px;top:10px}
+.revT .ic{position:absolute;right:10px;top:10px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent)}
+.revT .ic svg{width:17px;height:17px}
+.revT .big{font-size:18px}
+.ic svg{width:17px;height:17px}
 .revT.good{background:color-mix(in srgb,var(--done) 12%,var(--bg))}.revT.bad{background:color-mix(in srgb,var(--warn) 10%,var(--bg))}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .pslot{aspect-ratio:3/4;border-radius:var(--rs);border:2px dashed var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;position:relative;overflow:hidden;font-size:13px;font-weight:700;color:var(--muted)}
@@ -338,7 +344,7 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
 </style>
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-machine" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18M19 3v18M3 21h4M17 21h4M5 5h14"/><rect x="9" y="12" width="6" height="7" rx="1"/><path d="M9 14.5h6M9 17h6M12 5v7"/></symbol><symbol id="i-cable" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18M3 21h4M5 4h11"/><circle cx="16" cy="6.5" r="2.2"/><path d="M17.6 8.2l2.4 7.8"/><path d="M17.5 16.5h5"/></symbol><symbol id="i-dumbbell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11M3.5 9v6M17.5 6.5v11M20.5 9v6M6.5 12h11"/></symbol><symbol id="i-barbell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20M5.5 8v8M8 6v12M18.5 8v8M16 6v12"/></symbol><symbol id="i-smith" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3v18M20 3v18M2 21h20M2 9h20"/><path d="M7 6.5v5M17 6.5v5"/></symbol><symbol id="i-body" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.5" r="2"/><path d="M12 7v7l-3 7M12 14l3 7M5.5 10.5L12 8.5l6.5 2"/></symbol><symbol id="i-bike" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5l4-7.5h5.5l3.5 7.5M9.5 9l2.5 7.5h1.5M13.5 5.5h2.5"/></symbol><symbol id="i-run" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="14.5" cy="4" r="2"/><path d="M8 21l3-6 3 2v5M6 11l3-3 4 1 2 3 3 1M11 15l2-6"/></symbol><symbol id="i-walk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M10 21l2-7 3 3v4M9 11l2-3h3l2 4M12 14l1-6"/></symbol><symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"/></symbol><symbol id="i-pill" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 3.8a4.5 4.5 0 0 1 6.4 0l3.3 3.3a4.5 4.5 0 0 1 0 6.4l-6.7 6.7a4.5 4.5 0 0 1-6.4 0l-3.3-3.3a4.5 4.5 0 0 1 0-6.4z"/><path d="M7.2 7.2l9.6 9.6"/></symbol><symbol id="i-bowl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18a9 7.5 0 0 1-18 0z"/><path d="M8.5 8c0-1.5 1.5-1.5 1.5-3M13.5 8c0-1.5 1.5-1.5 1.5-3"/></symbol><symbol id="i-shake" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7h11l-1.6 14H8.1z"/><path d="M6 7l1-3h10l1 3M7.2 12h9.6"/></symbol><symbol id="i-cup" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17M8 2.5v3M12 2.5v3M3 21h15"/></symbol><symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5z"/></symbol><symbol id="i-steps" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 3.5c1.8 0 2.8 1.8 2.8 4.5s-1 4.5-2.8 4.5S4.7 10.7 4.7 8s1-4.5 2.8-4.5zM5.5 15.5h4M16.5 8.5c1.8 0 2.8 1.8 2.8 4.5s-1 4.5-2.8 4.5-2.8-1.8-2.8-4.5 1-4.5 2.8-4.5zM14.5 20.5h4"/></symbol><symbol id="i-apple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5c-3.5-2-8-.5-8 4.5 0 4.5 3 9 6 9 1 0 1.4-.5 2-.5s1 .5 2 .5c3 0 6-4.5 6-9 0-5-4.5-6.5-8-4.5z"/><path d="M12 7.5c0-2 1-4 3-4.5"/></symbol><symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol><symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 6-7"/></symbol><symbol id="i-tape" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="6"/><circle cx="9" cy="12" r="1.5"/><path d="M15 12v6h6M17 18v-2M19 18v-2"/></symbol><symbol id="i-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 9a5 4 0 0 1 8 0M12 9l1.5-2"/></symbol><symbol id="i-cart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2.5l2.2 11h10.6l2.2-8H6.6"/><circle cx="9" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></symbol><symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5zM4 19.5A1.5 1.5 0 0 0 5.5 21H20v-3"/><path d="M8 7h8M8 10.5h6"/></symbol><symbol id="i-watch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="3.5"/><path d="M9 6l.8-3.5h4.4L15 6M9 18l.8 3.5h4.4L15 18M12 9.5V12l1.5 1.5"/></symbol><symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16.5 9.5"/></symbol><symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0"/></symbol><symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/></symbol><symbol id="i-plane" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 13.5l7-1.5 4.5-7.5c.6-1 2.2-.6 2 .6L15 12l5.5 1.2c.8.2.8 1.4 0 1.6L15 16l1 5.4c.2 1.2-1.4 1.6-2 .6L9.5 15l-7-1.5z"/></symbol><symbol id="i-thermo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14.5V5a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0z"/><path d="M12 9v7"/></symbol><symbol id="i-muscle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19c0-4 1.5-8 3.5-10.5L9 5l3.5-1.5L14 6l-3 2 1 3.5c2.5-1 5.5-.5 7 1.5s1 6.5-3 7H4z"/></symbol><symbol id="i-burger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5C4 7 7.5 4.5 12 4.5S20 7 20 10.5z"/><path d="M3 14h18M5 14l1.5 2 1.5-2 1.5 2 1.5-2 1.5 2 1.5-2 1.5 2 1.5-2M4.5 17h15a0 0 0 0 1 0 0 2.5 2.5 0 0 1-2.5 2.5H7A2.5 2.5 0 0 1 4.5 17z"/></symbol><symbol id="i-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4 0-7-2.8-7-6.5 0-3.8 3-5.5 3.5-9.5 2.5 1.5 3.5 3.5 3.5 5.5 1-1 1.5-2 1.5-3.5 2.5 2 5.5 4.5 5.5 7.5 0 3.7-3 6.5-7 6.5z"/></symbol><symbol id="i-sync" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.3-4.5L4 8.5M4 13a8 8 0 0 0 14.3 4.5L20 15.5"/><path d="M4 4v4.5h4.5M20 20v-4.5h-4.5"/></symbol><symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-8-4.6-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.4 12 20 12 20z"/><path d="M4 12h4l1.5-2.5 2.5 5 1.5-2.5H20"/></symbol><symbol id="i-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol></svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-machine" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18M19 3v18M3 21h4M17 21h4M5 5h14"/><rect x="9" y="12" width="6" height="7" rx="1"/><path d="M9 14.5h6M9 17h6M12 5v7"/></symbol><symbol id="i-cable" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18M3 21h4M5 4h11"/><circle cx="16" cy="6.5" r="2.2"/><path d="M17.6 8.2l2.4 7.8"/><path d="M17.5 16.5h5"/></symbol><symbol id="i-dumbbell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11M3.5 9v6M17.5 6.5v11M20.5 9v6M6.5 12h11"/></symbol><symbol id="i-barbell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20M5.5 8v8M8 6v12M18.5 8v8M16 6v12"/></symbol><symbol id="i-smith" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3v18M20 3v18M2 21h4M18 21h4"/><path d="M2 9h20"/><rect x="5.6" y="5.5" width="2.4" height="7" rx="1"/><rect x="16" y="5.5" width="2.4" height="7" rx="1"/><path d="M8.5 16.5l7-2.5M10 15.8V21M15 14.2V21"/></symbol><symbol id="i-body" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.5" r="2"/><path d="M12 7v7l-3 7M12 14l3 7M5.5 10.5L12 8.5l6.5 2"/></symbol><symbol id="i-bike" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5l4-7.5h5.5l3.5 7.5M9.5 9l2.5 7.5h1.5M13.5 5.5h2.5"/></symbol><symbol id="i-run" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="14.5" cy="4" r="2"/><path d="M8 21l3-6 3 2v5M6 11l3-3 4 1 2 3 3 1M11 15l2-6"/></symbol><symbol id="i-walk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M10 21l2-7 3 3v4M9 11l2-3h3l2 4M12 14l1-6"/></symbol><symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"/></symbol><symbol id="i-pill" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 3.8a4.5 4.5 0 0 1 6.4 0l3.3 3.3a4.5 4.5 0 0 1 0 6.4l-6.7 6.7a4.5 4.5 0 0 1-6.4 0l-3.3-3.3a4.5 4.5 0 0 1 0-6.4z"/><path d="M7.2 7.2l9.6 9.6"/></symbol><symbol id="i-bowl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18a9 7.5 0 0 1-18 0z"/><path d="M8.5 8c0-1.5 1.5-1.5 1.5-3M13.5 8c0-1.5 1.5-1.5 1.5-3"/></symbol><symbol id="i-shake" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7h11l-1.6 14H8.1z"/><path d="M6 7l1-3h10l1 3M7.2 12h9.6"/></symbol><symbol id="i-cup" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17M8 2.5v3M12 2.5v3M3 21h15"/></symbol><symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5z"/></symbol><symbol id="i-steps" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 3.5c1.8 0 2.8 1.8 2.8 4.5s-1 4.5-2.8 4.5S4.7 10.7 4.7 8s1-4.5 2.8-4.5zM5.5 15.5h4M16.5 8.5c1.8 0 2.8 1.8 2.8 4.5s-1 4.5-2.8 4.5-2.8-1.8-2.8-4.5 1-4.5 2.8-4.5zM14.5 20.5h4"/></symbol><symbol id="i-apple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5c-3.5-2-8-.5-8 4.5 0 4.5 3 9 6 9 1 0 1.4-.5 2-.5s1 .5 2 .5c3 0 6-4.5 6-9 0-5-4.5-6.5-8-4.5z"/><path d="M12 7.5c0-2 1-4 3-4.5"/></symbol><symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol><symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 6-7"/></symbol><symbol id="i-tape" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="6"/><circle cx="9" cy="12" r="1.5"/><path d="M15 12v6h6M17 18v-2M19 18v-2"/></symbol><symbol id="i-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 9a5 4 0 0 1 8 0M12 9l1.5-2"/></symbol><symbol id="i-cart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2.5l2.2 11h10.6l2.2-8H6.6"/><circle cx="9" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></symbol><symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5zM4 19.5A1.5 1.5 0 0 0 5.5 21H20v-3"/><path d="M8 7h8M8 10.5h6"/></symbol><symbol id="i-watch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="3.5"/><path d="M9 6l.8-3.5h4.4L15 6M9 18l.8 3.5h4.4L15 18M12 9.5V12l1.5 1.5"/></symbol><symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16.5 9.5"/></symbol><symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0"/></symbol><symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/></symbol><symbol id="i-plane" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 13.5l7-1.5 4.5-7.5c.6-1 2.2-.6 2 .6L15 12l5.5 1.2c.8.2.8 1.4 0 1.6L15 16l1 5.4c.2 1.2-1.4 1.6-2 .6L9.5 15l-7-1.5z"/></symbol><symbol id="i-thermo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14.5V5a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0z"/><path d="M12 9v7"/></symbol><symbol id="i-muscle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19c0-4 1.5-8 3.5-10.5L9 5l3.5-1.5L14 6l-3 2 1 3.5c2.5-1 5.5-.5 7 1.5s1 6.5-3 7H4z"/></symbol><symbol id="i-burger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5C4 7 7.5 4.5 12 4.5S20 7 20 10.5z"/><path d="M3 14h18M5 14l1.5 2 1.5-2 1.5 2 1.5-2 1.5 2 1.5-2 1.5 2 1.5-2M4.5 17h15a0 0 0 0 1 0 0 2.5 2.5 0 0 1-2.5 2.5H7A2.5 2.5 0 0 1 4.5 17z"/></symbol><symbol id="i-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4 0-7-2.8-7-6.5 0-3.8 3-5.5 3.5-9.5 2.5 1.5 3.5 3.5 3.5 5.5 1-1 1.5-2 1.5-3.5 2.5 2 5.5 4.5 5.5 7.5 0 3.7-3 6.5-7 6.5z"/></symbol><symbol id="i-sync" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.3-4.5L4 8.5M4 13a8 8 0 0 0 14.3 4.5L20 15.5"/><path d="M4 4v4.5h4.5M20 20v-4.5h-4.5"/></symbol><symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-8-4.6-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.4 12 20 12 20z"/><path d="M4 12h4l1.5-2.5 2.5 5 1.5-2.5H20"/></symbol><symbol id="i-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol></svg>
 <div class="intro" id="intro" aria-hidden="true">
   <div class="introIn">
     <svg class="introDb" viewBox="0 0 120 60"><g fill="currentColor"><rect x="4" y="16" width="10" height="28" rx="3"/><rect x="15" y="8" width="12" height="44" rx="3.5"/><rect x="93" y="8" width="12" height="44" rx="3.5"/><rect x="106" y="16" width="10" height="28" rx="3"/><rect x="27" y="26" width="66" height="8" rx="3"/></g></svg>
@@ -379,6 +385,11 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
         <div><span class="label">Schritte heute</span><span class="big" id="vitSteps">-</span><div class="bar p"><i id="vitStepsBar"></i></div></div>
         <div><span class="label">Schlaf letzte Nacht</span><span class="big" id="vitSleep">-</span><span class="note" id="vitSleepNote"></span></div>
       </div>
+      <div class="mini2">
+        <div><span class="label">Schritte 7 Tage</span><svg class="mini" id="miniSteps" viewBox="0 0 140 46"></svg><span class="note" id="miniStepsT"></span></div>
+        <div><span class="label">Schlaf 7 Nächte</span><svg class="mini" id="miniSleep" viewBox="0 0 140 46"></svg><span class="note" id="miniSleepT"></span></div>
+      </div>
+      <div class="note" id="vitHeart"></div>
       <div id="vitReady" hidden>
         <div class="between"><span class="label">Bereitschaft heute</span><span class="big" id="readyNum">-</span></div>
         <div class="bar"><i id="readyFill"></i></div>
@@ -714,7 +725,7 @@ const TPL = {
 };
 const CAT = {steps:"steps", suppM:"supp", suppE:"supp", fr:"essen", b1:"essen", b2:"essen", ab:"essen", sn:"essen", sh:"essen", gym:"gym", caf:"koffein", wind:"schlaf", sleep:"schlaf"};
 const CATS = [["essen","Essen"],["gym","Training"],["koffein","Koffeinstopp"],["schlaf","Licht dimmen und Schlafen"],["supp","Supplements morgens und abends"],["steps","Schritte Check in der Freizeit"],["meas","Körpermaße nehmen"],["plan","Abends: Schicht für morgen fehlt"]];
-const HABITS = [["steps","8.000 Schritte geschafft"],["water","Viel Wasser getrunken"],["tv","Ohne Fernseher eingeschlafen"]];
+const HABITS = [["steps","8.000 Schritte geschafft"],["water","Viel Wasser getrunken"],["tv","TV nur mit Sleep Timer (max. 30 Min.)"]];
 const CAF_DRINKS = [["Kaffee",90],["Monster 0,5 l",160],["Red Bull 0,25 l",80],["Cola 0,5 l",50]];
 const CAF_HALF = 5; // Stunden
 const STEP_GOAL = 8000;
@@ -819,7 +830,7 @@ const RECIPES = [
    st:["Haferflocken im Mixer fein mahlen.","Mit Quark, Eiern, Backpulver, Zimt und etwas Süße mixen.","Im Waffeleisen backen. Mit Skyr und Himbeeren essen."]}
 ];
 const CART_DEFAULT = {bolo:1, teri:1, chili:1, porr:7, quark:5, waff:1};
-const BASICS = [["Bananen oder Äpfel","Gemüse"],["Dunkle Schokolade","Vorrat"],["Whey (wenn leer)","Vorrat"],["Kreatin (wenn leer)","Vorrat"]];
+const BASICS = [["Bananen oder Äpfel","Gemüse"],["Dunkle Schokolade","Vorrat"]];
 const CAT_ORDER = ["Fleisch","Kühlregal","TK","Gemüse","Vorrat","Eigenes"];
 const CAT_NAMES = {Gemüse:"Obst und Gemüse"};
 
@@ -887,6 +898,7 @@ function normalize(s){
   if(!s.profile) s.profile = existing ? marioProfile() : {setup:false};
   const p=s.profile; p.wake = p.wake || {frueh:"05:00", spaet:"08:00", nacht:"15:00", frei:"09:00", urlaub:"09:00"};
   if(!p.wake.urlaub) p.wake.urlaub="09:00";
+  if(p.name==='Mario' && p.target===79 && !s.mig78){ p.target=78; s.mig78=true; }
   if(!p.sleepGoal) p.sleepGoal=8; if(!p.measEvery) p.measEvery=14; if(!p.weeks) p.weeks=22;
   if(p.alpha && !s.alphaData && window.ALPHA_HIST) s.alphaData = {hist:window.ALPHA_HIST, weights:window.ALPHA_WEIGHTS||[]};
   const cut = keyOf(new Date(Date.now()-200*86400000));
@@ -1284,7 +1296,7 @@ function liftRate(ser, old){
   return {rate, src, cur};
 }
 function wFor(e,reps,o,u){ const st=stepFor(o,u), f=bwFactor(o), extra = f ? conv(curBW()*f,"kg",u) : 0; return Math.max(f?0:st, Math.round((e/(1+reps/30)-extra)/st)*st); }
-function drawLift(svg, ser, old, rate){
+function drawLift(svg, ser, old, rate, onPick){
   const W=340, H=170, L=36, R=10, T=12, B=24, NS="http://www.w3.org/2000/svg"; svg.innerHTML="";
   const mk=(n,a)=>{ const e=document.createElementNS(NS,n); for(const k in a) e.setAttribute(k,a[k]); svg.appendChild(e); return e; };
   const p=ser.pts, last=p[p.length-1], endD=addDays(last[0],28), x0=p[0][0], span=Math.max(7,dayDiff(x0,endD));
@@ -1300,12 +1312,19 @@ function drawLift(svg, ser, old, rate){
   mk("circle",{cx:X(endD),cy:Y(proj),r:3.5,fill:"none",stroke:"var(--done)","stroke-width":2,class:"proj"});
   if(p.length>1) mk("path",{d:p.map(([d,v],i)=>(i?"L":"M")+X(d).toFixed(1)+" "+Y(v).toFixed(1)).join(" "),fill:"none",stroke:"var(--accent)","stroke-width":2.5,"stroke-linejoin":"round","stroke-linecap":"round",pathLength:1,class:"draw"});
   p.forEach(([d,v],i)=>mk("circle",{cx:X(d),cy:Y(v),r:i===p.length-1?4:2.5,fill:"var(--accent)"}));
+  if(onPick) p.forEach(([d,v],i)=>{ const c=mk("circle",{cx:X(d),cy:Y(v),r:14,fill:"transparent",style:"cursor:pointer"}); c.addEventListener("click",()=>{ svg.querySelectorAll(".sel").forEach(x=>x.remove()); mk("circle",{cx:X(d),cy:Y(v),r:7,fill:"none",stroke:"var(--accent)","stroke-width":2,class:"sel"}); onPick(d,v); }); });
 }
 function progressBlock(p, name, sr, o){
   const ser=liftSeries(name); if(!ser) return;
   const r=parseSR(sr)||{sets:3,lo:8,hi:12}, old=alphaBest(name,ser.u), {rate,src,cur}=liftRate(ser,old), u=ser.u, L=liftInfo(name);
   p.append(el("div","cat","Fortschritt"));
-  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg"); svg.setAttribute("viewBox","0 0 340 170"); svg.setAttribute("class","chart"); svg.setAttribute("role","img"); svg.setAttribute("aria-label","Kraftverlauf "+name); p.append(svg); drawLift(svg, ser, old, rate);
+  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg"); svg.setAttribute("viewBox","0 0 340 170"); svg.setAttribute("class","chart"); svg.setAttribute("role","img"); svg.setAttribute("aria-label","Kraftverlauf "+name);
+  const pick=el("div","pick note"); pick.textContent="Tipp auf einen Punkt für die Sätze von dem Tag.";
+  let mode=ser.rm?"max":(P().progMode||"max");
+  const segM=el("div","seg"); const bM=el("button",null,"Maximal (1 Wdh)"), b10=el("button",null,"Bei 10 Wdh");
+  const draw=()=>{ bM.setAttribute("aria-pressed",mode==="max"?"true":"false"); b10.setAttribute("aria-pressed",mode==="10"?"true":"false"); const f=mode==="10"?0.75:1; const s2={u:ser.u, rm:ser.rm, pts:ser.pts.map(([d,v])=>[d,v*f])}; drawLift(svg, s2, old?{v:old.v*f,txt:old.txt,when:old.when}:null, rate, (d,v)=>{ const s=L.find(x=>x.d===d); pick.textContent=fmtDate(d)+": "+(s?s.s.map(x=>fmtW(x[0])+"×"+x[1]).join("  ")+" "+s.u:"")+(ser.rm?"":" · "+(mode==="10"?"schaffbar bei 10 Wdh: ~":"Maximum ~")+de(v)+" "+ser.u); }); };
+  bM.addEventListener("click",()=>{ mode="max"; P().progMode=mode; save(); draw(); }); b10.addEventListener("click",()=>{ mode="10"; P().progMode=mode; save(); draw(); }); segM.append(bM,b10);
+  if(!ser.rm) p.append(segM); p.append(svg, pick); draw();
   p.append(el("div","note", ser.rm ? "Orange: beste Wiederholungen je Training. Grün gestrichelt: so geht es weiter." : "Orange: geschätzte Maximalkraft je Training"+(bwFactor(o)?" (mit Körpergewicht)":"")+". Grün gestrichelt: so geht es weiter, wenn du dranbleibst."+(old?" Grau: dein Bestwert aus Alpha ("+old.txt+", "+old.when+").":"")));
   const t=nextTarget(o,sr,L), rows=[];
   if(t) rows.push(["Nächstes Training", targetTxt(t)]);
@@ -1344,7 +1363,7 @@ function streakInfo(){
   while(d>=first){ if(dayOk(d)){ n++; miss=0; } else { miss++; if(miss>=2) break; } d=addDays(d,-1); }
   return {n, ice: n>0 && !dayOk(addDays(calToday(),-1)) && !dayOk(calToday())};
 }
-function weekCount(){ const k0=calToday(), mon=addDays(k0, -((parseKey(k0).getDay()+6)%7)); return new Set(state.train.log.filter(e=>e.u!=="P" && e.d>=mon && e.d<=addDays(mon,6)).map(e=>e.d+e.u)).size; }
+function weekCount(){ const k0=calToday(), mon=addDays(k0, -((parseKey(k0).getDay()+6)%7)); return new Set(state.train.log.filter(e=>e.u!=="P" && !e.skip && e.d>=mon && e.d<=addDays(mon,6)).map(e=>e.d+e.u)).size; }
 const MUSCLES = [["Brust",["schraeg","flach","fly"],10],["Rücken",["rudBrust","latEng","latWeit","rudKabel"],10],["Schultern",["seit","face","schulter"],10],["Bizeps",["bizeps","hammer","preacher","bayes"],8],["Trizeps",["triOver","triPush"],8],["Beine vorne",["quad","presse","strecker","einbein"],10],["Po und Beinbeuger",["hinge","beugerSitz","beugerLieg","hyper"],10],["Waden",["wadeSteh","wadeSitz"],6],["Bauch",["bauch"],6]];
 function muscleSets(){
   const from=addDays(calToday(),-6), cnt={};
@@ -1419,15 +1438,15 @@ function renderTraining(k, ph){
     list.appendChild(el("div","note num","Dauer ca. "+est.min+" Min. ("+est.n+" Sätze plus Aufwärmen)."));
     if(!run){
       const st=el("button","btn","Training starten"); st.addEventListener("click",()=>startLive(u,k,ph)); btns.appendChild(st);
-      const b=el("button","btn ghost","Ohne Sätze erledigt"); b.addEventListener("click",()=>advance(u,k)); btns.appendChild(b);
-      const s=el("button","btn ghost","Heute Pause"); s.addEventListener("click",()=>{ state.train.log.unshift({d:k,u:"P"}); state.train.log=state.train.log.slice(0,300); persist(); render(); toast("Pause eingetragen, Einheit "+u+" bleibt dran"); }); btns.appendChild(s);
+      const b=el("button","btn ghost","Überspringen"); b.addEventListener("click",()=>{ advance(u,k,{skip:true}); toast("Einheit "+u+" übersprungen",undoLast); }); btns.appendChild(b);
+      const s=el("button","btn ghost","Heute Pause"); s.addEventListener("click",()=>{ state.train.log.unshift({d:k,u:"P"}); state.train.log=state.train.log.slice(0,300); persist(); render(); toast("Pause eingetragen, Einheit "+u+" bleibt dran",undoLast); }); btns.appendChild(s);
     }
   }
   const wl=$("warmup"); wl.innerHTML=""; WARM.forEach(t=>{ const li=el("li","item nt"); li.append(el("span",null,t)); wl.appendChild(li); });
   const eq=$("equipToggles"); eq.innerHTML=""; EQUIP.forEach(([c,l])=>toggleRow(eq,l,!!state.equip[c],()=>{ state.equip[c]=!state.equip[c]; persist(); render(); }));
   const log=$("trainLog"), items=state.train.log.slice(0,12); log.innerHTML="";
   if(!items.length) log.textContent="Noch nichts eingetragen.";
-  else { const t=el("table"), tb=el("tbody"); items.forEach(e=>{ const tr=el("tr"); tr.append(el("td","num",fmtDate(e.d)), el("td",null,e.u==="P"?"Pause":UNITS[e.u].t), el("td","r num",[e.min?e.min+" Min.":"", e.hr?"♥ "+e.hr.avg+"/"+e.hr.max:"", e.rpe?"RPE "+e.rpe:""].filter(Boolean).join(" · "))); tb.appendChild(tr); }); t.appendChild(tb); log.appendChild(t); }
+  else { const t=el("table"), tb=el("tbody"); items.forEach(e=>{ const tr=el("tr"); tr.append(el("td","num",fmtDate(e.d)), el("td",null,e.u==="P"?"Pause":UNITS[e.u].t+(e.skip?" (übersprungen)":"")), el("td","r num",[e.min?e.min+" Min.":"", e.hr?"♥ "+e.hr.avg+"/"+e.hr.max:"", e.rpe?"RPE "+e.rpe:""].filter(Boolean).join(" · "))); tb.appendChild(tr); }); t.appendChild(tb); log.appendChild(t); }
   $("undoTrain").hidden = !items.length;
   renderProgress(); renderMuscles(); renderActs();
 }
@@ -1521,7 +1540,7 @@ function advance(u,k,extra){
   state.train.log.unshift(e); state.train.log.sort((a,b)=>b.d.localeCompare(a.d)); state.train.log=state.train.log.slice(0,300);
   state.train.idx=(state.train.idx+1)%SEQ.length;
   const sh=state.shift[k]; if(u!=="P" && sh){ const i=TPL[sh].findIndex(x=>x[2]==="gym"); if(i>=0) dayChecks(k)["gym@"+i]=true; }
-  persist(); render(); if(!extra) toast(u==="P"?"Pause erledigt":"Einheit "+u+" erledigt. Stark.");
+  persist(); render(); if(!extra) toast(u==="P"?"Pause erledigt":"Einheit "+u+" erledigt. Stark.",undoLast);
 }
 function openBackfill(){
   openSheet(p=>{
@@ -1946,6 +1965,7 @@ function cartItems(){
   allRecipes().forEach(r=>{ const c=state.cart.plan[r.id]||0; if(!c) return; r.z.forEach(([a,u,n,cat])=>{ const key=n+"|"+u; const e=map.get(key)||{n,u,a:0,cat}; e.a+=a*c; map.set(key,e); }); });
   BASICS.forEach(([n,cat])=>map.set(n+"|", {n,u:"",a:0,cat}));
   state.cart.custom.forEach(n=>map.set(n+"|c", {n,u:"",a:0,cat:"Eigenes",custom:true}));
+  { const wi=wheyInfo(); if(wi && wi.days<=7) map.set("whey|s",{n:"Whey Protein nachkaufen (noch "+de(wi.left)+" g)",u:"",a:0,cat:"Vorrat"}); }
   state.supps.filter(s=>s.on && suppLeft(s)!=null && suppLeft(s)<=7).forEach(s=>map.set(s.n+"|s", {n:s.n+" nachkaufen ("+(suppLeft(s)?"noch "+suppLeft(s)+" Tage":"leer")+")",u:"",a:0,cat:"Vorrat"}));
   return Array.from(map.entries()).map(([key,e])=>Object.assign({key},e));
 }
@@ -2021,7 +2041,7 @@ function plateauInfo(){
 // Wochenrückblick
 function weekStats(off){
   const k=calToday(), from=addDays(k,-6-off), to=addDays(k,-off), inR=d=>d>=from&&d<=to, days=[]; for(let i=0;i<7;i++) days.push(addDays(from,i));
-  const train=state.train.log.filter(e=>e.u!=="P"&&inR(e.d)), food=days.map(foodSum).filter(T=>T.n>=2);
+  const train=state.train.log.filter(e=>e.u!=="P"&&!e.skip&&inR(e.d)), food=days.map(foodSum).filter(T=>T.n>=2);
   const steps=days.map(d=>state.hc.steps[d]).filter(v=>v!=null), sleep=days.map(d=>state.hc.sleep[d]).filter(v=>v!=null);
   let prs=0, vol=0; train.forEach(e=>{ vol+=e.vol||0; });
   Object.entries(state.lifts).forEach(([n,L])=>{ const o=exByName(n).o; L.filter(s=>inR(s.d)).forEach(s=>{ const best=Math.max(0,...L.filter(x=>x.d<s.d).map(x=>{ const v=sessBest(x,o); return repsMode(o)?v:conv(v,x.u,"kg"); })), now=repsMode(o)?sessBest(s,o):conv(sessBest(s,o),s.u,"kg"); if(best>0&&now>best*1.001) prs++; }); });
@@ -2104,8 +2124,18 @@ function openPhotoCompare(){
 
 // Supplement Vorrat
 function suppLeft(s){ if(!s.stock) return null; return Math.max(0, s.stock.n - dayDiff(s.stock.d, calToday())); }
+function wheyUse(from){ let g=0; Object.keys(state.food).filter(d=>d>=from).forEach(d=>state.food[d].forEach(f=>{ if(/whey|shake/i.test(f.n)) g+=30; else if(/overnight/i.test(f.n)) g+=15; })); return g; }
+function wheyInfo(){ const w=state.whey; if(!w) return null; const used=wheyUse(w.d), days=Math.max(1,dayDiff(w.d,calToday())+1), perDay=Math.max(15, used/days), left=Math.max(0,w.g-used); return {left, days:Math.floor(left/perDay), perDay}; }
+function openWhey(){
+  openSheet(p=>{ sheetHead(p,"Whey Vorrat");
+    p.append(el("div","note","Die App zieht automatisch ab, was du einträgst: Whey Shake 30 g, Overnight Oats 15 g. Rest grob schätzen reicht."));
+    const [l,i]=field("Gramm in der Dose","number", wheyInfo()?Math.round(wheyInfo().left):1000); p.append(l);
+    const b=el("button","btn wide","Speichern"); b.addEventListener("click",()=>{ const g=num(i.value); if(!(g>=0)){ toast("Bitte Gramm eintragen"); return; } state.whey={g, d:calToday()}; persist(); closeSheet(); render(); toast("Whey Vorrat gespeichert"); }); p.append(b);
+    if(state.whey){ const r=el("button","link","Whey nicht mehr verfolgen"); r.addEventListener("click",()=>{ delete state.whey; persist(); closeSheet(); render(); }); p.append(r); } });
+}
 function renderStock(){
   const ul=$("stockList"); ul.innerHTML="";
+  { const wi=wheyInfo(), li=el("li","item nt"), tx=el("div","txt"); tx.append(el("span",null,"Whey Protein")); tx.append(el("div","sub"+(wi&&wi.days<=7?" warnTxt":""), !wi ? "Vorrat noch nicht eingetragen" : "noch ca. "+de(wi.left)+" g, reicht "+wi.days+" Tage")); const b=el("button","btn small ghost", wi?"Neue Dose":"Eintragen"); b.addEventListener("click",openWhey); li.append(tx,b); ul.append(li); }
   state.supps.filter(s=>s.on).forEach(s=>{ const left=suppLeft(s), li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span",null,s.n));
     tx.append(el("div","sub"+(left!=null&&left<=7?" warnTxt":""), left==null ? "Vorrat noch nicht eingetragen" : left===0 ? "leer, nachkaufen" : "noch ca. "+left+" Tag"+(left===1?"":"e")+" (bis "+fmtDate(addDays(calToday(),left))+")"));
     const b=el("button","btn small ghost", left==null?"Eintragen":"Neue Dose"); b.addEventListener("click",()=>openStock(s)); li.append(tx,b); ul.append(li); });
@@ -2113,8 +2143,14 @@ function renderStock(){
 function openStock(s){
   openSheet(p=>{
     sheetHead(p,s.n);
-    p.append(el("div","note","Wie viele Tagesportionen sind in der Dose? Beispiel: 500 g Kreatin mit 5 g am Tag sind 100 Portionen. 60 Kapseln mit 2 am Tag sind 30."));
-    const [l,i]=field("Portionen ab heute","number", s.stock?suppLeft(s):""); p.append(l);
+    p.append(el("div","note","Einfach Packungsgröße und Menge pro Tag eintragen, zählen musst du nichts. Angebrochene Dose: grob schätzen, halb voll reicht."));
+    const caps=!/kreatin|pulver|msm/i.test(s.n), dose0=(s.n.match(/(\d+)\s*g/)||[])[1];
+    const g=el("div","grid3"); const [l1,iP]=field("Packung","number",caps?60:500), [l2,iD]=field("pro Tag","number",caps?1:(dose0||5));
+    const lu=el("label","f","Einheit"), su=el("select"); [["g","Gramm"],["Stk","Stück"]].forEach(([v,t])=>{ const o=el("option",null,t); o.value=v; su.append(o); }); su.value=caps?"Stk":"g"; lu.append(su); g.append(l1,l2,lu); p.append(g);
+    const fill=el("div","seg"); [["1","voll"],["0.75","¾"],["0.5","halb"],["0.25","¼"]].forEach(([v,t],ix)=>{ const b=el("button",null,t); b.dataset.v=v; b.setAttribute("aria-pressed",ix===0?"true":"false"); b.addEventListener("click",()=>{ fill.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false")); upd(); }); fill.append(b); }); p.append(el("span","label","Wie voll ist die Dose?"), fill);
+    const out=el("div","alert ok"); p.append(out);
+    const i={value:""}; const upd=()=>{ const f=num(fill.querySelector('[aria-pressed="true"]').dataset.v), n=Math.floor((num(iP.value)||0)*f/(num(iD.value)||1)); i.value=n; out.textContent = n>0 ? "Reicht ca. "+n+" Tage, bis "+fmtDate(addDays(calToday(),n)) : "Bitte Packung und Menge eintragen."; };
+    [iP,iD].forEach(x=>x.addEventListener("input",upd)); upd();
     const b=el("button","btn wide","Speichern"); b.addEventListener("click",()=>{ const n=parseInt(i.value,10); if(!(n>0)){ toast("Bitte Anzahl eintragen"); return; } const real=state.supps.find(x=>x.id===s.id); real.stock={n,d:calToday()}; persist(); closeSheet(); render(); toast(s.n+": reicht bis "+fmtDate(addDays(calToday(),n))); }); p.append(b);
     if(s.stock){ const r=el("button","link","Vorrat nicht mehr verfolgen"); r.addEventListener("click",()=>{ delete state.supps.find(x=>x.id===s.id).stock; persist(); closeSheet(); render(); }); p.append(r); }
   });
@@ -2248,6 +2284,7 @@ async function hcSync(quiet){
   try{ for(let i=0;i<(state.hc.stepsFull?3:14);i++){ const d=addDays(calToday(),-i), s0=parseKey(d), s1=new Date(s0.getTime()+86400000); const st=await hcReadAll("Steps", s0, i===0?now:s1); const by={}; st.forEach(r=>{ const o=(r.metadata&&r.metadata.dataOrigin)||"x"; by[o]=(by[o]||0)+(Number(r.count)||0); }); const best=Math.max(0,...Object.values(by)); state.hc.steps[d]=best; if(best>=8000) dayChecks(d)["h_steps"]=true; if(st.length && i===0) got.push("Schritte"); } }catch(e){}
   try{ const sl=await hcReadAll("SleepSession", new Date(now.getTime()-15*86400000), now); const by={};
     sl.forEach(x=>{ let mins=(new Date(x.endTime)-new Date(x.startTime))/60000; if(Array.isArray(x.stages)){ mins-=x.stages.filter(z=>[1,3,7].includes(Number(z.stage)) || /awake|out_of_bed/i.test(String(z.stage))).reduce((a,z)=>a+(new Date(z.endTime)-new Date(z.startTime))/60000,0); } if(mins<90) return; const d=tKey(x.endTime); by[d]=(by[d]||0)+mins; });
+    state.hc.sleepT=state.hc.sleepT||{}; sl.forEach(x=>{ const d=tKey(x.endTime), cur=state.hc.sleepT[d]; const mins=(new Date(x.endTime)-new Date(x.startTime))/60000; if(mins>=180 && (!cur || mins>cur.m)) state.hc.sleepT[d]={s:x.startTime,e:x.endTime,m:mins}; });
     Object.entries(by).forEach(([d,m])=>{ state.hc.sleep[d]=Math.round(m); }); if(sl.length) got.push("Schlaf"); }catch(e){}
   const daily=async(type,field,key)=>{ try{ const rs=await hcReadAll(type, new Date(now.getTime()-15*86400000), now); const by={}; rs.forEach(x=>{ const v=Number(x[field]); if(!isFinite(v)||v<=0) return; const d=tKey(x.time); (by[d]=by[d]||[]).push(v); }); Object.entries(by).forEach(([d,a])=>{ state.hc[key][d]=Math.round(Math.min(...a)*10)/10; }); return rs.length; }catch(e){ return 0; } };
   if(await daily("RestingHeartRate","beatsPerMinute","rhr")) got.push("Ruhepuls");
@@ -2266,7 +2303,7 @@ async function hcSync(quiet){
       if(v.length>=5) e.hr={avg:Math.round(v.reduce((a,b)=>a+b,0)/v.length), max:Math.max(...v)}; } }catch(e){}
   calcReady();
   if(got.includes("Schritte")) state.hc.stepsFull=true;
-  ["steps","sleep","rhr","hrv","burn"].forEach(t=>Object.keys(state.hc[t]||{}).forEach(d=>{ if(dayDiff(d,calToday())>30) delete state.hc[t][d]; }));
+  ["steps","sleep","rhr","hrv","burn","sleepT"].forEach(t=>Object.keys(state.hc[t]||{}).forEach(d=>{ if(dayDiff(d,calToday())>30) delete state.hc[t][d]; }));
   hcReadAll = origDo;
   try{ localStorage.removeItem("wp_hcSyncing"); }catch(e){}
   state.hc.last=new Date().toISOString(); state.hc.got=got; state.hc.diag=diag; hcBusy=false; persist(); render();
@@ -2300,12 +2337,26 @@ function calcReady(){
   state.ready[k]=r; Object.keys(state.ready).forEach(d=>{ if(dayDiff(d,k)>30) delete state.ready[d]; });
   return r;
 }
+function miniBars(svg, vals, goal, color){
+  const NS="http://www.w3.org/2000/svg"; svg.innerHTML=""; const W=140,H=46, max=Math.max(goal*1.2, ...vals.map(v=>v||0)), bw=W/vals.length;
+  vals.forEach((v,i)=>{ if(v==null) return; const h=Math.max(2,(v/max)*(H-4)); const r=document.createElementNS(NS,"rect"); r.setAttribute("x",i*bw+2); r.setAttribute("y",H-h); r.setAttribute("width",bw-4); r.setAttribute("height",h); r.setAttribute("rx",3); r.setAttribute("fill", v>=goal?"var(--done)":color); r.setAttribute("opacity", i===vals.length-1?1:.75); svg.append(r); });
+  const l=document.createElementNS(NS,"line"); const y=H-(goal/max)*(H-4); l.setAttribute("x1",0); l.setAttribute("x2",W); l.setAttribute("y1",y); l.setAttribute("y2",y); l.setAttribute("stroke","var(--done)"); l.setAttribute("stroke-dasharray","3 3"); svg.append(l);
+}
 function renderVitals(){
   const on=state.hc.on; $("vitCard").hidden=!on; if(!on) return;
   const st=state.hc.steps[calToday()]; $("vitSteps").textContent= st!=null? de(st) : "-"; $("vitStepsBar").style.width=Math.min(100,(st||0)/8000*100)+"%";
   const sl= state.hc.sleep[calToday()]!=null ? state.hc.sleep[calToday()] : state.hc.sleep[addDays(calToday(),-1)];
   $("vitSleep").textContent= sl!=null? fmtMin(sl) : "-";
   $("vitSleepNote").textContent= sl==null ? "kein Schlaf von der Uhr" : sl<(P().sleepGoal||8)*60-30 ? "unter Ziel, heute früher ins Bett" : "gut so";
+  { const k=calToday(), st=[], sl=[]; for(let i=6;i>=0;i--){ const d=addDays(k,-i); st.push(state.hc.steps[d]!=null?state.hc.steps[d]:null); sl.push(state.hc.sleep[d]!=null?state.hc.sleep[d]:null); }
+    const goal=(P().sleepGoal||8)*60; miniBars($("miniSteps"), st, STEP_GOAL, "var(--accent)"); miniBars($("miniSleep"), sl, goal-30, "var(--carb)");
+    const av=a=>{ const v=a.filter(x=>x!=null); return v.length? v.reduce((x,y)=>x+y,0)/v.length : null; };
+    const sa=av(st), la=av(sl); $("miniStepsT").textContent= sa? "Ø "+de(sa) : "-"; $("miniSleepT").textContent= la? "Ø "+fmtMin(la).replace(" Min.","") : "-";
+    const tm=Object.entries(state.hc.sleepT||{}).filter(([d])=>dayDiff(d,k)<7).map(([,t])=>{ const b=new Date(t.s); let m=b.getHours()*60+b.getMinutes(); if(m<720) m+=1440; return m; });
+    let txt=""; if(tm.length>=3){ const mean=tm.reduce((a,b)=>a+b,0)/tm.length, sd=Math.sqrt(tm.reduce((a,b)=>a+(b-mean)**2,0)/tm.length); txt+="Ins Bett im Schnitt "+minTxt(mean)+" Uhr, schwankt um ±"+Math.round(sd)+" Min."+(sd>90?" Bei Schichtarbeit normal, aber je gleichmäßiger, desto besser.":"")+" "; }
+    const rhr=state.hc.rhr[k]||state.hc.rhr[addDays(k,-1)], bR=avgOf(state.hc.rhr,k,14); if(rhr) txt+="Ruhepuls "+rhr+(bR?" (Schnitt "+Math.round(bR)+")":"")+". ";
+    const hrv=state.hc.hrv[k], bH=avgOf(state.hc.hrv,k,14); if(hrv) txt+="HRV "+Math.round(hrv)+" ms"+(bH?" (Schnitt "+Math.round(bH)+")":"")+".";
+    $("vitHeart").textContent=txt; $("vitHeart").hidden=!txt; }
   const r=state.ready[calToday()], box=$("vitReady"); box.hidden=!r; if(!r) return;
   $("readyNum").textContent=r.v; $("readyFill").style.width=r.v+"%"; $("readyFill").parentNode.className="bar "+(r.v>=75?"p":r.v<50?"warnbar":"");
   $("readyTxt").textContent=(r.v>=75 ? "Gut erholt. Normal trainieren, gern das Ziel angreifen." : r.v>=50 ? "Okay. Normal trainieren, auf saubere Technik achten." : "Wenig erholt. Gewicht halten und einen Satz weniger, oder heute Pause.")+" Aus: "+r.from.join(", ")+" im Vergleich zu deinem Schnitt"+(r.rhr?" · Ruhepuls "+r.rhr:"")+(r.hrv?" · HRV "+Math.round(r.hrv)+" ms":"")+".";
@@ -2521,6 +2572,7 @@ $("wSave").addEventListener("click",()=>{
   if(!(v>30 && v<250)){ toast("Bitte ein gültiges Gewicht eingeben"); return; }
   state.weights[calToday()]=Math.round(v*100)/100; state.wManual[calToday()]=true; $("wInput").value=""; $("wInput").blur(); persist(); render(); toast("Gewicht gespeichert");
 });
+function undoLast(){ const e=state.train.log.shift(); if(!e) return; if(e.adv) state.train.idx=(state.train.idx-1+SEQ.length)%SEQ.length; (e.ex||[]).forEach(n=>{ const arr=state.lifts[n]; if(!arr) return; const s=arr.find(x=>x.d===e.d); if(s){ arr.splice(arr.indexOf(s),1); if(!arr.length) delete state.lifts[n]; } }); persist(); render(); }
 $("undoTrain").addEventListener("click",()=>{ const e=state.train.log.shift(); if(!e) return; const idx0=state.train.idx; if(e.adv) state.train.idx=(state.train.idx-1+SEQ.length)%SEQ.length;
   const removed={}; (e.ex||[]).forEach(n=>{ const arr=state.lifts[n]; if(!arr) return; const s=arr.find(x=>x.d===e.d); if(s){ removed[n]=s; arr.splice(arr.indexOf(s),1); if(!arr.length) delete state.lifts[n]; } });
   persist(); render(); toast("Eintrag vom "+fmtDate(e.d)+" zurückgenommen"+(Object.keys(removed).length?", samt Sätzen":""),()=>{ state.train.log.unshift(e); state.train.idx=idx0; Object.entries(removed).forEach(([n,s])=>insertLift(n,s)); persist(); render(); }); });
