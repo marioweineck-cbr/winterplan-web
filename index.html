@@ -400,6 +400,7 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
 .stresslbl{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
 .badges{display:grid;grid-template-columns:1fr 1fr;gap:8px}.badge{border:1px solid var(--line);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:3px}
 .badge .bi{font-size:24px}.badge.off{opacity:.55}.badge.off .bi{filter:grayscale(1)}.badge b{font-size:14px}
+.item.skipped .txt > span{text-decoration:line-through}.item.skipped .tick{opacity:.5}
 .rawlog{font-family:ui-monospace,monospace;font-size:10px;word-break:break-all;white-space:pre-wrap;color:var(--muted)}
 .wtrow{padding:6px 0;border-top:1px solid var(--line);gap:10px}.wtrow .note{flex:1;text-align:right}
 </style>
@@ -1095,7 +1096,8 @@ function renderShiftHelp(k){
 }
 function bedtimeFor(k){ const sh=state.shift[k]; if(!sh) return null; const tl=timeline(k,sh); return tl[tl.length-1].at; }
 function stepsDone(k){ return !!dayChecks(k)["h_steps"] || (state.hc.steps[k]||0)>=STEP_GOAL; }
-function itemDone(k,it){ if(it.info) return new Date()>=it.at; if(it.key in MEALS) return mealOn(k,it.key); if(it.key==="steps") return stepsDone(k); return !!dayChecks(k)[it.key+"@"+it.i]; }
+function itemSkipped(k,it){ return !it.info && !!dayChecks(k)["skip:"+it.key+"@"+it.i]; }
+function itemDone(k,it){ if(itemSkipped(k,it)) return true; if(it.info) return new Date()>=it.at; if(it.key in MEALS) return mealOn(k,it.key); if(it.key==="steps") return stepsDone(k); return !!dayChecks(k)[it.key+"@"+it.i]; }
 function mealOn(k,key){ return dayFood(k).some(f=>f.m===key || f.slot===key); }
 function setMeal(k,key,on){
   const list = dayFood(k), i = list.findIndex(f=>f.m===key), j = list.findIndex(f=>f.slot===key);
@@ -1108,6 +1110,18 @@ function slotFor(k, f){
   const c=timeline(k,sh).filter(it=>it.key in MEALS && !mealOn(k,it.key) && (shake ? it.key==="sh" : it.key!=="sh"));
   let best=null, bd=1e15; c.forEach(it=>{ const d=Math.abs(it.at.getTime()-now); if(d<bd){ bd=d; best=it; } });
   return best && bd<=3*3600000 ? best : null;
+}
+function openItemMenu(k,it){
+  const c=dayChecks(k), id=it.key+"@"+it.i, skp=itemSkipped(k,it), isMeal=it.key in MEALS, done=!skp && itemDone(k,it);
+  openSheet(p=>{ sheetHead(p,it.t+" Uhr"); p.append(el("div","note",it.label));
+    const go=(f,msg)=>{ f(); persist(); closeSheet(); render(); if(msg) toast(msg); };
+    if(!done && !skp){ const b=el("button","btn wide","Erledigt"); b.addEventListener("click",()=>go(()=>{ if(isMeal) setMeal(k,it.key,true); else if(it.key==="steps") c["h_steps"]=true; else c[id]=Date.now(); })); p.append(b);
+      const sk=el("button","btn wide ghost", isMeal ? "Überspringen, brauche ich nicht ("+MEALS[it.key].kcal+" kcal gespart)" : "Überspringen, heute nicht"); sk.addEventListener("click",()=>go(()=>{ c["skip:"+id]=Date.now(); }, isMeal ? "Übersprungen, "+MEALS[it.key].kcal+" kcal gespart" : "Übersprungen")); p.append(sk); }
+    if(skp){ const b=el("button","btn wide ghost","Doch nicht überspringen"); b.addEventListener("click",()=>go(()=>{ delete c["skip:"+id]; })); p.append(b); }
+    if(done){ const da=doneAt(k,it); if(da){ const t=el("button","btn wide ghost","Uhrzeit ändern ("+hm(new Date(da))+")"); t.addEventListener("click",()=>openDoneTime(k,it)); p.append(t); }
+      const u=el("button","btn wide ghost","Haken wieder weg"); u.addEventListener("click",()=>go(()=>{ if(isMeal) setMeal(k,it.key,false); else if(it.key==="steps") c["h_steps"]=false; else c[id]=false; })); p.append(u); }
+    if(isMeal && !done) p.append(el("div","note","Wenn du etwas anderes gegessen hast, trag es unter Essen ein. Dann wird der Punkt automatisch abgehakt."));
+  });
 }
 function doneAt(k,it){ if(it.key in MEALS){ const f=dayFood(k).find(x=>x.m===it.key || x.slot===it.key); return f&&f.t||null; } const v=dayChecks(k)[it.key+"@"+it.i]; return typeof v==="number" ? v : null; }
 function openDoneTime(k,it){
@@ -1241,17 +1255,19 @@ function renderHeute(k, ph){
   } else {
     const c=dayChecks(k); let next=null;
     timeline(k, sh).forEach(it=>{
-      const isMeal = it.key in MEALS, id = it.key+"@"+it.i, on = itemDone(k,it);
-      const li=el("li","item"+(on?" isdone":""));
+      const isMeal = it.key in MEALS, id = it.key+"@"+it.i, on = itemDone(k,it), skp = itemSkipped(k,it);
+      const li=el("li","item"+(on?" isdone":"")+(skp?" skipped":""));
       if(!on && !next){ next=it; li.classList.add("isnext"); }
       const tx=el("div","txt"); tx.append(el("span",null,it.label));
-      if(isMeal){ const m=MEALS[it.key]; tx.append(el("div","sub",m.kcal+" kcal · P "+m.p+" · K "+m.c+" · F "+m.f)); }
+      if(isMeal){ const m=MEALS[it.key]; tx.append(el("div","sub", skp ? "übersprungen · "+m.kcal+" kcal gespart" : m.kcal+" kcal · P "+m.p+" · K "+m.c+" · F "+m.f)); }
+      else if(skp) tx.append(el("div","sub","übersprungen"));
       if(it.key==="gym" && sh!=="urlaub") tx.append(el("div","sub", nextSlot()==="P" ? "Laut Reihenfolge Pause" : "Einheit "+nextSlot()));
       if(it.key==="steps" && state.hc.on){ const st=state.hc.steps[k]; tx.append(el("div","sub", st!=null ? "Uhr: "+de(st)+" Schritte, wird automatisch abgehakt" : "wird automatisch abgehakt, sobald die Uhr 8.000 meldet")); }
       const wrap=el("div","wi"); wrap.append(icoEl(KEY_ICON[it.key]), tx);
+      if(!it.info){ wrap.style.cursor="pointer"; wrap.addEventListener("click",()=>openItemMenu(k,it)); }
       if(it.info){ li.classList.add("info"); li.append(el("span","t",it.t), wrap, el("span")); ul.appendChild(li); return; }
-      const da=on?doneAt(k,it):null; if(da){ const db=el("button","donet","✓ "+hm(new Date(da))+" Uhr"); db.setAttribute("aria-label","Uhrzeit ändern"); db.addEventListener("click",e=>{ e.stopPropagation(); openDoneTime(k,it); }); tx.append(db); }
-      li.append(el("span","t",it.t), wrap, tickBtn(on, ()=>{ if(isMeal) setMeal(k,it.key,!on); else if(it.key==="steps") c["h_steps"]=!on; else c[id]=on?false:Date.now(); persist(); render(); }, it.label));
+      const da=on&&!skp?doneAt(k,it):null; if(da){ const db=el("button","donet","✓ "+hm(new Date(da))+" Uhr"); db.setAttribute("aria-label","Uhrzeit ändern"); db.addEventListener("click",e=>{ e.stopPropagation(); openDoneTime(k,it); }); tx.append(db); }
+      li.append(el("span","t",it.t), wrap, tickBtn(on, ()=>{ if(skp){ delete c["skip:"+id]; persist(); render(); return; } if(isMeal) setMeal(k,it.key,!on); else if(it.key==="steps") c["h_steps"]=!on; else c[id]=on?false:Date.now(); persist(); render(); }, it.label));
       ul.appendChild(li);
     });
     if(next){
@@ -1259,7 +1275,7 @@ function renderHeute(k, ph){
       let n=null;
       if(next.key==="caf") n="Danach kein Koffein mehr, sonst dauert das Einschlafen wieder ewig.";
       if(next.key==="gym") n= sh==="urlaub" ? "Bewegung zählt, muss kein Gym sein." : nextSlot()==="P" ? "Heute ist laut Reihenfolge Pause. Ein Spaziergang reicht." : UNITS[nextSlot()].t;
-      if(next.key in MEALS){ const m=MEALS[next.key]; n = m.kcal+" kcal · "+m.p+" g Eiweiß"; }
+      if(next.key in MEALS){ const m=MEALS[next.key]; n = m.kcal+" kcal · "+m.p+" g Eiweiß. Keine Lust oder kein Hunger? Antippen im Ablauf, dann überspringen."; }
       if(n) nc.append(el("div","note",n));
     } else nc.append(el("div","label","Tag erledigt"), el("h3",null,"Alles abgehakt. Stark."));
   }
@@ -2257,6 +2273,49 @@ function openFoodEdit(k, idx){
     const del=el("button","link warnlink","Eintrag löschen"); del.addEventListener("click",()=>{ list.splice(idx,1); persist(); closeSheet(); render(); toast("Gelöscht",()=>{ list.splice(idx,0,e); persist(); render(); }); }); p.append(del);
   });
 }
+// ---------- Import aus anderen Apps (CSV): Gewicht (Renpho, Withings, Garmin, Fitbit, Google Fit, Libra …), Training (Hevy, Strong)
+function csvParse(txt){
+  txt=txt.replace(/^\ufeff/,""); const first=txt.split(/\r?\n/)[0]||""; const dl=[",",";","\t"].map(d=>[d,first.split(d).length]).sort((a,b)=>b[1]-a[1])[0][0];
+  const rows=[]; let row=[], cur="", q=false;
+  for(let i=0;i<txt.length;i++){ const ch=txt[i];
+    if(q){ if(ch==='"'){ if(txt[i+1]==='"'){ cur+='"'; i++; } else q=false; } else cur+=ch; continue; }
+    if(ch==='"') q=true; else if(ch===dl){ row.push(cur); cur=""; } else if(ch==="\n"||ch==="\r"){ if(ch==="\r"&&txt[i+1]==="\n") i++; row.push(cur); cur=""; if(row.some(x=>x.trim()!=="")) rows.push(row); row=[]; } else cur+=ch; }
+  row.push(cur); if(row.some(x=>x.trim()!=="")) rows.push(row); return rows;
+}
+function parseAnyDate(v){
+  v=String(v||"").trim(); if(!v) return null; let m;
+  if(/^\d{10,13}$/.test(v)){ const n=+v; return new Date(v.length===10?n*1000:n); }
+  if((m=v.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})(?:[ T,]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/))) return new Date(+m[1],+m[2]-1,+m[3],+(m[4]||8),+(m[5]||0),+(m[6]||0));
+  if((m=v.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})(?:[ ,]+(\d{1,2}):(\d{2}))?/))) return new Date(m[3].length===2?2000+(+m[3]):+m[3],+m[2]-1,+m[1],+(m[4]||8),+(m[5]||0));
+  if((m=v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ ,]+(\d{1,2}):(\d{2}))?/))){ let a=+m[1], b=+m[2]; const us=a<=12 && b>12 ? true : a>12 ? false : true; return new Date(+m[3],(us?a:b)-1,us?b:a,+(m[4]||8),+(m[5]||0)); }
+  const d=new Date(v); return isNaN(d) ? null : d;
+}
+function importAnalyse(rows){
+  if(rows.length<2) return null; const h=rows[0].map(x=>x.trim().toLowerCase()), col=re=>h.findIndex(x=>re.test(x)), body=rows.slice(1);
+  const iEx=col(/^exercise_title$|^exercise name$|^übung/), iSet=col(/set_index|set order|satz/), iRep=col(/^reps$|wiederholungen|^wdh/), iWk=col(/^weight_kg$|^weight$|^gewicht$/), iDate=col(/start_time|^date$|^datum|time of measurement|^time$|^zeit|timestamp|messzeit|^day$/), iType=col(/set_type/), iLb=col(/^weight_lbs$/);
+  if(iEx>=0 && iRep>=0 && (iWk>=0||iLb>=0) && iDate>=0){
+    const by={}; let n=0; body.forEach(r=>{ if(iType>=0 && /warm/i.test(r[iType]||"")) return; const d=parseAnyDate(r[iDate]); const reps=parseInt(r[iRep],10); let w=num(r[iWk>=0?iWk:iLb]); if(!d || !(reps>0)) return; if(!(w>=0)) w=0; if(iWk<0) w=Math.round(w*0.4536*100)/100; const name=(r[iEx]||"").trim(); if(!name) return; const key=keyOf(d)+"|"+name; (by[key]=by[key]||[]).push([w,reps]); n++; });
+    const ex=new Set(Object.keys(by).map(k=>k.split("|")[1])), days=new Set(Object.keys(by).map(k=>k.split("|")[0]));
+    return n ? {kind:"lifts", by, info:n+" Sätze, "+ex.size+" Übungen an "+days.size+" Tagen"} : null;
+  }
+  const iW=col(/weight|gewicht|körpergewicht|^kg$/), iF=col(/body ?fat|körperfett|fett ?%|fat ?\(|^fat/);
+  if(iW>=0 && iDate>=0){ const lb=/lb/.test(h[iW]); const out=[]; body.forEach(r=>{ const d=parseAnyDate(r[iDate]); let w=num(String(r[iW]||"").replace(/[^\d.,]/g,"")); if(!d || !(w>0)) return; if(lb) w=w*0.4536; if(w<25||w>300) return; const f=iF>=0?num(String(r[iF]||"").replace(/[^\d.,]/g,"")):NaN; out.push({t:d.getTime(), w:Math.round(w*100)/100, bf:f>2&&f<70?f:null}); });
+    return out.length ? {kind:"weights", list:out, info:out.length+" Messungen von "+fmtDate(keyOf(new Date(Math.min(...out.map(x=>x.t)))))+" bis "+fmtDate(keyOf(new Date(Math.max(...out.map(x=>x.t)))))} : null; }
+  return null;
+}
+function openImport(){
+  openSheet(p=>{ sheetHead(p,"Daten übernehmen");
+    p.append(el("div","note","Exportiere in der alten App eine CSV Datei und wähle sie hier aus. Erkannt werden Gewichtsverläufe (z. B. Renpho, Withings, Garmin, Fitbit, Libra) und Trainings aus Hevy und Strong. Doppelte Einträge werden übersprungen, nichts wird überschrieben."));
+    const inp=el("input"); inp.type="file"; inp.accept=".csv,.txt,text/csv"; p.append(inp); const out=el("div"); p.append(out);
+    inp.addEventListener("change",async()=>{ out.innerHTML=""; const f=inp.files&&inp.files[0]; if(!f) return; let txt=""; try{ txt=await f.text(); }catch(e){ out.append(el("div","alert bad","Datei konnte nicht gelesen werden.")); return; }
+      const a=importAnalyse(csvParse(txt)); if(!a){ out.append(el("div","alert bad","Damit kann die App nichts anfangen. Es braucht eine Spalte mit Datum und eine mit Gewicht, oder bei Trainings Übung, Gewicht und Wiederholungen. Schick mir sonst die ersten Zeilen der Datei.")); return; }
+      out.append(el("div","alert ok",(a.kind==="lifts"?"Training: ":"Gewicht: ")+a.info));
+      const b=el("button","btn wide","Übernehmen"); b.addEventListener("click",()=>{ let n=0;
+        if(a.kind==="weights"){ const days=new Set(); a.list.forEach(x=>{ if((state.wDel||[]).includes(x.t)) return; if(wLogAdd(x.t,x.w,"Import",x.bf!=null?{bf:x.bf}:null)){ n++; days.add(keyOf(new Date(x.t))); } }); days.forEach(d=>wDay(d)); }
+        else { Object.entries(a.by).forEach(([key,sets])=>{ const [d,name]=key.split("|"); if((state.lifts[name]||[]).some(s=>s.d===d)) return; insertLift(name,{d,u:"kg",s:sets}); n++; }); }
+        persist(); closeSheet(); render(); toast(n+(a.kind==="lifts"?" Trainingstage pro Übung":" Messungen")+" übernommen"); }); out.append(b); });
+  });
+}
 function rememberFood(m){ state.myfoods = [m].concat(state.myfoods.filter(x=>!(x.n===m.n && (x.code||"")===(m.code||"")))).slice(0,200); }
 function openAmount(k, m){
   openSheet(p=>{
@@ -2874,7 +2933,7 @@ async function openScale(){
 function wLogAdd(t, w, src, extra){
   state.wlog=state.wlog||[]; if(state.wlog.some(x=>Math.abs(x.t-t)<60000 && Math.abs(x.w-w)<0.05)) return false;
   state.wlog.push(Object.assign({t, w:Math.round(w*100)/100, src}, extra||{})); state.wlog.sort((a,b)=>a.t-b.t);
-  if(state.wlog.length>500) state.wlog=state.wlog.slice(-500); return true;
+  if(state.wlog.length>5000) state.wlog=state.wlog.slice(-5000); return true;
 }
 // Von Hand eingetragen gewinnt (letzte Eingabe), sonst die erste Messung des Tages
 function dayPick(e){ const h=e.filter(x=>x.src==="von Hand"); return h.length ? h[h.length-1] : e[0]; }
@@ -3466,6 +3525,9 @@ function openSettings(first){
     if(state.alphaData && !first){ const sA=toggleRow(tg,"Alpha Progression Daten anzeigen", alpha, null, "Startgewichte und alter Verlauf"); sA.addEventListener("click",()=>{ alpha=!alpha; sA.setAttribute("aria-checked",alpha?"true":"false"); }); }
     p.append(tg);
     const [lme,iMe]=field("Körpermaße alle ... Tage","number",pr.measEvery||14); p.append(lme);
+    sec("Daten aus anderen Apps");
+    p.append(el("div","note","Waage und Uhr: Renpho, Withings, Garmin, Xiaomi, Samsung und viele mehr schreiben in Health Connect, das holt die App unter Körper automatisch. Waagen mit QN Technik (Renpho, Fitindex und viele günstige) gehen auch direkt per Bluetooth. Alte Verläufe als Datei: hier übernehmen."));
+    { const ib=el("button","btn ghost small","CSV Datei übernehmen"); ib.addEventListener("click",()=>openImport()); p.append(ib); }
     sec("Supplements");
     p.append(el("div","note","M = morgens nach dem Aufstehen, A = abends vor dem Schlafen. Die Erinnerungen kommen passend zu deiner Schicht."));
     const sl=el("div"); const supps=JSON.parse(JSON.stringify(state.supps));
