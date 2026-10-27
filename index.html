@@ -787,7 +787,7 @@ const TITLES = {heute:"Heute", woche:"Woche", training:"Training", essen:"Essen"
 
 // ---------- Baukasten und Essen (kcal, Eiweiß p, Kohlenhydrate c, Fett f)
 const MEALS = {
-  fr:{name:"Frühstück: Protein Porridge", kcal:520, p:40, c:68, f:9},
+  fr:{name:"Frühstück: Protein Porridge", kcal:540, p:39, c:56, f:14},
   b1:{name:"Meal Prep Box", kcal:600, p:50, c:70, f:12},
   b2:{name:"Meal Prep Box", kcal:600, p:50, c:70, f:12},
   ab:{name:"Quark mit Obst", kcal:270, p:31, c:33, f:1},
@@ -795,7 +795,7 @@ const MEALS = {
   sh:{name:"Whey Shake", kcal:120, p:24, c:2, f:2}
 };
 const QUICK = [
-  {n:"Protein Porridge", kcal:520, p:40, c:68, f:9},
+  {n:"Protein Porridge", kcal:540, p:39, c:56, f:14},
   {n:"Snack vor dem Training", kcal:265, p:28, c:37, f:1},
   {n:"Bolognese Box", kcal:640, p:46, c:72, f:19},
   {n:"Teriyaki Box", kcal:610, p:57, c:78, f:7},
@@ -815,18 +815,18 @@ const QUICK = [
 // Tagesablauf: [Minuten nach dem Aufstehen, Text, Schlüssel]
 const TPL = {
   // Zahlen = Minuten nach dem Aufstehen, "@HH:MM" = feste Uhrzeit (Schicht, Fahrt). Wege: ca. 20 bis 30 Min.
-  frueh:[[0,"Aufstehen, Licht an","wake"],[10,"","suppM"],[15,"Frühstück: Porridge schnell essen oder Overnight Oats mitnehmen","fr"],["@05:30","Losfahren zur Frühschicht (6 bis 14 Uhr)","go"],["@09:00","Pause: Box auf der Arbeit","b1"],["@12:00","Snack: Obst und Schoki","sn"],["@13:00","Letzter Kaffee oder Monster","caf"],["@14:00","Feierabend, gegen 14:30 zuhause","home"],["@14:30","Zweite Box, gut 1 Std. vor dem Gym","b2"],["@15:45","Zum Gym laufen und trainieren","gym"],["@17:15","Shake nach dem Training","sh"],["@17:30","","steps"],["@18:45","Quark mit Obst","ab"],["@20:00","Licht dimmen, TV nur mit Sleep Timer","wind"],["@20:15","","suppE"],["@21:00","Schlafen","sleep"]],
-  spaet:[[0,"Aufstehen, 10 Min. Tageslicht","wake"],[10,"","suppM"],[30,"Protein Porridge","fr"],["@10:00","Zum Gym laufen und trainieren","gym"],["@11:30","Shake nach dem Training","sh"],["@12:30","Box vor der Schicht","b1"],["@13:00","","steps"],["@13:30","Losfahren zur Spätschicht (14 bis 22 Uhr)","go"],["@16:00","Letzter Kaffee oder Monster","caf"],["@18:00","Pause: zweite Box","b2"],["@20:00","Snack: Obst und Schoki","sn"],["@22:00","Feierabend, gegen 22:30 zuhause","home"],["@22:40","Zuhause: kleiner Quark","ab"],["@23:15","Licht dimmen, TV nur mit Sleep Timer","wind"],["@23:30","","suppE"],["@00:00","Schlafen","sleep"]],
+  frueh:[[0,"Aufstehen, Licht an","wake"],[10,"","suppM"],[15,"Frühstück: Porridge schnell essen oder Overnight Oats mitnehmen","fr"],["@05:30","Losfahren zur Frühschicht (6 bis 14 Uhr)","go"],["@09:00","Pause: Box auf der Arbeit","b1"],["@12:00","Snack: Obst und Schoki","sn"],["@13:00","Letzter Kaffee oder Monster","caf"],["@14:00","Feierabend, gegen 14:30 zuhause","home"],["@14:30","Zweite Box, gut 1 Std. vor dem Gym","b2"],["@15:45","Zum Gym laufen und trainieren","gym"],["@17:15","Shake nach dem Training","sh"],["@17:30","","steps"],["@18:45","Quark mit Obst","ab"],["@20:00","Licht dimmen, Handy auf Nicht stören, TV nur mit Sleep Timer","wind"],["@20:15","","suppE"],["@21:00","Schlafen","sleep"]],
+  spaet:[[0,"Aufstehen, 10 Min. Tageslicht","wake"],[10,"","suppM"],[30,"Protein Porridge","fr"],["@10:00","Zum Gym laufen und trainieren","gym"],["@11:30","Shake nach dem Training","sh"],["@12:30","Box vor der Schicht","b1"],["@13:00","","steps"],["@13:30","Losfahren zur Spätschicht (14 bis 22 Uhr)","go"],["@16:00","Letzter Kaffee oder Monster","caf"],["@18:00","Pause: zweite Box","b2"],["@20:00","Snack: Obst und Schoki","sn"],["@22:00","Feierabend, gegen 22:30 zuhause","home"],["@22:40","Zuhause: kleiner Quark","ab"],["@23:15","Licht dimmen, Handy auf Nicht stören, TV nur mit Sleep Timer","wind"],["@23:30","","suppE"],["@00:00","Schlafen","sleep"]],
   nacht:[[0,"Aufstehen, Tageslicht","wake"],[10,"","suppM"],[15,"Protein Porridge","fr"],["@16:30","Zum Gym laufen und trainieren","gym"],["@18:00","Shake nach dem Training","sh"],["@18:30","","steps"],["@19:30","Box vor der Schicht","b1"],["@21:30","Losfahren zur Nachtschicht (22 bis 6 Uhr)","go"],["@23:00","Letzter Kaffee oder Monster","caf"],["@02:00","Pause: zweite Box","b2"],["@04:00","Snack: Obst","sn"],["@06:00","Feierabend, Sonnenbrille auf","home"],["@06:30","Kleiner Skyr oder Quark","ab"],["@06:40","","suppE"],["@06:45","Verdunkeln, kein großes Essen mehr","wind"],["@07:00","Schlafen, komplett verdunkelt","sleep"]],
-  frei:[[0,"Aufstehen (max. 1 bis 2 Std. anders als sonst)","wake"],[10,"","suppM"],[30,"Protein Porridge","fr"],[120,"Training oder 45 Min. Spaziergang","gym"],[210,"Shake, falls trainiert","sh"],[240,"Box","b1"],[420,"Letzter Kaffee oder Monster","caf"],[450,"Snack: Obst und Schoki","sn"],[480,"","steps"],[600,"Zweite Box oder freie Mahlzeit","b2"],[720,"Quark mit Obst","ab"],[810,"Licht dimmen, kein TV im Bett","wind"],[825,"","suppE"],[870,"Schlafen","sleep"]],
+  frei:[[0,"Aufstehen (max. 1 bis 2 Std. anders als sonst)","wake"],[10,"","suppM"],[30,"Protein Porridge","fr"],[120,"Training oder 45 Min. Spaziergang","gym"],[210,"Shake, falls trainiert","sh"],[240,"Box","b1"],[420,"Letzter Kaffee oder Monster","caf"],[450,"Snack: Obst und Schoki","sn"],[480,"","steps"],[600,"Zweite Box oder freie Mahlzeit","b2"],[720,"Quark mit Obst","ab"],[810,"Licht dimmen, Handy auf Nicht stören, kein TV im Bett","wind"],[825,"","suppE"],[870,"Schlafen","sleep"]],
   urlaub:[[0,"Aufstehen, kurz Tageslicht","wake"],[10,"","suppM"],[45,"Frühstück, gern entspannt (Eiweiß zuerst)","fr"],[240,"Mittagessen, auswärts geht auch: viel Eiweiß, wenig Frittiertes","b1"],[360,"Snack oder Eis, wenn du Lust hast","sn"],[420,"Letzter Kaffee oder Monster","caf"],[480,"Aktiv sein: Training, Schwimmen oder lange Runde gehen","gym"],[540,"","steps"],[600,"Abendessen","b2"],[780,"Wenn noch Hunger: Quark","ab"],[840,"Licht dimmen","wind"],[855,"","suppE"],[900,"Schlafen","sleep"]]
 };
 const CAT = {steps:"steps", suppM:"supp", suppE:"supp", fr:"essen", b1:"essen", b2:"essen", ab:"essen", sn:"essen", sh:"essen", gym:"gym", caf:"koffein", wind:"schlaf", sleep:"schlaf"};
 const CATS = [["essen","Essen"],["gym","Training"],["koffein","Koffeinstopp"],["schlaf","Licht dimmen und Schlafen"],["supp","Supplements morgens und abends"],["steps","Schritte Check in der Freizeit"],["meas","Körpermaße nehmen"],["plan","Abends: Schicht für morgen fehlt"]];
-const HABITS = [["steps","8.000 Schritte geschafft"],["water","Viel Wasser getrunken"],["tv","TV nur mit Sleep Timer (max. 30 Min.)"]];
+const HABITS = [["steps","Schrittziel geschafft"],["sun","Morgens 10 Min. Tageslicht"],["dnd","Handy ab Schlafenszeit auf Nicht stören"],["tv","TV nur mit Sleep Timer (max. 30 Min.)"]];
 const CAF_DRINKS = [["Kaffee",90],["Monster 0,5 l",160],["Red Bull 0,25 l",80],["Cola 0,5 l",50]];
 const CAF_HALF = 5; // Stunden
-const STEP_GOAL = 8000;
+let STEP_GOAL = 8000;
 // Empfehlungen: Stufe 1 gut belegt, 2 sinnvoll in bestimmten Fällen, 3 optional, 4 eher nicht
 const SUPP_REC = [
   ["Kreatin 5 g","M",1,"Am besten belegtes Supplement für Kraft und Muskeln. Täglich, Uhrzeit egal, auch an Ruhetagen. Monohydrat reicht."],
@@ -936,9 +936,9 @@ const RECIPES = [
   {id:"wrap", n:"Pizza Wrap aus dem Airfryer", por:1, unit:"Wrap", kcal:340, p:28, c:35, f:10,
    z:[[1,"Stk","Vollkorn Wrap","Vorrat"],[40,"g","Tomatensauce oder passierte Tomaten","Vorrat"],[50,"g","Mozzarella light oder Käse light","Kühlregal"],[50,"g","Hähnchenaufschnitt oder Kochschinken","Kühlregal"],[0.5,"Stk","Paprika","Gemüse"]],
    st:["Wrap mit Tomatensauce bestreichen, mit Oregano würzen.","Belag und Käse drauf.","Im Airfryer bei 190 °C ca. 6 bis 8 Minuten, bis der Käse verlaufen ist."]},
-  {id:"porr", n:"Protein Porridge", por:1, kcal:520, p:40, c:68, f:9,
-   z:[[80,"g","Haferflocken","Vorrat"],[150,"ml","Milch","Kühlregal"],[200,"g","Skyr oder Magerquark","Kühlregal"],[125,"g","TK Himbeeren","TK"]],
-   st:["Haferflocken mit Wasser oder Milch kurz aufkochen oder 2 Min. in die Mikrowelle.","Etwas abkühlen lassen, Skyr unterrühren.","Himbeeren und Zimt drauf."]},
+  {id:"porr", n:"Protein Porridge", por:1, kcal:540, p:39, c:56, f:14,
+   z:[[65,"g","Haferflocken","Vorrat"],[250,"ml","Milch","Kühlregal"],[25,"g","Whey","Vorrat"],[75,"g","TK Himbeeren","TK"],[10,"g","Leinsamen geschrotet","Vorrat"]],
+   st:["Haferflocken mit der Milch kurz aufkochen oder 2 Min. in die Mikrowelle, Leinsamen gleich mit rein.","1 bis 2 Minuten abkühlen lassen, dann das Whey unterrühren (Vanille oder Cookies schmeckt am besten). Zu heiß wird es klumpig.","Himbeeren und Zimt drauf. Ca. 11 g Ballaststoffe, hält lange satt.","Lieber cremig mit Quark? 100 g Skyr statt 15 g Whey geht auch, Skyr schmeckt milder als Magerquark."]},
   {id:"oats", n:"Overnight Oats", por:1, kcal:480, p:46, c:57, f:7,
    z:[[60,"g","Haferflocken","Vorrat"],[200,"g","Skyr","Kühlregal"],[100,"ml","Milch","Kühlregal"],[100,"g","TK Beeren","TK"],[15,"g","Whey","Vorrat"]],
    st:["Abends alles in eine Dose rühren.","Über Nacht in den Kühlschrank.","Morgens kalt essen oder kurz in die Mikrowelle. Perfekt zum Mitnehmen für die Frühschicht."]},
@@ -1233,7 +1233,7 @@ function widgetPush(){ clearTimeout(widgetT); widgetT=setTimeout(async ()=>{ try
   await Prefs.set({key:"widget", value:JSON.stringify(data)}); const WB=plug("WidgetBridge"); if(WB && WB.update) await WB.update();
 }catch(e){} }, 1500); }
 function render(){
-  widgetPush(); setTimeout(checkBadges, 50);
+  STEP_GOAL = Number(P().stepGoal)||8000; widgetPush(); setTimeout(checkBadges, 50);
   const k = activeDay(), w = planWeek(k), ph = phase(w);
   $("dateLabel").textContent = (P().name ? "Hi "+P().name+" · " : "") + parseKey(k).toLocaleDateString("de-DE",{weekday:"long", day:"numeric", month:"long"}) + (k!==calToday() ? " · Schicht läuft noch" : "");
   $("weekLabel").textContent = w===0 ? "Start in "+dayDiff(k, startKey())+" Tagen" : "Woche "+w+" von "+(P().weeks||22);
@@ -1272,7 +1272,7 @@ function renderHeute(k, ph){
       if(isMeal){ const m=MEALS[it.key]; tx.append(el("div","sub", skp ? "übersprungen · "+m.kcal+" kcal gespart" : m.kcal+" kcal · P "+m.p+" · K "+m.c+" · F "+m.f)); }
       else if(skp) tx.append(el("div","sub","übersprungen"));
       if(it.key==="gym" && sh!=="urlaub") tx.append(el("div","sub", nextSlot()==="P" ? "Laut Reihenfolge Pause" : "Einheit "+nextSlot()));
-      if(it.key==="steps" && state.hc.on){ const st=state.hc.steps[k]; tx.append(el("div","sub", st!=null ? "Uhr: "+de(st)+" Schritte, wird automatisch abgehakt" : "wird automatisch abgehakt, sobald die Uhr 8.000 meldet")); }
+      if(it.key==="steps" && state.hc.on){ const st=state.hc.steps[k]; tx.append(el("div","sub", st!=null ? "Uhr: "+de(st)+" Schritte, wird automatisch abgehakt" : "wird automatisch abgehakt, sobald die Uhr "+de(STEP_GOAL)+" meldet")); }
       const wrap=el("div","wi"); wrap.append(icoEl(KEY_ICON[it.key]), tx);
       if(!it.info){ wrap.style.cursor="pointer"; wrap.addEventListener("click",()=>openItemMenu(k,it)); }
       if(it.info){ li.classList.add("info"); li.append(el("span","t",it.t), wrap, el("span")); ul.appendChild(li); return; }
@@ -1577,7 +1577,7 @@ const ING={
   "Eier":[75,6.5,0.5,5.3],"Eisbergsalat":[70,5,8,1],"Gurke":[50,2.5,7,0.5],"Obst (Banane oder Apfel)":[100,1,22,0.3],"Banane":[105,1.2,24,0.3],"Paprika":[40,1.5,7,0.5],"Tomaten":[18,1,3,0.2],
   "Vollkorn Wrap":[170,5.5,28,3.5],"Zucchini":[50,4,5,1],"Zwiebeln":[32,1,6,0.1],
   "Currypulver oder Paste":[40,1.5,5,1.5],"Gyrosgewürz":[25,1,4,0.5],"Honig":[64,0,17,0],"Ketchup light":[10,0.2,2,0],"Senf":[12,0.8,0.6,0.7],"Sojasauce":[9,1.3,1,0],
-  "Backpulver":[5,0,1.2,0],"Ingwer":[3,0,0.6,0],"Speisestärke":[11,0,2.8,0],"Mais":[230,7,40,3],"Gehackte Tomaten":[90,4.5,14,0.8],"Kidneybohnen":[250,18,35,1.5],"Gewürzgurken":[60,2,10,0.5],"Knoblauch":[4,0.2,1,0]
+  "Backpulver":[5,0,1.2,0],"Ingwer":[3,0,0.6,0],"Speisestärke":[11,0,2.8,0],"Mais":[230,7,40,3],"Gehackte Tomaten":[90,4.5,14,0.8],"Kidneybohnen":[250,18,35,1.5],"Gewürzgurken":[60,2,10,0.5],"Knoblauch":[4,0.2,1,0],"Leinsamen geschrotet":[530,18,2,42],"Brauner Zucker":[16,0,4,0],"Zimt":[0,0,0,0]
 };
 const PER100={g:1,ml:1};
 function ingMacro(n,a,u){ const v=ING[n]; if(!v) return [0,0,0,0]; const f = PER100[u] ? a/100 : (u==="EL"&&n==="Tomatenmark" ? a*0.15 : a); return v.map(x=>x*f); }
@@ -1622,8 +1622,8 @@ function openFoodItem(k, f, ed){
           r.append(inp,u,del); ingBox.append(r); });
         const add=el("div","row nowrap"); const sel=el("select"); const o0=el("option",null,"+ Zutat dazu …"); o0.value=""; sel.append(o0);
         Object.keys(ING).filter(n=>!rows.some(x=>x.n===n)).sort().forEach(n=>{ const o=el("option",null,n); o.value=n; sel.append(o); });
-        sel.addEventListener("change",()=>{ const n=sel.value; if(!n) return; const pc=["Eier","Eisbergsalat","Gurke","Obst (Banane oder Apfel)","Banane","Paprika","Tomaten","Vollkorn Wrap","Zucchini","Zwiebeln"].includes(n); const sp=["Currypulver oder Paste","Gyrosgewürz","Honig","Ketchup light","Senf","Sojasauce"].includes(n);
-          rows.push({n, u: pc?"Stk":sp?"EL":n==="Milch"||n==="Kokosmilch light"?"ml":"g", a: pc?1:sp?1:50, extra:true}); mode="custom"; draw(); });
+        sel.addEventListener("change",()=>{ const n=sel.value; if(!n) return; const pc=["Eier","Eisbergsalat","Gurke","Obst (Banane oder Apfel)","Banane","Paprika","Tomaten","Vollkorn Wrap","Zucchini","Zwiebeln"].includes(n); const sp=["Currypulver oder Paste","Gyrosgewürz","Honig","Ketchup light","Senf","Sojasauce"].includes(n), tl=["Brauner Zucker","Zimt"].includes(n);
+          rows.push({n, u: tl?"TL":pc?"Stk":sp?"EL":n==="Milch"||n==="Kokosmilch light"?"ml":"g", a: pc?1:sp?1:50, extra:true}); mode="custom"; draw(); });
         add.append(sel); ingBox.append(add);
       } else ingBox.append(el("div","note","Für diesen Eintrag gibt es keine Zutatenliste, du kannst nur die Menge ändern."));
       drawTot();
@@ -3151,7 +3151,7 @@ async function hcSync(quiet){
     if(ws.length) got.push("Gewicht"); if(added && !quiet) toast(added+" Gewichtswerte übernommen");
   }catch(e){}
   try{ const fs=await hcReadAll("BodyFat", new Date(now.getTime()-60*86400000), now); if(fs.length){ const last=fs.reduce((a,b)=>a.time>b.time?a:b); const pct=last.percentage && (last.percentage.value!=null?last.percentage.value:last.percentage); if(pct!=null){ state.hc.fat={v:Math.round(Number(pct)*10)/10, d:tKey(last.time)}; got.push("Körperfett"); } } }catch(e){}
-  try{ for(let i=0;i<(state.hc.stepsFull?3:14);i++){ const d=addDays(calToday(),-i), s0=parseKey(d), s1=new Date(s0.getTime()+86400000); const st=await hcReadAll("Steps", s0, i===0?now:s1); const by={}; st.forEach(r=>{ const o=(r.metadata&&r.metadata.dataOrigin)||"x"; by[o]=(by[o]||0)+(Number(r.count)||0); }); const best=Math.max(0,...Object.values(by)); state.hc.steps[d]=best; if(best>=8000) dayChecks(d)["h_steps"]=true; if(st.length && i===0) got.push("Schritte"); } }catch(e){}
+  try{ for(let i=0;i<(state.hc.stepsFull?3:14);i++){ const d=addDays(calToday(),-i), s0=parseKey(d), s1=new Date(s0.getTime()+86400000); const st=await hcReadAll("Steps", s0, i===0?now:s1); const by={}; st.forEach(r=>{ const o=(r.metadata&&r.metadata.dataOrigin)||"x"; by[o]=(by[o]||0)+(Number(r.count)||0); }); const best=Math.max(0,...Object.values(by)); state.hc.steps[d]=best; if(best>=(Number(P().stepGoal)||8000)) dayChecks(d)["h_steps"]=true; if(st.length && i===0) got.push("Schritte"); } }catch(e){}
   try{ const sl=await hcReadAll("SleepSession", new Date(now.getTime()-15*86400000), now); const by={};
     sl.forEach(x=>{ let mins=(new Date(x.endTime)-new Date(x.startTime))/60000; if(Array.isArray(x.stages)){ mins-=x.stages.filter(z=>[1,3,7].includes(Number(z.stage)) || /awake|out_of_bed/i.test(String(z.stage))).reduce((a,z)=>a+(new Date(z.endTime)-new Date(z.startTime))/60000,0); } if(mins<90) return; const d=tKey(x.endTime); by[d]=(by[d]||0)+mins; });
     state.hc.sleepT=state.hc.sleepT||{}; sl.forEach(x=>{ const d=tKey(x.endTime), cur=state.hc.sleepT[d]; const mins=(new Date(x.endTime)-new Date(x.startTime))/60000; if(mins>=180 && (!cur || mins>=cur.m)) state.hc.sleepT[d]={s:x.startTime,e:x.endTime,m:mins,st:(x.stages||[]).map(z=>[new Date(z.startTime).getTime(),new Date(z.endTime).getTime(),Number(z.stage)]).filter(z=>z[1]>z[0]).slice(0,200)}; });
@@ -3575,6 +3575,7 @@ function openSettings(first){
     if(state.alphaData && !first){ const sA=toggleRow(tg,"Alpha Progression Daten anzeigen", alpha, null, "Startgewichte und alter Verlauf"); sA.addEventListener("click",()=>{ alpha=!alpha; sA.setAttribute("aria-checked",alpha?"true":"false"); }); }
     p.append(tg);
     const [lme,iMe]=field("Körpermaße alle ... Tage","number",pr.measEvery||14); p.append(lme);
+    { const ls=el("label","f","Schrittziel pro Tag"), ss=el("select"); [6000,8000,10000,12000].forEach(v=>{ const o=el("option",null,v.toLocaleString("de-DE")); o.value=v; ss.append(o); }); ss.value=String(pr.stepGoal||8000); ss.addEventListener("change",()=>{ P().stepGoal=Number(ss.value); persist(); }); ls.append(ss); p.append(ls); }
     sec("Kohlenhydrate");
     const tcc=el("div"); let cc=P().carbCycle!==false; const sCC=toggleRow(tcc,"An Trainingstage anpassen", cc, null, "Ruhetag: 60 g weniger Kohlenhydrate. Trainingstag: etwas mehr. Über die Woche gleich viel, Eiweiß bleibt immer gleich."); sCC.addEventListener("click",()=>{ cc=!cc; sCC.setAttribute("aria-checked",cc?"true":"false"); P().carbCycle=cc; persist(); }); p.append(tcc);
     sec("Daten aus anderen Apps");
