@@ -388,6 +388,11 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
 
 .wlist .wrow{all:unset;box-sizing:border-box;width:100%;display:grid;grid-template-columns:52px 1fr auto 14px;gap:8px;align-items:center;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
 .wlist li:first-child .wrow{border-top:0}.wlist .wrow:active{background:var(--bg)}.wlist .wv{font-weight:700}
+.bcgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.bcgrid > div{border:1px solid var(--line);border-radius:12px;padding:9px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.bcgrid .big{font-size:20px}.bcgrid .dl{font-size:12px;font-weight:700}.bcgrid .dl.up{color:var(--warn,#d9822b)}.bcgrid .dl.dn{color:var(--done)}
+.bcgrid .tag{font-size:11px;color:var(--muted)}.bcgrid .tag.bad{color:var(--warn,#d9822b)}.bcgrid .tag.ok{color:var(--done)}
+.rawlog{font-family:ui-monospace,monospace;font-size:10px;word-break:break-all;white-space:pre-wrap;color:var(--muted)}
 .wtrow{padding:6px 0;border-top:1px solid var(--line);gap:10px}.wtrow .note{flex:1;text-align:right}
 </style>
 </head>
@@ -641,6 +646,10 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
       <svg class="chart" id="wChart" viewBox="0 0 340 170" role="img" aria-label="Gewichtsverlauf"></svg>
       <div class="note" id="chartNote"></div>
     </div>
+    <div class="card" id="bcCard">
+      <div class="between"><h3><svg class="hi"><use href="#i-scale"/></svg>Körperanalyse</h3><button class="link" id="bcCal">Abgleichen</button></div>
+      <div id="bodyComp"></div>
+    </div>
     <div class="card">
       <div class="between"><h3><svg class="hi"><use href="#i-camera"/></svg>Fortschrittsfotos</h3><button class="link" id="reviewOpen2">Wochenrückblick</button></div>
       <div class="note" id="photoInfo"></div>
@@ -734,7 +743,7 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
 
 <script src="cap.js"></script>
 <script src="zxing.min.js"></script>
-
+<script src="alpha-daten.js"></script>
 <script src="fb.js"></script>
 <script>
 (function(){
@@ -949,6 +958,7 @@ function normalize(s){
   s.wManual = s.wManual || {};
   s.caf = s.caf || []; s.wake = s.wake || {}; s.meas = s.meas || [];
   s.lifts = s.lifts || {}; s.customEx = s.customEx || {}; s.srOv = s.srOv || {}; s.exNotes = s.exNotes || {}; s.sick = s.sick || {}; s.ready = s.ready || {}; s.photos = s.photos || []; s.wlog = s.wlog || []; s.wDel = s.wDel || [];
+  if(s.scale && s.scale.last && s.scale.last.imp>150){ const L=s.scale.last, x=s.wlog.find(z=>Math.abs(z.t-L.t)<5000 && !z.imp); if(x){ x.imp=L.imp; if(L.imp2) x.imp2=L.imp2; } }
   { const by={}; s.wlog.slice().sort((a,b)=>a.t-b.t).forEach(x=>{ const d=keyOf(new Date(x.t)); (by[d]=by[d]||[]).push(x); }); Object.entries(by).forEach(([d,e])=>{ const h=e.filter(x=>x.src==="von Hand"); s.weights[d]=(h.length?h[h.length-1]:e[0]).w; }); }
   if(s.train.run && !s.train.run.ex) s.train.run = null;
   s.hc && (s.hc.rhr = s.hc.rhr || {}, s.hc.hrv = s.hc.hrv || {}, s.hc.burn = s.hc.burn || {});
@@ -2466,16 +2476,84 @@ function openStock(s){
 // Zwei Varianten: a) Waage funkt das Gewicht einfach in der Werbung (Hersteller 0xFFFF, Kopf AA BB, Gewicht LE an 17-18, Status 15)
 //                 b) Verbindung über Dienst FFF0/FFE0 mit kurzem Handschlag, Gewicht BE an 3-4, stabil an 5, Widerstand an 6-7
 const BLE = () => (window.BleClient && isNative) ? window.BleClient : null;
-const QN_SVC=[["0000fff0-0000-1000-8000-00805f9b34fb","0000fff1-0000-1000-8000-00805f9b34fb","0000fff2-0000-1000-8000-00805f9b34fb"],["0000ffe0-0000-1000-8000-00805f9b34fb","0000ffe1-0000-1000-8000-00805f9b34fb","0000ffe3-0000-1000-8000-00805f9b34fb"]];
+const QN_SVC=[["0000fff0-0000-1000-8000-00805f9b34fb","0000fff1-0000-1000-8000-00805f9b34fb","0000fff2-0000-1000-8000-00805f9b34fb"],["0000ffe0-0000-1000-8000-00805f9b34fb","0000ffe1-0000-1000-8000-00805f9b34fb","0000ffe3-0000-1000-8000-00805f9b34fb","0000ffe4-0000-1000-8000-00805f9b34fb"]];
 let scaleRun=null;
 const qnSum = a => a.reduce((s,x)=>s+x,0) & 0xFF;
 const dvBytes = dv => dv ? new Uint8Array(dv.buffer, dv.byteOffset, dv.byteLength) : new Uint8Array(0);
 const qnTime = () => { const t=Math.floor(Date.now()/1000)-946702800; return [t&255,(t>>8)&255,(t>>16)&255,(t>>24)&255]; };
-function bodyFat(w, imp){
-  const pr=P(), h=(Number(pr.height)||0)/100, age=Number(pr.age)||0; if(!(imp>50) || !h || !age) return null;
-  const f=pr.sex==="f"?1:0, bmi=w/(h*h);
-  const bf=[0.103,0.097][f]*age + [1.524,1.545][f]*bmi - 500/imp - [22,12.7][f];
-  return Math.round(Math.max(5,Math.min(60,bf))*10)/10;
+// Körperanalyse aus Gewicht und Widerstand (BIA). Formeln: fettfreie Masse nach Sun 2003, Skelettmuskel nach Janssen 2000,
+// Grundumsatz nach Katch McArdle, Körperfett zu 25 % mit BMI Schätzung (Deurenberg) geglättet. Viszeralfett ist eine grobe Schätzung.
+function bodyComp(w, imp, raw){
+  const pr=P(), H=Number(pr.height)||0, age=Number(pr.age)||0, m=pr.sex==="f"?0:1;
+  if(!(imp>150 && imp<1500) || !H || !age || !(w>20)) return null;
+  const hr=H*H/imp, bmi=w/((H/100)**2), cal=(!raw && state.scale && state.scale.cal) || {};
+  const ffm0 = m ? -10.68+0.65*hr+0.26*w+0.02*imp : -9.53+0.69*hr+0.17*w+0.02*imp;
+  const bfB = 1.2*bmi+0.23*age-10.8*m-5.4;
+  let bf = 0.75*(1-ffm0/w)*100 + 0.25*bfB + (cal.bf||0); bf=Math.max(4,Math.min(60,bf));
+  const ffm=w*(1-bf/100), bone=ffm*(m?0.05:0.055), muscle=ffm-bone+(cal.mus||0);
+  const smm=(0.401*hr+3.825*m-0.071*age+5.102)*(ffm/Math.max(1,ffm0))+(cal.mus||0)*0.55;
+  let vf = m ? (bf-10)*0.55+(age-20)*0.1+(bmi-22)*0.3 : (bf-20)*0.45+(age-20)*0.1+(bmi-22)*0.3; vf=Math.max(1,Math.min(30,Math.round(vf+(cal.vf||0))));
+  const r1=x=>Math.round(x*10)/10;
+  return {bf:r1(bf), fat:r1(w*bf/100), ffm:r1(ffm), muscle:r1(muscle), smm:r1(smm), smmP:r1(smm/w*100), water:r1(ffm*0.73/w*100), bone:r1(bone), protein:r1(ffm*0.2/w*100), vf, bmr:Math.round(370+21.6*ffm), bmi:r1(bmi)};
+}
+function bodyFat(w, imp){ const c=bodyComp(w,imp); return c ? c.bf : null; }
+const dec1 = v => String(v).replace(".",",");
+function bcRate(key, v){
+  const m=P().sex!=="f", age=Number(P().age)||25;
+  if(key==="bf"){ const lo=m?(age<40?8:11):(age<40?21:23), hi=m?(age<40?20:22):(age<40?33:34); return v<lo?["niedrig",""]:v<=hi?["normal","ok"]:v<=hi+5?["erhöht","bad"]:["hoch","bad"]; }
+  if(key==="vf") return v<=9?["gut","ok"]:v<=14?["erhöht","bad"]:["hoch","bad"];
+  if(key==="water"){ const lo=m?50:45, hi=m?65:60; return v<lo?["niedrig","bad"]:v<=hi?["normal","ok"]:["hoch",""]; }
+  if(key==="bmi") return v<18.5?["niedrig",""]:v<25?["normal","ok"]:v<30?["erhöht","bad"]:["hoch","bad"];
+  return null;
+}
+// Element mit allen Werten einer Messung, optional Vergleich mit einer älteren
+function bcBlock(x, prev){
+  const c=bodyComp(x.w, x.imp); if(!c) return null; const pc=prev?bodyComp(prev.w, prev.imp):null;
+  const wrap=el("div"); const g=el("div","bcgrid");
+  const rows=[["bf","Körperfett",c.bf," %",1,true],["fat","Fettmasse",c.fat," kg",1,true],["muscle","Muskelmasse",c.muscle," kg",1,false],["smmP","Skelettmuskel",c.smmP," %",1,false],
+    ["vf","Viszeralfett",c.vf,"",0,true],["water","Körperwasser",c.water," %",1,false],["bone","Knochenmasse",c.bone," kg",1,false],["protein","Eiweiß",c.protein," %",1,false],
+    ["bmr","Grundumsatz",c.bmr," kcal",0,false],["bmi","BMI",c.bmi,"",1,true]];
+  rows.forEach(([k,lab,v,u,dg,lowGood])=>{ const d=el("div"); d.append(el("span","label",lab), el("span","big num",(dg?dec1(v):de(v))+u));
+    if(pc){ const dv=Math.round((v-pc[k])*10)/10; if(Math.abs(dv)>=(dg?0.1:1)){ const good = lowGood ? dv<0 : dv>0; d.append(el("span","dl "+(good?"dn":"up"),(dv>0?"+":"")+(dg?dec1(dv):de(dv))+u)); } }
+    const rt=bcRate(k,v); if(rt) d.append(el("span","tag "+rt[1],rt[0])); g.append(d); });
+  wrap.append(g); return wrap;
+}
+function bcEntries(){ return (state.wlog||[]).filter(x=>x.imp>150).sort((a,b)=>a.t-b.t); }
+function renderBodyComp(){
+  const box=$("bodyComp"); if(!box) return; box.innerHTML="";
+  const e=bcEntries(), last=e[e.length-1];
+  $("bcCal").hidden=!last;
+  if(!last){ box.append(el("div","note","Noch keine Analyse. Stell dich barfuß und mit trockenen Füßen auf die Waage, dann misst sie neben dem Gewicht auch den Widerstand im Körper. Daraus rechnet die App Körperfett, Muskeln, Viszeralfett, Wasser und mehr.")); return; }
+  const ref=e.filter(x=>x.t<=last.t-6*86400000).pop() || (e.length>1?e[0]:null);
+  box.append(el("div","note",fmtDate(keyOf(new Date(last.t)))+", "+hm(new Date(last.t))+" Uhr"+(ref?" · Vergleich mit "+fmtDate(keyOf(new Date(ref.t))):"")));
+  box.append(bcBlock(last, ref));
+  if(e.length>=2) box.append(bcChart(e));
+  box.append(el("div","note","Geschätzt aus dem Widerstand, den die Waage misst. Renpho rechnet mit eigenen Formeln, deshalb können die Zahlen etwas abweichen. Wichtig ist der Verlauf: immer morgens nüchtern vergleichen, Wasser im Körper verschiebt die Werte."+(state.scale&&state.scale.cal?" Mit Renpho abgeglichen.":"")));
+}
+function bcChart(e){
+  const NS="http://www.w3.org/2000/svg", W=340, H=110, L=30, R=30, T=10, B=18; const svg=document.createElementNS(NS,"svg"); svg.setAttribute("viewBox",`0 0 ${W} ${H}`); svg.setAttribute("class","chart"); svg.setAttribute("role","img"); svg.setAttribute("aria-label","Verlauf Körperfett und Muskelmasse");
+  const pts=e.slice(-40).map(x=>({t:x.t, c:bodyComp(x.w,x.imp)})).filter(x=>x.c); if(pts.length<2) return el("div");
+  const t0=pts[0].t, t1=pts[pts.length-1].t, sx=t=>L+(W-L-R)*(t1>t0?(t-t0)/(t1-t0):0.5);
+  const line=(key,col,side)=>{ const v=pts.map(p=>p.c[key]); let lo=Math.min(...v), hi=Math.max(...v); if(hi-lo<1){ lo-=0.5; hi+=0.5; } const sy=y=>T+(H-T-B)*(1-(y-lo)/(hi-lo));
+    const pa=document.createElementNS(NS,"polyline"); pa.setAttribute("points",pts.map(p=>sx(p.t).toFixed(1)+","+sy(p.c[key]).toFixed(1)).join(" ")); pa.setAttribute("fill","none"); pa.setAttribute("stroke",col); pa.setAttribute("stroke-width","2.2"); pa.setAttribute("stroke-linejoin","round"); svg.appendChild(pa);
+    [[hi,T+8],[lo,H-B]].forEach(([val,y])=>{ const tx=document.createElementNS(NS,"text"); tx.setAttribute("x", side?W-2:2); tx.setAttribute("y",y); tx.setAttribute("text-anchor",side?"end":"start"); tx.setAttribute("font-size","10"); tx.setAttribute("fill",col); tx.textContent=dec1(Math.round(val*10)/10); svg.appendChild(tx); }); };
+  line("bf","var(--accent)",0); line("muscle","var(--done)",1);
+  const wrap=el("div"); wrap.append(svg); const lg=el("div","note"); lg.innerHTML='<b style="color:var(--accent)">Körperfett %</b> und <b style="color:var(--done)">Muskelmasse kg</b> im Verlauf'; wrap.append(lg); return wrap;
+}
+function openBcCal(){
+  const e=bcEntries(), last=e[e.length-1]; if(!last) return;
+  openSheet(p=>{
+    sheetHead(p,"Mit Renpho abgleichen");
+    p.append(el("div","note","Wenn du die Renpho Werte gewohnt bist: Wieg dich einmal mit der Renpho App und direkt danach mit Winterplan. Trag hier ein, was Renpho angezeigt hat. Ab dann rechnet Winterplan mit dem gleichen Versatz, auch rückwirkend. Leer lassen, was du nicht abgleichen willst."));
+    const c=bodyComp(last.w,last.imp,true);
+    p.append(el("div","note","Winterplan ohne Abgleich (letzte Messung): Körperfett "+dec1(c.bf)+" %, Muskelmasse "+dec1(c.muscle)+" kg, Viszeralfett "+c.vf));
+    const g=el("div","grid3"); const [l1,iB]=field("Körperfett %","text",""), [l2,iM]=field("Muskeln kg","text",""), [l3,iV]=field("Viszeralfett","text","");
+    [iB,iM,iV].forEach(i=>i.inputMode="decimal"); g.append(l1,l2,l3); p.append(g);
+    const b=el("button","btn wide","Abgleich speichern"); b.addEventListener("click",()=>{ const cal={}; const vb=num(String(iB.value).replace(",",".")), vm=num(String(iM.value).replace(",",".")), vv=num(String(iV.value).replace(",","."));
+      if(vb>0) cal.bf=vb-c.bf; if(vm>0) cal.mus=vm-c.muscle; if(vv>0) cal.vf=vv-c.vf; if(!Object.keys(cal).length){ toast("Bitte mindestens einen Wert eintragen"); return; }
+      state.scale=state.scale||{}; state.scale.cal=Object.assign(state.scale.cal||{},cal); const n=bodyComp(last.w,last.imp); if(n) state.hc.fat={v:n.bf,d:keyOf(new Date(last.t))}; persist(); closeSheet(); render(); toast("Abgeglichen"); }); p.append(b);
+    if(state.scale && state.scale.cal){ const r=el("button","link","Abgleich zurücksetzen"); r.addEventListener("click",()=>{ delete state.scale.cal; persist(); closeSheet(); render(); toast("Abgleich entfernt"); }); p.append(r); }
+  });
 }
 function scaleUI(){
   const r=scaleRun; if(!r || !r.box) return;
@@ -2488,14 +2566,15 @@ async function scaleStop(){
   try{ await BLE().stopLEScan(); }catch(e){}
   if(r.dev){ try{ await BLE().disconnect(r.dev); }catch(e){} }
 }
-async function scaleFinish(w, imp){
-  const r=scaleRun; if(!r || r.done) return; r.done=true; r.w=w;
+async function scaleFinish(w, imp, imp2){
+  const r=scaleRun; if(!r || r.done) return; r.done=true; r.w=w; clearTimeout(r.finalWait);
   try{ navigator.vibrate && navigator.vibrate([60,40,60]); }catch(e){}
-  const d=calToday(); const bf=bodyFat(w,imp); wLogAdd(Date.now(), w, "Waage", bf!=null?{bf}:null); wDay(d);
-  if(bf!=null) state.hc.fat={v:bf, d};
-  state.scale=state.scale||{}; state.scale.last={t:Date.now(), w, imp:imp||null, bf, mode:r.mode};
-  scaleRun=r; r.msgText = "Gespeichert"+(bf!=null?" · Körperfett ca. "+String(bf).replace(".",",")+" %":"")+". Du kannst runtergehen.";
-  scaleUI(); persist(); render(); scaleStop(); setTimeout(()=>{ if(!scaleRun && !$("sheet").hidden && $("pane").dataset.kind==="scale") closeSheet(); }, 2200);
+  const d=calToday(), c=bodyComp(w,imp), ex={}; if(imp>150){ ex.imp=imp; if(imp2) ex.imp2=imp2; } if(c) ex.bf=c.bf;
+  wLogAdd(Date.now(), w, "Waage", Object.keys(ex).length?ex:null); wDay(d);
+  if(c) state.hc.fat={v:c.bf, d};
+  state.scale=state.scale||{}; state.scale.last={t:Date.now(), w, imp:imp||null, imp2:imp2||null, bf:c?c.bf:null, mode:r.mode}; state.scale.raw=(r.raw||[]).slice(-30);
+  scaleRun=r; r.msgText = c ? "Gespeichert. Körperfett "+dec1(c.bf)+" %, Muskeln "+dec1(c.muscle)+" kg, Viszeralfett "+c.vf+". Alles Weitere unter Körperanalyse." : "Gespeichert, aber nur das Gewicht. Für Körperfett und Muskeln barfuß und mit trockenen Füßen draufstellen und stehen bleiben, bis die Waage fertig blinkt.";
+  scaleUI(); persist(); render(); scaleStop(); setTimeout(()=>{ if(!scaleRun && !$("sheet").hidden && $("pane").dataset.kind==="scale") closeSheet(); }, c?6000:7000);
 }
 async function qnConnect(id){
   const r=scaleRun; if(!r || r.connecting) return; r.connecting=true; r.mode="gatt";
@@ -2506,17 +2585,23 @@ async function qnConnect(id){
     r.dev=id;
     const svcs=await BLE().getServices(id), has=u=>svcs.some(s=>s.uuid.toLowerCase()===u);
     const set=QN_SVC.find(([s])=>has(s)); if(!set) throw new Error("Dienst nicht gefunden");
-    const [svc, nt, wr]=set; let ver=0x15;
-    const send=async a=>{ try{ await BLE().write(id, svc, wr, new DataView(new Uint8Array(a).buffer)); }catch(e){} };
-    const hello=async()=>{ const u=[0x13,0x09,ver,0x01,0x10,0x00,0x00,0x00]; await send(u.concat([qnSum(u)])); await send([0x02].concat(qnTime())); const s=[0x20,0x08,ver].concat(qnTime()); await send(s.concat([qnSum(s)])); };
+    const svc=set[0], nt=set[1], wr=set[2], tw=set[3] && ((svcs.find(x=>x.uuid.toLowerCase()===set[0])||{}).characteristics||[]).some(ch=>ch.uuid.toLowerCase()===set[3]) ? set[3] : null; let ver=0x15;
+    const send=async (a,ch)=>{ try{ await BLE().write(id, svc, ch||wr, new DataView(new Uint8Array(a).buffer)); }catch(e){} };
+    const timeMsg=()=>tw ? send([0x02].concat(qnTime()), tw) : (()=>{ const s=[0x20,0x08,ver].concat(qnTime()); return send(s.concat([qnSum(s)])); })();
+    const hello=async()=>{ const u=[0x13,0x09,ver,0x01,0x10,0x00,0x00,0x00]; await send(u.concat([qnSum(u)])); if(!tw){ await send([0x02].concat(qnTime())); await timeMsg(); } };
     await BLE().startNotifications(id, svc, nt, dv=>{
       const b=dvBytes(dv); if(!b.length || !scaleRun) return;
-      if(b[0]===0x12 && b.length>2){ ver=b[2]; r.div = b.length>10 && b[10]===1 ? 100 : null; hello(); return; }
-      if(b[0]===0x14){ const s=[0x20,0x08,ver].concat(qnTime()); send(s.concat([qnSum(s)])); return; }
-      if(b[0]===0x10 && b.length>=10){
-        const raw=(b[3]<<8)|b[4]; let w=raw/100; if(w<1 || w>300) w=raw/10; if(w<1 || w>300) return;
-        const imp=(b[6]<<8)|b[7]; r.w=w; r.msgText="Wiege …"; scaleUI();
-        if(b[5]===1) scaleFinish(w, imp);
+      r.raw=r.raw||[]; if(r.raw.length<60) r.raw.push(Array.from(b).map(x=>x.toString(16).padStart(2,"0")).join(" "));
+      if(b[0]===0x12 && b.length>2){ ver=b[2]; r.div = b.length>10 ? (b[10]===1 ? 100 : 10) : 100; hello(); return; }
+      if(b[0]===0x14){ timeMsg(); return; }
+      if(b[0]===0x10 && b.length>=8){
+        const raw=(b[3]<<8)|b[4]; let w=raw/(r.div||100); if(w<1 || w>300) w=raw/10; if(w<1 || w>300) return;
+        const imp=(b[6]<<8)|b[7], imp2=b.length>=10?((b[8]<<8)|b[9]):0; r.w=w; scaleUI();
+        if(b[5]===1){
+          if(imp>150) return scaleFinish(w, imp, imp2>150?imp2:null);
+          r.msgText="Gewicht steht. Messe Körperwerte, bleib barfuß stehen …"; scaleUI();
+          if(!r.finalWait) r.finalWait=setTimeout(()=>scaleFinish(r.w, 0), 8000);
+        } else if(!r.finalWait){ r.msgText="Wiege …"; scaleUI(); }
       }
     });
     r.msgText="Verbunden, stell dich ruhig hin."; scaleUI();
@@ -2527,7 +2612,8 @@ function onScaleAdv(res){
   const r=scaleRun; if(!r || r.done || r.connecting) return;
   const md=res.manufacturerData||{}, aabb=md["65535"] && dvBytes(md["65535"]);
   if(aabb && aabb.length>=19 && aabb[0]===0xAA && aabb[1]===0xBB){
-    r.mode="adv"; const w=(aabb[17]|(aabb[18]<<8))/100; if(w<0.5 || w>300) return;
+    r.mode="adv"; r.raw=r.raw||[]; const hx=Array.from(aabb).map(x=>x.toString(16).padStart(2,"0")).join(" "); if(r.raw[r.raw.length-1]!==hx && r.raw.length<60) r.raw.push("adv "+hx);
+    const w=(aabb[17]|(aabb[18]<<8))/100; if(w<0.5 || w>300) return;
     const st=aabb[15], now=Date.now();
     if(r.lastW && Math.abs(r.lastW-w)<0.06){ r.same=(r.same||0)+1; } else { r.same=0; r.since=now; } r.lastW=w; r.w=w;
     r.msgText="Wiege …"; scaleUI();
@@ -2550,6 +2636,8 @@ async function openScale(){
     box.append(num, unit); p.append(box, msg);
     p.append(el("div","note","Morgens, nüchtern, barfuß. Die App muss offen bleiben, bis „Gespeichert“ kommt. Die Renpho App brauchst du dafür nicht."));
     const again=el("button","btn wide ghost","Neu starten"); again.addEventListener("click",()=>openScale()); p.append(again);
+    if(state.scale && state.scale.last){ const L=state.scale.last, det=el("details"); det.append(el("summary","note","Technik der letzten Messung"));
+      det.append(el("div","rawlog","Art: "+(L.mode==="gatt"?"Verbindung":"Funk")+" · Widerstand: "+(L.imp?L.imp+" Ω":"keiner")+(L.imp2?" / "+L.imp2+" Ω":"")+"\n"+(state.scale.raw||[]).join("\n"))); p.append(det); }
     Object.assign(scaleRun,{box,num,msg}); scaleUI();
   }, "scale");
   // Sheet zu: Scan beenden
@@ -2585,7 +2673,8 @@ function openWeightDay(d){
     if(!e.length){ ul.append(el("li","note","Für diesen Tag gibt es nur den Tageswert "+kg(state.weights[d]||0)+" kg ohne Uhrzeit.")); }
     const pick=e.length?dayPick(e):null;
     e.forEach((x,i)=>{ const li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span","num",kg(x.w)+" kg"+(x===pick?"  ✓ zählt":"")));
-      tx.append(el("div","sub",hm(new Date(x.t))+" Uhr · "+x.src+(x.bf!=null?" · Fett "+String(x.bf).replace(".",",")+" %":"")));
+      const cc=x.imp>150?bodyComp(x.w,x.imp):null; tx.append(el("div","sub",hm(new Date(x.t))+" Uhr · "+x.src+(cc?" · Fett "+dec1(cc.bf)+" % · Muskeln "+dec1(cc.muscle)+" kg":"")));
+      if(cc){ tx.style.cursor="pointer"; tx.addEventListener("click",()=>{ const prev=bcEntries().filter(z=>z.t<x.t).pop(); openSheet(q=>{ sheetHead(q,"Analyse "+hm(new Date(x.t))+" Uhr"); q.append(el("div","note",kg(x.w)+" kg"+(prev?" · Vergleich mit "+fmtDate(keyOf(new Date(prev.t))):""))); q.append(bcBlock(x,prev)); const bk=el("button","btn wide ghost","Zurück"); bk.addEventListener("click",()=>openWeightDay(d)); q.append(bk); }); }); }
       const del=el("button","x","×"); del.setAttribute("aria-label","Messung löschen");
       del.addEventListener("click",()=>{ state.wlog=state.wlog.filter(z=>z!==x); state.wDel=state.wDel||[]; state.wDel.push(x.t); state.wDel=state.wDel.slice(-300); wDay(d); persist(); closeSheet(); render(); toast("Messung "+hm(new Date(x.t))+" gelöscht",()=>{ state.wlog.push(x); state.wlog.sort((a,b)=>a.t-b.t); state.wDel=state.wDel.filter(t=>t!==x.t); wDay(d); persist(); render(); }); });
       li.append(tx,del); ul.append(li); });
@@ -2626,7 +2715,8 @@ function renderGewicht(k){
       e.forEach(x=>{ const r=el("div","between wtrow"); r.append(el("span","num",hm(new Date(x.t))+"  "+kg(x.w)+" kg"+(x===pk?" ✓":"")), el("span","note",x.src));
         const del=el("button","x","×"); del.setAttribute("aria-label","Messung löschen"); del.addEventListener("click",()=>{ state.wlog=state.wlog.filter(z=>z!==x); state.wDel=(state.wDel||[]).concat([x.t]).slice(-300); wDay(k); persist(); render(); toast("Messung gelöscht",()=>{ state.wlog.push(x); state.wlog.sort((a,b)=>a.t-b.t); state.wDel=state.wDel.filter(t=>t!==x.t); wDay(k); persist(); render(); }); });
         r.append(del); box.append(r); }); } }
-  const f=state.hc.fat; $("fatLine").hidden=!f; if(f) $("fatLine").textContent="Körperfett laut Waage: "+String(f.v).replace(".",",")+" % ("+fmtDate(f.d)+")";
+  const f=state.hc.fat, hasBc=bcEntries().length>0; $("fatLine").hidden=!f||hasBc; if(f) $("fatLine").textContent="Körperfett laut Waage: "+String(f.v).replace(".",",")+" % ("+fmtDate(f.d)+")";
+  renderBodyComp();
 }
 function drawChart(entries){
   const svg=$("wChart"), W=340, H=170, L=36, R=10, T=12, B=24, NS="http://www.w3.org/2000/svg"; svg.innerHTML="";
@@ -3126,7 +3216,7 @@ $("aScan").addEventListener("click",()=>scan(activeDay()));
 $("aSearch").addEventListener("click",()=>openSearch(activeDay()));
 $("aOut").addEventListener("click",()=>openOut(activeDay()));
 $("reviewOpen").addEventListener("click",openReview);
-$("wScale").addEventListener("click",openScale);
+$("wScale").addEventListener("click",openScale); $("bcCal").addEventListener("click",openBcCal);
 $("miniStepsB").addEventListener("click",()=>openStepsDay(calToday()));
 $("miniSleepB").addEventListener("click",()=>{ const k=calToday(); openSleep(state.hc.sleep[k]!=null||(state.hc.sleepT||{})[k] ? k : addDays(k,-1)); });
 $("stepChart").addEventListener("click",e=>{ const r=e.target.closest("rect"); if(r && r.dataset.d) openStepsDay(r.dataset.d); }); $("reviewOpen2").addEventListener("click",openReview);
