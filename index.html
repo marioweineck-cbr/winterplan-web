@@ -852,7 +852,8 @@ function openSuppRec(){
   });
 }
 // Übliche Menge pro Tag (Richtwert, an die eigene Packung anpassen)
-const SUPP_DOSE=[[/kreatin/i,"5 g"],[/d3|vitamin d/i,"1.000 bis 2.000 IE D3, 50 bis 100 µg K2"],[/omega/i,"250 bis 1.000 mg EPA und DHA"],[/bor/i,"3 mg Bor, 1 bis 3 g MSM"],[/zink/i,"10 mg"],[/magnes/i,"200 bis 300 mg Magnesium"],[/ashwa/i,"300 bis 600 mg Extrakt"],[/whey|eiweiß/i,"25 bis 30 g"],[/koffein/i,"3 mg pro kg"],[/b12/i,"25 bis 100 µg"],[/eisen/i,"nur nach Blutwert"]];
+const SUPP_DOSE=[[/kreatin/i,"5 g"],[/d3|vitamin d/i,"1.000 bis 2.000 IE D3, 50 bis 100 µg K2"],[/omega/i,"250 bis 1.000 mg EPA und DHA"],[/bor/i,"3 mg Bor, 1 bis 3 g MSM"],[/zink/i,"10 mg"],[/magnes/i,"200 bis 300 mg Magnesium"],[/ashwa/i,"300 bis 600 mg Extrakt"],[/whey|eiweiß/i,"25 bis 30 g"],[/koffein/i,"3 mg pro kg"],[/b12/i,"25 bis 100 µg"],[/eisen/i,"nur nach Blutwert"],[/melatonin/i,"0,5 bis 1 mg"]];
+const SUPP_TIP=[[/magnes/i,"Gut: Bisglycinat oder Citrat, Oxid wird schlecht aufgenommen"],[/zink/i,"Nicht dauerhaft über 25 mg"],[/d3|vitamin d/i,"Mit dem Frühstück, Oktober bis März"],[/kreatin/i,"Monohydrat, täglich, Uhrzeit egal"],[/ashwa/i,"Ab und zu Pausen machen, bei Leberproblemen weglassen"],[/melatonin/i,"0,5 bis 1 mg reichen, 30 bis 60 Min. vor dem Schlafen, nicht jeden Tag"]];
 const suppDoseHint = n => (SUPP_DOSE.find(([r])=>r.test(n))||[])[1] || "";
 const hasAmt = n => /\d+([.,]\d+)?\s*(g|mg|µg|mcg|ie|i\.e\.)\b/i.test(n);
 const suppTxt = x => x.n + (x.dose && !x.n.includes(x.dose) ? " ("+x.dose+")" : "");
@@ -1110,6 +1111,14 @@ function renderShiftHelp(k){
   const h=el("div","between"); h.append(el("h3",null,"Schichtwechsel"), el("span","pill","🌙")); box.append(h, el("div","label",x.t));
   const ul=el("ul","list"); x.l.forEach(t=>ul.append(el("li","item nt",t))); box.append(ul); if(x.warn) box.append(el("div","note",x.warn));
 }
+// Uhr: Aufwachzeit setzt den Tagesablauf, Einschlafzeit hakt "Schlafen" mit echter Uhrzeit ab
+function sleepToPlan(){
+  const T=state.hc.sleepT||{}; state.wakeAuto=state.wakeAuto||{}; const today=calToday();
+  Object.entries(T).forEach(([d,x])=>{ if(dayDiff(d,today)>2 || dayDiff(d,today)<0) return; const e=new Date(x.e), sst=new Date(x.s);
+    if(!(state.wakeMan||{})[d] && state.shift[d]){ const v=hm(e); if(state.wake[d]!==v){ state.wake[d]=v; state.wakeAuto[d]=true; } }
+    let best=null; [addDays(keyOf(sst),-1), keyOf(sst)].forEach(c=>{ const sh=state.shift[c]; if(!sh) return; timeline(c,sh).forEach(it=>{ if(it.key!=="sleep") return; const df=Math.abs(it.at-sst); if(df<=5*3600000 && (!best || df<best.df)) best={c,it,df}; }); });
+    if(best){ const ch=dayChecks(best.c), id="sleep@"+best.it.i; if(!ch[id]) ch[id]=sst.getTime(); } });
+}
 function bedtimeFor(k){ const sh=state.shift[k]; if(!sh) return null; const tl=timeline(k,sh); return tl[tl.length-1].at; }
 function stepsDone(k){ return !!dayChecks(k)["h_steps"] || (state.hc.steps[k]||0)>=STEP_GOAL; }
 function itemSkipped(k,it){ return !it.info && !!dayChecks(k)["skip:"+it.key+"@"+it.i]; }
@@ -1261,9 +1270,9 @@ function renderHeute(k, ph){
   const wr=$("wakeRow"); wr.innerHTML="";
   if(sh){
     const lab=el("label","f","Aufgestanden um"); lab.style.flex="1"; const inp=el("input"); inp.type="time"; inp.value=wakeFor(k,sh); lab.append(inp);
-    inp.addEventListener("change",()=>{ if(inp.value){ state.wake[k]=inp.value; persist(); render(); toast("Tagesablauf an "+inp.value+" angepasst"); } });
+    inp.addEventListener("change",()=>{ if(inp.value){ state.wake[k]=inp.value; state.wakeMan=state.wakeMan||{}; state.wakeMan[k]=true; persist(); render(); toast("Tagesablauf an "+inp.value+" angepasst"); } });
     wr.append(lab);
-    if(state.wake[k]){ const r=el("button","link","Standard ("+P().wake[sh]+")"); r.addEventListener("click",()=>{ delete state.wake[k]; persist(); render(); }); wr.append(r); }
+    if(state.wake[k]){ const auto=(state.wakeAuto||{})[k] && !(state.wakeMan||{})[k]; if(auto) wr.append(el("span","note","⌚ von der Uhr")); const r=el("button","link","Standard ("+P().wake[sh]+")"); r.addEventListener("click",()=>{ delete state.wake[k]; state.wakeMan=state.wakeMan||{}; state.wakeMan[k]=true; persist(); render(); }); wr.append(r); }
   }
   const ul=$("schedule"), nc=$("nextCard"); ul.innerHTML=""; nc.innerHTML="";
   if(!sh){
@@ -1599,6 +1608,9 @@ function baseIngredients(f){
   return r.z.map(([a,u,n])=>({a:rd(a*src[1]/r.por,u)||(PER100[u]?1:0.25),u,n}));
 }
 const sumIng = list => list.reduce((t,x)=>{ const m=ingMacro(x.n,num(x.a)||0,x.u); return t.map((v,i)=>v+m[i]); },[0,0,0,0]);
+// Gewicht einer Portion grob aus den Zutaten (Stück, EL, TL geschätzt)
+const PIECE_G={"Eier":60,"Banane":120,"Obst (Banane oder Apfel)":150,"Paprika":150,"Zwiebeln":80,"Gurke":300,"Tomaten":80,"Zucchini":200,"Vollkorn Wrap":62,"Eisbergsalat":400};
+function portionG(f, rows){ if(/^PMM /.test(f.n||"")) return 500; if(!rows) return null; let g=0; rows.forEach(x=>{ const a=num(x.a)||0; g += x.u==="g"||x.u==="ml" ? a : x.u==="Stk" ? a*(PIECE_G[x.n]||100) : x.u==="EL" ? a*15 : x.u==="TL" ? a*5 : x.u==="Zehen" ? a*4 : x.u==="Dose"||x.u==="Dosen" ? a*400 : 0; }); return g>0 ? Math.round(g) : null; }
 function openFoodItem(k, f, ed){
   const base=baseIngredients(f), last=(state.lastVar||{})[f.n];
   let mode = last ? "last" : "base", fac = last ? last.fac : 1, rows = null;
@@ -1611,6 +1623,8 @@ function openFoodItem(k, f, ed){
     const tot=el("div","stat4 foodtot"); p.append(tot);
     p.append(el("div","cat","Menge"));
     const fs=el("div","chips"); [0.5,0.75,1,1.25,1.5,2].forEach(v=>{ const b=el("button",null,v===1?"1 Portion":String(v).replace(".",",")+" ×"); b.dataset.v=v; b.addEventListener("click",()=>{ fac=v; draw(); }); fs.append(b); }); p.append(fs);
+    const gRow=el("div","row nowrap"); const gIn=el("input","num"); gIn.type="text"; gIn.inputMode="decimal"; gIn.style.maxWidth="110px"; gIn.setAttribute("aria-label","Menge in Gramm"); const gNote=el("span","note"); gRow.append(gIn, el("span","note","g gegessen"), gNote); p.append(gRow);
+    gIn.addEventListener("input",()=>{ const pg=portionG(f,rows), g=num(gIn.value); if(pg && g>0){ fac=Math.round(g/pg*1000)/1000; fs.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", Number(b.dataset.v)===fac?"true":"false")); gNote.textContent="= "+String(fac).replace(".",",")+" Portion"; drawTot(); } });
     const go=el("button","btn wide",ed?"Änderung speichern":"Eintragen"); p.append(go);
     if(ed) p.append(el("div","note","Du änderst den Eintrag von "+hm(new Date(ed.e.t||Date.now()))+" Uhr. Einfach Mengen anpassen und speichern."));
     const ingBox=el("div"); p.append(ingBox);
@@ -1620,6 +1634,7 @@ function openFoodItem(k, f, ed){
     const draw=()=>{
       bB.setAttribute("aria-pressed",mode==="base"?"true":"false"); bL.setAttribute("aria-pressed",mode==="last"?"true":"false");
       fs.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", Number(b.dataset.v)===fac?"true":"false"));
+      { const pg=portionG(f,rows); gRow.hidden=!pg; if(pg && document.activeElement!==gIn){ gIn.value=de(pg*fac); gNote.textContent="1 Portion = ca. "+de(pg)+" g"; } }
       ingBox.innerHTML="";
       if(rows){
         ingBox.append(el("div","cat","Drin für 1 Portion, Mengen änderbar"));
@@ -1641,7 +1656,7 @@ function openFoodItem(k, f, ed){
       const m=calc().map(v=>Math.round(v)); const changed = fac!==1 || mode!=="base";
       if(rows){ state.lastVar=state.lastVar||{}; const am={}; rows.filter(x=>!x.extra).forEach(x=>am[x.n]=num(x.a)||0); state.lastVar[f.n]={fac, am, extra:rows.filter(x=>x.extra && num(x.a)>0).map(x=>({n:x.n,u:x.u,a:num(x.a),extra:true}))}; }
       else { state.lastVar=state.lastVar||{}; state.lastVar[f.n]={fac}; }
-      const out={n:f.n+(changed?(fac!==1?" ("+String(fac).replace(".",",")+" ×)":" (angepasst)"):""), kcal:m[0], p:m[1], c:m[2], f:m[3], free:f.free, src:{n:f.n,kcal:f.kcal,p:f.p,c:f.c,f:f.f,free:f.free,rid:f.rid}, fac};
+      const pg=portionG(f,rows); const out={n:f.n+(changed?(fac!==1?(pg?" ("+de(pg*fac)+" g)":" ("+String(fac).replace(".",",")+" ×)"):" (angepasst)"):""), g:pg?Math.round(pg*fac):undefined, kcal:m[0], p:m[1], c:m[2], f:m[3], free:f.free, src:{n:f.n,kcal:f.kcal,p:f.p,c:f.c,f:f.f,free:f.free,rid:f.rid}, fac};
       if(rows) out.ing=rows.filter(x=>num(x.a)>0 || !x.extra).map(x=>({n:x.n,u:x.u,a:num(x.a)||0,extra:x.extra}));
       if(ed){ const e=ed.e; delete e.ing; Object.assign(e,out); if(!out.free) delete e.free; persist(); closeSheet(); render(); toast("Geändert: "+out.n); return; }
       closeSheet(); addFood(k,out);
@@ -2218,6 +2233,7 @@ function renderLog(k){
   [["K","kcal",""],["P","p"," g"],["C","c"," g"],["F","f"," g"]].forEach(([id,key,u])=>{ $("m"+id).textContent=de(T[key])+u; $("b"+id).style.width=Math.min(100,T[key]/G[key]*100)+"%"; });
   $("macroLeft").textContent = "Ziel "+de(G.kcal)+" kcal · P "+G.p+" · K "+G.c+" · F "+G.f+". Noch "+de(Math.max(0,G.kcal-T.kcal))+" kcal und "+de(Math.max(0,G.p-T.p))+" g Eiweiß.";
   { const box=$("dayType"); box.innerHTML=""; const tp=trainPlanned(k), cd=carbDelta(k);
+    { const st=state.hc.steps&&state.hc.steps[k], hr=new Date().getHours(); if(k===calToday() && st!=null && hr>=17 && st<4000 && !tp) box.append(el("div","alert","Heute kaum bewegt ("+de(st)+" Schritte). Wenn du keinen Hunger hast: Snack im Tagesablauf überspringen spart 200 kcal, oder 20 Minuten spazieren.")); }
     if(P().carbCycle!==false && tp!=null){ const t=el("div","between"); const lb=el("span","note", tp ? "🏋 Trainingstag: "+(cd?"+"+cd+" g Kohlenhydrate für Kraft im Gym":"normale Kohlenhydrate") : "🛋 Ruhetag: "+(-cd)+" g weniger Kohlenhydrate ("+de(-cd*4)+" kcal), Eiweiß bleibt gleich");
       const b=el("button","link", tp?"Doch Ruhetag":"Doch Training"); b.addEventListener("click",()=>{ state.trainOv=state.trainOv||{}; state.trainOv[k]=!tp; persist(); render(); }); t.append(lb,b); box.append(t);
       if((state.trainOv||{})[k]!=null){ const r=el("button","link","Automatisch"); r.addEventListener("click",()=>{ delete state.trainOv[k]; persist(); render(); }); box.append(r); } } }
@@ -2309,7 +2325,7 @@ function openCopyYest(k){
 // Eintrag im Tagebuch später ändern: Bausteine mit Zutaten, sonst Gramm und Werte
 function openFoodEdit(k, idx){
   const list=dayFood(k), e=list[idx]; if(!e) return;
-  let src=e.src; if(!src){ const q=QUICK.find(x=>e.n===x.n || e.n.startsWith(x.n+" (")) || PMM.map(pmmItem).find(x=>e.n===x.n || e.n.startsWith(x.n+" (")); if(q && baseIngredients(q)!=null || q && /^PMM /.test(q.n)){ src=q; const m=e.n.match(/\(([\d,]+) ×\)$/); e.fac = m ? num(m[1]) : (e.fac||1); } }
+  let src=e.src; if(!src){ const q=QUICK.find(x=>e.n===x.n || e.n.startsWith(x.n+" (")) || PMM.map(pmmItem).find(x=>e.n===x.n || e.n.startsWith(x.n+" (")); if(q && baseIngredients(q)!=null || q && /^PMM /.test(q.n)){ src=q; const m=e.n.match(/\(([\d,]+) ×\)$/); e.fac = e.fac || (m ? num(m[1]) : 1); } }
   if(src) return openFoodItem(k, src, {idx, e, fac:e.fac||1});
   openSheet(p=>{ sheetHead(p,"Eintrag ändern");
     const [ln,iN]=field("Name","text",e.n); p.append(ln);
@@ -2584,7 +2600,7 @@ function renderRecipes(){
     const ol=el("ol","steps"); r.st.forEach(x=>ol.append(el("li",null,x))); d.append(ol);
     const row=el("div","row"); row.style.marginTop="6px";
     const add=el("button","btn small ghost","Auf die Einkaufsliste"); add.addEventListener("click",()=>{ state.cart.plan[r.id]=(state.cart.plan[r.id]||0)+1; persist(); toast(r.n+" auf der Einkaufsliste"); });
-    const eat=el("button","btn small ghost","Portion essen"); eat.addEventListener("click",()=>addFood(activeDay(),{n:r.n,kcal:r.kcal,p:r.p,c:r.c,f:r.f}));
+    const eat=el("button","btn small ghost","Essen eintragen"); eat.addEventListener("click",()=>openFoodItem(activeDay(),{n:r.n,kcal:r.kcal,p:r.p,c:r.c,f:r.f,rid:r.id}));
     row.append(add,eat);
     if(r.mine){ const ed=el("button","btn small ghost","Bearbeiten"); ed.onclick=()=>openRecipeForm(r); row.append(ed); s.querySelector("span").textContent=r.n+" (eigenes)"; }
     d.append(row); box.append(d);
@@ -2798,7 +2814,8 @@ function renderStock(){
   { const wi=wheyInfo(), li=el("li","item nt"), tx=el("div","txt"); tx.append(el("span",null,"Whey Protein")); tx.append(el("div","sub"+(wi&&wi.days<=7?" warnTxt":""), !wi ? "Vorrat noch nicht eingetragen" : "noch ca. "+de(wi.left)+" g, reicht "+wi.days+" Tage")); const b=el("button","btn small ghost", wi?"Neue Dose":"Eintragen"); b.addEventListener("click",openWhey); li.append(tx,b); ul.append(li); }
   state.supps.filter(s=>s.on).forEach(s=>{ const left=suppLeft(s), li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span",null,suppTxt(s)));
     tx.append(el("div","sub"+(left!=null&&left<=7?" warnTxt":""), left==null ? "Vorrat noch nicht eingetragen" : left===0 ? "leer, nachkaufen" : "noch ca. "+left+" Tag"+(left===1?"":"e")+" (bis "+fmtDate(addDays(calToday(),left))+")"));
-    const b=el("button","btn small ghost", left==null?"Eintragen":"Neue Dose"); b.addEventListener("click",()=>openStock(s)); li.append(tx,b); ul.append(li); });
+    const b=el("button","btn small ghost", left==null?"Eintragen":"Neue Dose"); b.addEventListener("click",()=>openStock(s));
+    const r=el("div","row nowrap"); if(left!==0){ const e0=el("button","btn small ghost","Leer"); e0.addEventListener("click",()=>{ const real=state.supps.find(x=>x.id===s.id); real.stock={n:0,d:calToday()}; persist(); render(); toast(s.n+" steht auf der Einkaufsliste"); }); r.append(e0); } r.append(b); li.append(tx,r); ul.append(li); });
 }
 function openStock(s){
   openSheet(p=>{
@@ -3174,7 +3191,8 @@ async function hcSync(quiet){
   try{ const sl=await hcReadAll("SleepSession", new Date(now.getTime()-15*86400000), now); const by={};
     sl.forEach(x=>{ let mins=(new Date(x.endTime)-new Date(x.startTime))/60000; if(Array.isArray(x.stages)){ mins-=x.stages.filter(z=>[1,3,7].includes(Number(z.stage)) || /awake|out_of_bed/i.test(String(z.stage))).reduce((a,z)=>a+(new Date(z.endTime)-new Date(z.startTime))/60000,0); } if(mins<90) return; const d=tKey(x.endTime); by[d]=(by[d]||0)+mins; });
     state.hc.sleepT=state.hc.sleepT||{}; sl.forEach(x=>{ const d=tKey(x.endTime), cur=state.hc.sleepT[d]; const mins=(new Date(x.endTime)-new Date(x.startTime))/60000; if(mins>=180 && (!cur || mins>=cur.m)) state.hc.sleepT[d]={s:x.startTime,e:x.endTime,m:mins,st:(x.stages||[]).map(z=>[new Date(z.startTime).getTime(),new Date(z.endTime).getTime(),Number(z.stage)]).filter(z=>z[1]>z[0]).slice(0,200)}; });
-    Object.entries(by).forEach(([d,m])=>{ state.hc.sleep[d]=Math.round(m); }); if(sl.length) got.push("Schlaf"); }catch(e){}
+    Object.entries(by).forEach(([d,m])=>{ state.hc.sleep[d]=Math.round(m); }); if(sl.length) got.push("Schlaf");
+    try{ sleepToPlan(); }catch(e){} }catch(e){}
   const daily=async(type,field,key)=>{ try{ const rs=await hcReadAll(type, new Date(now.getTime()-15*86400000), now); const by={}; rs.forEach(x=>{ const v=Number(x[field]); if(!isFinite(v)||v<=0) return; const d=tKey(x.time); (by[d]=by[d]||[]).push(v); }); Object.entries(by).forEach(([d,a])=>{ state.hc[key][d]=Math.round(Math.min(...a)*10)/10; }); return rs.length; }catch(e){ return 0; } };
   if(await daily("RestingHeartRate","beatsPerMinute","rhr")) got.push("Ruhepuls");
   if(await daily("HeartRateVariabilityRmssd","heartRateVariabilityMillis","hrv")) got.push("HRV");
@@ -3604,7 +3622,8 @@ function openSettings(first){
     p.append(el("div","note","M = morgens nach dem Aufstehen, A = abends vor dem Schlafen. Unter dem Namen steht die Menge pro Tag: vorgeschlagen ist ein üblicher Richtwert, trag ein, was auf deiner Packung steht. Die Erinnerungen kommen passend zu deiner Schicht."));
     const sl=el("div"); const supps=JSON.parse(JSON.stringify(state.supps));
     const drawS=()=>{ sl.innerHTML=""; supps.forEach((s,si)=>{ const r=el("div","toggle"); const nm=el("div","tt"); nm.append(el("div",null,s.n));
-      const di=el("input"); di.type="text"; di.value=s.dose||""; di.placeholder=suppDoseHint(s.n)?"z. B. "+suppDoseHint(s.n):"Menge, z. B. 500 mg"; di.style.cssText="font-size:13px;padding:4px 8px;margin-top:3px;width:100%"; di.setAttribute("aria-label","Menge "+s.n); di.addEventListener("input",()=>{ s.dose=di.value.trim(); }); nm.append(di);
+      if(suppDoseHint(s.n)) nm.append(el("div","note","Empfohlen: "+suppDoseHint(s.n)+(SUPP_TIP.find(([r])=>r.test(s.n))?". "+SUPP_TIP.find(([r])=>r.test(s.n))[1]:"")));
+      const di=el("input"); di.type="text"; di.value=s.dose||""; di.placeholder="Deine Menge laut Packung"; di.style.cssText="font-size:13px;padding:4px 8px;margin-top:3px;width:100%"; di.setAttribute("aria-label","Menge "+s.n); di.addEventListener("input",()=>{ s.dose=di.value.trim(); }); nm.append(di);
       const right=el("div","row nowrap"); const seg=el("div","seg"); seg.style.width="84px"; const bm=el("button",null,"M"), be=el("button",null,"A"); bm.setAttribute("aria-pressed",s.t==="M"?"true":"false"); be.setAttribute("aria-pressed",s.t==="E"?"true":"false"); bm.onclick=()=>{ s.t="M"; drawS(); }; be.onclick=()=>{ s.t="E"; drawS(); }; seg.append(bm,be);
       const del=el("button","x","×"); del.setAttribute("aria-label",s.n+" entfernen"); del.addEventListener("click",()=>{ supps.splice(si,1); drawS(); });
       right.append(seg, sw(s.on,()=>{ s.on=!s.on; drawS(); },s.n), del); r.append(nm,right); sl.append(r); }); };
