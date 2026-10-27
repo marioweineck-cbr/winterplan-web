@@ -984,8 +984,7 @@ const LN = isNative ? plug("LocalNotifications") : null;
 const HC = isNative ? plug("HealthConnect") : null;
 
 let state = normalize({});
-function marioProfile(){ return {setup:false}; };
-}
+function marioProfile(){ return {setup:false}; }
 function normalize(s){
   s = s && typeof s==="object" ? s : {};
   const existing = !!(s.train || s.shift);
