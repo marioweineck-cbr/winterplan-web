@@ -621,7 +621,7 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
         <button class="link" id="copyYest">Von gestern übernehmen</button>
       </div>
       <div class="card" id="recentCard">
-        <h3>Zuletzt verwendet</h3>
+        <h3>Meine Lebensmittel</h3>
         <ul class="list" id="recent"></ul>
       </div>
     </div>
@@ -2231,11 +2231,15 @@ function renderLog(k){
   });
   if(list.length) ul.append(el("li","note","Eintrag antippen, um Menge, Zutaten oder Uhrzeit zu ändern."));
   const rc=$("recent"); rc.innerHTML=""; $("recentCard").hidden = !state.myfoods.length;
-  state.myfoods.slice(0,8).forEach(m=>{
-    const li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span",null,m.n)); tx.append(el("div","macros","je 100 g: "+de(m.k100||0)+" kcal · P "+fmtAmt(m.p100||0)+" · K "+fmtAmt(m.c100||0)+" · F "+fmtAmt(m.f100||0)));
+  const nAll=state.myfoods.length, showAll=!!window.__recentAll, fq=normTxt(window.__recentQ||"");
+  if(nAll>8){ const r=el("li","row nowrap"); const inp=el("input"); inp.type="search"; inp.placeholder="In meinen "+nAll+" Lebensmitteln suchen"; inp.value=window.__recentQ||""; inp.style.flex="1";
+    inp.addEventListener("input",()=>{ window.__recentQ=inp.value; window.__recentAll=true; renderEssen(k); const ni=$("recent").querySelector("input"); if(ni){ ni.focus(); ni.setSelectionRange(ni.value.length,ni.value.length); } }); r.append(inp); rc.append(r); }
+  state.myfoods.filter(m=>!fq || normTxt(m.n+" "+(m.brand||"")).includes(fq)).slice(0, showAll?400:8).forEach(m=>{
+    const li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span",null,m.n+(m.brand&&m.brand!=="Basis"?" · "+m.brand:""))); tx.append(el("div","macros","je 100 g: "+de(m.k100||0)+" kcal · P "+fmtAmt(m.p100||0)+" · K "+fmtAmt(m.c100||0)+" · F "+fmtAmt(m.f100||0)));
     const b=el("button","btn small ghost","+"); b.setAttribute("aria-label",m.n+" hinzufügen"); b.addEventListener("click",()=>openAmount(k,m));
     li.append(tx,b); rc.appendChild(li);
   });
+  if(nAll>8 && !fq){ const t=el("button","link",showAll?"Weniger zeigen":"Alle "+nAll+" zeigen"); t.addEventListener("click",()=>{ window.__recentAll=!showAll; renderEssen(k); }); rc.append(t); }
 }
 
 // ---------- Unterwegs: Fast Food und Snacks (Werte ca., je Portion)
@@ -2338,6 +2342,11 @@ function importAnalyse(rows){
     const ex=new Set(Object.keys(by).map(k=>k.split("|")[1])), days=new Set(Object.keys(by).map(k=>k.split("|")[0]));
     return n ? {kind:"lifts", by, info:n+" Sätze, "+ex.size+" Übungen an "+days.size+" Tagen"} : null;
   }
+  // Lebensmittel Liste (z. B. aus dem Kassenbon erstellt): Name, Marke, kcal, Eiweiß, Kohlenhydrate, Fett je 100 g, Portion, EAN
+  const iN=col(/^name$|^produkt|^lebensmittel/), iK=col(/^kcal|energie|kalorien/);
+  if(iN>=0 && iK>=0){ const iB=col(/^marke|^brand/), iP=col(/eiwei|protein/), iC=col(/kohlenhydr|carb/), iFa=col(/^fett|^fat/), iS=col(/portion|serving/), iE=col(/^ean|^code|barcode/);
+    const list=body.map(r=>({n:(r[iN]||"").trim(), brand:iB>=0?(r[iB]||"").trim():"", k100:num(r[iK]), p100:iP>=0?num(r[iP])||0:0, c100:iC>=0?num(r[iC])||0:0, f100:iFa>=0?num(r[iFa])||0:0, serving:iS>=0&&num(r[iS])>0?num(r[iS]):null, code:iE>=0?(r[iE]||"").trim()||undefined:undefined})).filter(x=>x.n && x.k100>=0);
+    return list.length ? {kind:"foods", list, info:list.length+" Lebensmittel für „Meine Lebensmittel“ unter Essen"} : null; }
   const iW=col(/weight|gewicht|körpergewicht|^kg$/), iF=col(/body ?fat|körperfett|fett ?%|fat ?\(|^fat/);
   if(iW>=0 && iDate>=0){ const lb=/lb/.test(h[iW]); const out=[]; body.forEach(r=>{ const d=parseAnyDate(r[iDate]); let w=num(String(r[iW]||"").replace(/[^\d.,]/g,"")); if(!d || !(w>0)) return; if(lb) w=w*0.4536; if(w<25||w>300) return; const f=iF>=0?num(String(r[iF]||"").replace(/[^\d.,]/g,"")):NaN; out.push({t:d.getTime(), w:Math.round(w*100)/100, bf:f>2&&f<70?f:null}); });
     return out.length ? {kind:"weights", list:out, info:out.length+" Messungen von "+fmtDate(keyOf(new Date(Math.min(...out.map(x=>x.t)))))+" bis "+fmtDate(keyOf(new Date(Math.max(...out.map(x=>x.t)))))} : null; }
@@ -2345,18 +2354,19 @@ function importAnalyse(rows){
 }
 function openImport(){
   openSheet(p=>{ sheetHead(p,"Daten übernehmen");
-    p.append(el("div","note","Exportiere in der alten App eine CSV Datei und wähle sie hier aus. Erkannt werden Gewichtsverläufe (z. B. Renpho, Withings, Garmin, Fitbit, Libra) und Trainings aus Hevy und Strong. Doppelte Einträge werden übersprungen, nichts wird überschrieben."));
+    p.append(el("div","note","Exportiere in der alten App eine CSV Datei und wähle sie hier aus. Erkannt werden Gewichtsverläufe (z. B. Renpho, Withings, Garmin, Fitbit, Libra), Trainings aus Hevy und Strong und Lebensmittel Listen (z. B. aus deinem Kassenbon). Doppelte Einträge werden übersprungen, nichts wird überschrieben."));
     const inp=el("input"); inp.type="file"; inp.accept=".csv,.txt,text/csv"; p.append(inp); const out=el("div"); p.append(out);
     inp.addEventListener("change",async()=>{ out.innerHTML=""; const f=inp.files&&inp.files[0]; if(!f) return; let txt=""; try{ txt=await f.text(); }catch(e){ out.append(el("div","alert bad","Datei konnte nicht gelesen werden.")); return; }
       const a=importAnalyse(csvParse(txt)); if(!a){ out.append(el("div","alert bad","Damit kann die App nichts anfangen. Es braucht eine Spalte mit Datum und eine mit Gewicht, oder bei Trainings Übung, Gewicht und Wiederholungen. Schick mir sonst die ersten Zeilen der Datei.")); return; }
-      out.append(el("div","alert ok",(a.kind==="lifts"?"Training: ":"Gewicht: ")+a.info));
+      out.append(el("div","alert ok",(a.kind==="lifts"?"Training: ":a.kind==="foods"?"Essen: ":"Gewicht: ")+a.info));
       const b=el("button","btn wide","Übernehmen"); b.addEventListener("click",()=>{ let n=0;
         if(a.kind==="weights"){ const days=new Set(); a.list.forEach(x=>{ if((state.wDel||[]).includes(x.t)) return; if(wLogAdd(x.t,x.w,"Import",x.bf!=null?{bf:x.bf}:null)){ n++; days.add(keyOf(new Date(x.t))); } }); days.forEach(d=>wDay(d)); }
+        else if(a.kind==="foods"){ a.list.slice().reverse().forEach(x=>{ rememberFood(x); n++; }); }
         else { Object.entries(a.by).forEach(([key,sets])=>{ const [d,name]=key.split("|"); if((state.lifts[name]||[]).some(s=>s.d===d)) return; insertLift(name,{d,u:"kg",s:sets}); n++; }); }
-        persist(); closeSheet(); render(); toast(n+(a.kind==="lifts"?" Trainingstage pro Übung":" Messungen")+" übernommen"); }); out.append(b); });
+        persist(); closeSheet(); render(); toast(n+(a.kind==="lifts"?" Trainingstage pro Übung":a.kind==="foods"?" Lebensmittel":" Messungen")+" übernommen"); }); out.append(b); });
   });
 }
-function rememberFood(m){ state.myfoods = [m].concat(state.myfoods.filter(x=>!(x.n===m.n && (x.code||"")===(m.code||"")))).slice(0,200); }
+function rememberFood(m){ state.myfoods = [m].concat(state.myfoods.filter(x=>!(x.n===m.n && (x.code||"")===(m.code||"")))).slice(0,400); }
 function openAmount(k, m){
   openSheet(p=>{
     sheetHead(p, m.n);
