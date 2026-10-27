@@ -683,7 +683,7 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
     </div>
     <div class="card">
       <details>
-        <summary>Alle Gewichtseinträge</summary>
+        <summary>Alle Messungen <span class="note">antippen zum Löschen</span></summary>
         <div id="wList" class="note"></div>
       </details>
       <details>
@@ -943,7 +943,8 @@ function normalize(s){
   s.hc = s.hc || {on:false, last:null, steps:{}, sleep:{}, fat:null}; s.hc.steps=s.hc.steps||{}; s.hc.sleep=s.hc.sleep||{};
   s.wManual = s.wManual || {};
   s.caf = s.caf || []; s.wake = s.wake || {}; s.meas = s.meas || [];
-  s.lifts = s.lifts || {}; s.customEx = s.customEx || {}; s.srOv = s.srOv || {}; s.exNotes = s.exNotes || {}; s.sick = s.sick || {}; s.ready = s.ready || {}; s.photos = s.photos || [];
+  s.lifts = s.lifts || {}; s.customEx = s.customEx || {}; s.srOv = s.srOv || {}; s.exNotes = s.exNotes || {}; s.sick = s.sick || {}; s.ready = s.ready || {}; s.photos = s.photos || []; s.wlog = s.wlog || []; s.wDel = s.wDel || [];
+  { const first={}; s.wlog.forEach(x=>{ const d=keyOf(new Date(x.t)); if(!first[d] || x.t<first[d].t) first[d]=x; }); Object.entries(first).forEach(([d,x])=>{ s.weights[d]=x.w; }); }
   if(s.train.run && !s.train.run.ex) s.train.run = null;
   s.hc && (s.hc.rhr = s.hc.rhr || {}, s.hc.hrv = s.hc.hrv || {}, s.hc.burn = s.hc.burn || {});
   s.supps = s.supps || SUPP_DEFAULT.map(x=>Object.assign({},x));
@@ -2050,7 +2051,7 @@ function addFood(k,f){
   toast(f.free && freeCount(k)>2 ? "Das ist schon die "+freeCount(k)+". freie Mahlzeit diese Woche" : f.n+" eingetragen");
   persist(); render();
 }
-function rememberFood(m){ state.myfoods = [m].concat(state.myfoods.filter(x=>!(x.n===m.n && (x.code||"")===(m.code||"")))).slice(0,40); }
+function rememberFood(m){ state.myfoods = [m].concat(state.myfoods.filter(x=>!(x.n===m.n && (x.code||"")===(m.code||"")))).slice(0,200); }
 function openAmount(k, m){
   openSheet(p=>{
     sheetHead(p, m.n);
@@ -2083,12 +2084,33 @@ function fromOFF(prod, code){
     k100: k100!=null ? Math.round(k100) : null, p100:r1(nu["proteins_100g"]), c100:r1(nu["carbohydrates_100g"]), f100:r1(nu["fat_100g"]),
     serving: prod.serving_quantity ? Math.round(Number(prod.serving_quantity)) : null};
 }
+
+// Supermarkt Basis (Netto, Edeka, Rewe, Aldi, Lidl): typische Werte je 100 g, auch ohne Netz suchbar
+const BASIC_FOODS=[
+ ["Skyr natur","Eigenmarke",63,11,4,0.2],["Magerquark","Eigenmarke",67,12,4,0.2],["Speisequark 20 %","Eigenmarke",109,12,3.5,5],["Hüttenkäse","Eigenmarke",98,12.5,2.5,4.5],["Griechischer Joghurt 10 %","Eigenmarke",120,4,4,10],["Naturjoghurt 1,5 %","Eigenmarke",47,4,5,1.5],["High Protein Pudding","Ehrmann, Milbona",75,10,6,1.5],["Protein Joghurt","Milbona, Ehrmann",61,10,4,0.2],
+ ["Milch 1,5 %","Eigenmarke",47,3.4,4.9,1.5],["Milch 3,5 %","Eigenmarke",64,3.3,4.8,3.5],["Haferdrink","Eigenmarke",45,0.5,7,1.5],["Eier (Stück ca. 60 g)","",142,12.6,0.7,9.8],["Gouda jung","Eigenmarke",356,24,0,29],["Gouda light 16 %","Eigenmarke",260,30,0,16],["Mozzarella light","Eigenmarke",165,19,1,9],["Mozzarella","Eigenmarke",250,18,1,19],["Feta","Eigenmarke",270,16,0.5,22.5],["Frischkäse light","Eigenmarke",145,7,4,11],["Reibekäse light","Eigenmarke",280,30,0,17],
+ ["Hähnchenbrustfilet roh","Eigenmarke",105,23.5,0,1.2],["Hähnchenschenkel ohne Haut roh","",120,20,0,4],["Putenbrust roh","Eigenmarke",107,24,0,1],["Rinderhack 5 % roh","Eigenmarke",125,21,0,5],["Rinderhack 10 % roh","",165,20,0,10],["Gemischtes Hack roh","Eigenmarke",250,18,0,20],["Schweineschnitzel roh","",110,22.5,0,2],["Lachs","",208,20,0,13],["Hähnchenbrust Aufschnitt","Eigenmarke",105,20,1.5,2],["Kochschinken","Eigenmarke",115,19,1,4],["Salami","Eigenmarke",400,22,1,34],["Leberkäse","",280,12,1,25],["Wiener Würstchen","Eigenmarke",250,13,1,22],["Gyros Pfanne roh","Eigenmarke",160,19,1,9],
+ ["Haferflocken","Kölln, Eigenmarke",372,13.5,58.7,7],["Reis roh","Eigenmarke",350,7,78,0.6],["Basmati Reis roh","",350,8,77,0.9],["Nudeln roh","Eigenmarke",355,12.5,71,1.5],["Vollkornnudeln roh","",340,13,62,2.5],["Kartoffeln","",77,2,17,0.1],["Süßkartoffeln","",86,1.6,20,0.1],["Toastbrot","Golden Toast, Eigenmarke",260,8,48,3.5],["Vollkorntoast","",240,9,40,4],["Brötchen","Bäcker",270,9,53,1.5],["Vollkornbrot","",220,7,40,1.5],["Wraps Vollkorn","",300,9,48,7],["Reiswaffeln","",385,8,80,3],["Cornflakes","",375,7,84,0.9],["Müsli ohne Zucker","",370,10,60,8],
+ ["Banane","",93,1.2,20,0.2],["Apfel","",52,0.3,11.4,0.2],["Himbeeren TK","",45,1.3,5,0.3],["Beerenmix TK","",45,1,8,0.4],["Brokkoli TK","",35,3,4,0.4],["Gemüsemix TK","",40,2.5,5,0.4],["Paprika","",30,1,5,0.4],["Gurke","",12,0.6,1.8,0.1],["Tomaten","",18,1,3,0.2],["Zucchini","",20,1.6,2,0.4],["Zwiebeln","",40,1.2,7.5,0.1],["Mais Dose abgetropft","",80,2.5,13,1],["Kidneybohnen Dose abgetropft","",100,7,14,0.6],["Passierte Tomaten","Eigenmarke",30,1.4,5,0.2],["Tomatenmark","",90,4.5,15,0.5],
+ ["Whey Protein","",380,75,8,6],["Proteinriegel","",360,33,30,12],["Erdnussbutter","",600,25,13,50],["Nüsse gemischt","",620,18,10,55],["Zartbitterschokolade 70 %","",545,7,33,42],["Vollmilchschokolade","Milka, Eigenmarke",535,6.5,57,31],["Gummibärchen","Haribo",343,7,77,0.5],["Chips","",535,6,52,33],["Eis Vanille","",200,3.5,24,10],
+ ["Olivenöl","",884,0,0,100],["Butter","",741,0.7,0.6,83],["Honig","",320,0.4,80,0],["Ketchup","",110,1.5,25,0.1],["Ketchup light","",50,1,10,0.1],["Mayonnaise","",680,1,3,74],["Senf","",80,5,4,4.5],["Sojasauce","",60,8,6,0],
+ ["Cola","",42,0,10.6,0],["Cola Zero","",0.3,0,0,0],["Monster Energy","",47,0,12,0],["Monster Ultra","",1,0,0.9,0],["Orangensaft","",43,0.7,9,0.1],["Apfelschorle","",24,0,5.5,0]
+].map(([n,brand,k,p,c,f])=>({n, brand:brand||"Basis", k100:k, p100:p, c100:c, f100:f, basic:true}));
 const OFF_FIELDS="code,product_name,product_name_de,brands,nutriments,serving_quantity";
+async function getJSON(url, ms){ const ac=typeof AbortController!=="undefined"?new AbortController():null; const to=setTimeout(()=>ac&&ac.abort(), ms||9000); try{ const r=await fetch(url,{signal:ac?ac.signal:undefined}); if(!r.ok && r.status!==404) throw new Error("HTTP "+r.status); return await r.json(); } finally{ clearTimeout(to); } }
+let offErr=null;
 async function lookupCode(code){
   const own = state.myfoods.find(m=>m.code===code); if(own) return own;
-  const r = await fetch("https://world.openfoodfacts.org/api/v2/product/"+encodeURIComponent(code)+".json?fields="+OFF_FIELDS);
-  const j = await r.json(); if(j.status!==1 || !j.product) return null;
-  return fromOFF(j.product, code);
+  const codes=[code]; if(code.length===13 && code[0]==="0") codes.push(code.slice(1)); if(code.length===12) codes.push("0"+code);
+  offErr=null; let reached=false;
+  for(const c of codes){
+    for(const url of ["https://world.openfoodfacts.org/api/v2/product/"+c+".json?fields="+OFF_FIELDS, "https://de.openfoodfacts.org/api/v0/product/"+c+".json"]){
+      try{ const j=await getJSON(url); reached=true; if(j && j.status===1 && j.product){ const m=fromOFF(j.product, code); if(m.k100!=null || m.n!=="Unbekanntes Produkt") return m; } }
+      catch(e){ offErr=String(e&&e.message||e); }
+    }
+  }
+  if(!reached) throw new Error(offErr||"offline");
+  return null;
 }
 let scanning=false, scanResolve=null, scanStream=null;
 function stopCamera(){ scanning=false; $("scanModal").hidden=true; try{ if(scanStream) scanStream.getTracks().forEach(t=>t.stop()); }catch(e){} scanStream=null; $("scanVideo").srcObject=null; }
@@ -2123,8 +2145,8 @@ async function scan(k){
   if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ toast("Kamera wird auf diesem Gerät nicht unterstützt"); return; }
   const code = await readCode(); if(!code) return;
   toast("Suche Produkt …");
-  let m=null; try{ m = await lookupCode(code); }catch(e){ toast("Keine Verbindung. Werte selbst eintragen"); }
-  if(!m){ openManual(k, code); toast("Produkt nicht gefunden, bitte Werte von der Packung eintragen"); return; }
+  let m=null, off=false; try{ m = await lookupCode(code); }catch(e){ off=true; }
+  if(!m){ openManual(k, code); toast(off ? "Open Food Facts nicht erreichbar ("+(offErr||"kein Netz")+"). Werte von der Packung eintragen, ab dann kennt die App das Produkt" : "Code "+code+" ist noch nicht in der Datenbank. Werte von der Packung eintragen, ab dann kennt die App das Produkt"); return; }
   if(m.k100==null) toast("Keine Nährwerte hinterlegt, bitte von der Packung ergänzen");
   openAmount(k,m);
 }
@@ -2134,19 +2156,22 @@ function openSearch(k){
     const row=el("div","row nowrap"); const inp=el("input"); inp.type="search"; inp.placeholder="z. B. Skyr, Hähnchenbrust, Monster"; inp.setAttribute("aria-label","Suchbegriff");
     const b=el("button","btn small","Suchen"); row.append(inp,b); p.append(row);
     const out=el("div"); p.append(out);
-    const own=()=>{ const q=inp.value.trim().toLowerCase(); return state.myfoods.filter(m=>!q || m.n.toLowerCase().includes(q)).slice(0,6); };
+    const own=()=>{ const q=inp.value.trim().toLowerCase(), ws=q.split(/\s+/).filter(Boolean); const hit=m=>ws.every(w=>(m.n+" "+(m.brand||"")).toLowerCase().includes(w));
+      return state.myfoods.filter(m=>!q || hit(m)).slice(0,6).concat(q ? BASIC_FOODS.filter(hit).slice(0,8) : []); };
     function show(items, msg){
       out.innerHTML=""; if(msg) out.append(el("div","note",msg));
-      items.forEach(m=>{ const r=el("div","opt"); const l=el("div"); l.append(el("div","nm",m.n)); l.append(el("div","macros",[m.brand, m.k100!=null?de(m.k100)+" kcal":"kcal fehlt", "P "+fmtAmt(m.p100||0), "K "+fmtAmt(m.c100||0), "F "+fmtAmt(m.f100||0)].filter(Boolean).join(" · ")+" je 100 g"));
+      items.forEach(m=>{ const r=el("div","opt"); const l=el("div"); l.append(el("div","nm",foodEmoji(m.n)+" "+m.n)); l.append(el("div","macros",[m.brand, m.k100!=null?de(m.k100)+" kcal":"kcal fehlt", "P "+fmtAmt(m.p100||0), "K "+fmtAmt(m.c100||0), "F "+fmtAmt(m.f100||0)].filter(Boolean).join(" · ")+" je 100 g"));
         const a=el("button","btn small ghost","Wählen"); a.addEventListener("click",()=>openAmount(k,m)); r.append(l,a); out.append(r); });
     }
     show(own(), state.myfoods.length?"Deine Lebensmittel":"");
     async function go(){
       const q=inp.value.trim(); if(q.length<2) return;
       show(own(), "Suche in Open Food Facts …");
-      try{ const r=await fetch("https://world.openfoodfacts.org/cgi/search.pl?search_terms="+encodeURIComponent(q)+"&search_simple=1&action=process&json=1&page_size=20&lc=de&cc=de&fields="+OFF_FIELDS); const j=await r.json();
-        const res=(j.products||[]).map(x=>fromOFF(x)).filter(m=>m.k100!=null); show(own().concat(res), res.length? "" : "Nichts gefunden. Probier einen anderen Begriff oder trag es unter Eigenes ein."); }
-      catch(e){ show(own(), "Keine Verbindung. Deine gespeicherten Lebensmittel gehen trotzdem."); }
+      let res=null, err=null;
+      try{ const j=await getJSON("https://search.openfoodfacts.org/search?q="+encodeURIComponent(q)+"&langs=de&page_size=25&fields="+OFF_FIELDS, 8000); res=(j.hits||[]).map(x=>fromOFF(Object.assign({},x,{brands:Array.isArray(x.brands)?x.brands.join(","):x.brands}))); }catch(e){ err=e; }
+      if(!res || !res.length){ try{ const j=await getJSON("https://world.openfoodfacts.org/cgi/search.pl?search_terms="+encodeURIComponent(q)+"&search_simple=1&action=process&json=1&page_size=25&lc=de&cc=de&fields="+OFF_FIELDS, 12000); res=(j.products||[]).map(x=>fromOFF(x)); err=null; }catch(e){ err=e; } }
+      res=(res||[]).filter(m=>m.k100!=null);
+      show(own().concat(res), res.length ? "" : err ? "Online Suche gerade nicht erreichbar. Oben stehen Basis Lebensmittel und deine eigenen." : "Online nichts gefunden. Oben stehen Basis Lebensmittel, sonst unter Eigenes eintragen.");
     }
     b.addEventListener("click",go); inp.addEventListener("keydown",e=>{ if(e.key==="Enter") go(); });
     setTimeout(()=>inp.focus(),50);
@@ -2437,8 +2462,8 @@ async function scaleStop(){
 async function scaleFinish(w, imp){
   const r=scaleRun; if(!r || r.done) return; r.done=true; r.w=w;
   try{ navigator.vibrate && navigator.vibrate([60,40,60]); }catch(e){}
-  const d=calToday(); state.weights[d]=Math.round(w*100)/100; state.wManual[d]=true;
-  const bf=bodyFat(w,imp); if(bf!=null) state.hc.fat={v:bf, d};
+  const d=calToday(); const bf=bodyFat(w,imp); wLogAdd(Date.now(), w, "Waage", bf!=null?{bf}:null); wDay(d);
+  if(bf!=null) state.hc.fat={v:bf, d};
   state.scale=state.scale||{}; state.scale.last={t:Date.now(), w, imp:imp||null, bf, mode:r.mode};
   r.msgText = "Gespeichert"+(bf!=null?" · Körperfett ca. "+String(bf).replace(".",",")+" %":"")+". Du kannst runtergehen.";
   scaleUI(); persist(); render(); setTimeout(scaleStop, 800);
@@ -2510,6 +2535,34 @@ async function openScale(){
   }catch(e){ if(scaleRun){ scaleRun.msgText="Bluetooth ging nicht: "+String(e&&e.message||e).slice(0,80)+". Erlaubnis für Geräte in der Nähe geben."; scaleUI(); } }
 }
 
+// ---------- Einzelne Messungen (mit Uhrzeit und Quelle). Der Tageswert ist die früheste Messung des Tages (morgens).
+function wLogAdd(t, w, src, extra){
+  state.wlog=state.wlog||[]; if(state.wlog.some(x=>Math.abs(x.t-t)<60000 && Math.abs(x.w-w)<0.05)) return false;
+  state.wlog.push(Object.assign({t, w:Math.round(w*100)/100, src}, extra||{})); state.wlog.sort((a,b)=>a.t-b.t);
+  if(state.wlog.length>500) state.wlog=state.wlog.slice(-500); return true;
+}
+function wDay(d){
+  const e=(state.wlog||[]).filter(x=>keyOf(new Date(x.t))===d);
+  if(e.length) state.weights[d]=e[0].w; else { delete state.weights[d]; delete state.wManual[d]; }
+}
+function openWeightDay(d){
+  openSheet(p=>{
+    sheetHead(p,"Messungen "+parseKey(d).toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"}));
+    const e=(state.wlog||[]).filter(x=>keyOf(new Date(x.t))===d);
+    p.append(el("div","note","Gezählt wird die erste Messung des Tages, also morgens. Doppelte oder falsche Messungen einfach löschen."));
+    const ul=el("ul","list");
+    if(!e.length){ ul.append(el("li","note","Für diesen Tag gibt es nur den Tageswert "+kg(state.weights[d]||0)+" kg ohne Uhrzeit.")); }
+    e.forEach((x,i)=>{ const li=el("li","item nt"+(i===0?" wfirst":"")); const tx=el("div","txt"); tx.append(el("span","num",kg(x.w)+" kg"+(i===0?"  ✓ zählt":"")));
+      tx.append(el("div","sub",hm(new Date(x.t))+" Uhr · "+x.src+(x.bf!=null?" · Fett "+String(x.bf).replace(".",",")+" %":"")));
+      const del=el("button","x","×"); del.setAttribute("aria-label","Messung löschen");
+      del.addEventListener("click",()=>{ state.wlog=state.wlog.filter(z=>z!==x); state.wDel=state.wDel||[]; state.wDel.push(x.t); state.wDel=state.wDel.slice(-300); wDay(d); persist(); closeSheet(); render(); toast("Messung "+hm(new Date(x.t))+" gelöscht",()=>{ state.wlog.push(x); state.wlog.sort((a,b)=>a.t-b.t); state.wDel=state.wDel.filter(t=>t!==x.t); wDay(d); persist(); render(); }); });
+      li.append(tx,del); ul.append(li); });
+    p.append(ul);
+    const all=el("button","link warnlink","Ganzen Tag löschen"); let sure=false;
+    all.addEventListener("click",()=>{ if(!sure){ sure=true; all.textContent="Wirklich? Nochmal tippen"; return; } const rm=(state.wlog||[]).filter(x=>keyOf(new Date(x.t))===d); state.wDel=(state.wDel||[]).concat(rm.map(x=>x.t)).slice(-300); state.wlog=(state.wlog||[]).filter(x=>keyOf(new Date(x.t))!==d); delete state.weights[d]; delete state.wManual[d]; persist(); closeSheet(); render(); toast("Tag gelöscht"); });
+    p.append(all);
+  });
+}
 // ---------- Körper
 function renderGewicht(k){
   const entries = Object.entries(state.weights).map(([d,v])=>[d,Number(v)]).filter(e=>isFinite(e[1])).sort((a,b)=>a[0]<b[0]?-1:1);
@@ -2532,8 +2585,9 @@ function renderGewicht(k){
   const wl=$("wList"); wl.innerHTML="";
   if(!entries.length) wl.textContent="Noch kein Eintrag.";
   else { const t=el("table"), tb=el("tbody");
-    entries.slice().reverse().slice(0,60).forEach(([d,v])=>{ const tr=el("tr"); const c=el("td","r"); const x=el("button","x","×"); x.setAttribute("aria-label","Eintrag löschen"); x.addEventListener("click",()=>{ delete state.weights[d]; persist(); render(); }); c.append(x);
-      tr.append(el("td","num",fmtDate(d)), el("td","r num",kg(v)+" kg"), c); tb.appendChild(tr); });
+    entries.slice().reverse().slice(0,60).forEach(([d,v])=>{ const tr=el("tr"); tr.style.cursor="pointer"; const n=(state.wlog||[]).filter(x=>keyOf(new Date(x.t))===d);
+      const first=n[0]; tr.append(el("td","num",fmtDate(d)), el("td","note",first ? hm(new Date(first.t))+" · "+first.src : "Tageswert"), el("td","r num",kg(v)+" kg"), el("td","r note",n.length>1?n.length+"×":""), el("td","chev","›"));
+      tr.addEventListener("click",()=>openWeightDay(d)); tb.appendChild(tr); });
     t.appendChild(tb); wl.appendChild(t); }
   const f=state.hc.fat; $("fatLine").hidden=!f; if(f) $("fatLine").textContent="Körperfett laut Waage: "+String(f.v).replace(".",",")+" % ("+fmtDate(f.d)+")";
 }
@@ -2632,7 +2686,11 @@ async function hcSync(quiet){
   try{
     const ws=await hcReadAll("Weight", new Date(now.getTime()-200*86400000), now), byDay={};
     ws.forEach(r=>{ const w=r.weight; if(!w) return; const kgv = w.unit==="kilogram" ? w.value : w.unit==="pound" ? w.value*0.4536 : w.value/1000; const d=tKey(r.time); if(!byDay[d] || r.time<byDay[d].t) byDay[d]={t:r.time, v:kgv}; });
-    let added=0; Object.entries(byDay).forEach(([d,o])=>{ if(state.wManual[d]) return; const v=Math.round(o.v*100)/100; if(state.weights[d]!==v){ state.weights[d]=v; added++; } });
+    let added=0; const touched=new Set(), del=new Set(state.wDel||[]);
+    ws.forEach(r=>{ const w=r.weight; if(!w) return; const kgv = w.unit==="kilogram" ? w.value : w.unit==="pound" ? w.value*0.4536 : w.value/1000; const t=new Date(r.time).getTime(); if(del.has(t) || kgv<30 || kgv>300) return;
+      const src=/renpho/i.test((r.metadata&&r.metadata.dataOrigin)||"")?"Renpho App":/garmin/i.test((r.metadata&&r.metadata.dataOrigin)||"")?"Garmin":"Health Connect";
+      if(wLogAdd(t, kgv, src)){ added++; touched.add(tKey(r.time)); } });
+    touched.forEach(d=>{ if(state.wManual[d] && !(state.wlog||[]).some(x=>keyOf(new Date(x.t))===d && x.src!=="Renpho App" && x.src!=="Garmin" && x.src!=="Health Connect")) { /* alter Handwert bleibt */ } else wDay(d); });
     if(ws.length) got.push("Gewicht"); if(added && !quiet) toast(added+" Gewichtswerte übernommen");
   }catch(e){}
   try{ const fs=await hcReadAll("BodyFat", new Date(now.getTime()-60*86400000), now); if(fs.length){ const last=fs.reduce((a,b)=>a.time>b.time?a:b); const pct=last.percentage && (last.percentage.value!=null?last.percentage.value:last.percentage); if(pct!=null){ state.hc.fat={v:Math.round(Number(pct)*10)/10, d:tKey(last.time)}; got.push("Körperfett"); } } }catch(e){}
@@ -3052,7 +3110,7 @@ $("cartReset").addEventListener("click",()=>{ state.cart.checked={}; persist(); 
 $("wSave").addEventListener("click",()=>{
   const v=num($("wInput").value);
   if(!(v>30 && v<250)){ toast("Bitte ein gültiges Gewicht eingeben"); return; }
-  state.weights[calToday()]=Math.round(v*100)/100; state.wManual[calToday()]=true; $("wInput").value=""; $("wInput").blur(); persist(); render(); toast("Gewicht gespeichert");
+  wLogAdd(Date.now(), v, "von Hand"); wDay(calToday()); $("wInput").value=""; $("wInput").blur(); persist(); render(); toast("Gewicht gespeichert");
 });
 function undoLast(){ const e=state.train.log.shift(); if(!e) return; if(e.adv) state.train.idx=(state.train.idx-1+SEQ.length)%SEQ.length; (e.ex||[]).forEach(n=>{ const arr=state.lifts[n]; if(!arr) return; const s=arr.find(x=>x.d===e.d); if(s){ arr.splice(arr.indexOf(s),1); if(!arr.length) delete state.lifts[n]; } }); persist(); render(); }
 $("undoTrain").addEventListener("click",()=>{ const e=state.train.log.shift(); if(!e) return; const idx0=state.train.idx; if(e.adv) state.train.idx=(state.train.idx-1+SEQ.length)%SEQ.length;
