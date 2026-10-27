@@ -379,6 +379,12 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
 .foodtot{background:var(--bg);border-radius:var(--rs);padding:10px}
 .ingrow{display:grid;grid-template-columns:1fr 74px 40px 30px;gap:6px;align-items:center;padding:5px 0;border-top:1px solid var(--line)}
 .ingrow .ingn{font-size:14px;min-width:0}.ingrow .ingu{font-size:12px;color:var(--muted)}.ingrow input{padding:7px 6px;text-align:right}.ingrow .emo{font-size:16px;text-align:center}
+
+.scalebox{display:flex;align-items:baseline;justify-content:center;gap:8px;padding:22px 0 10px}
+.scalenum{font-size:56px;font-weight:700;letter-spacing:.02em;transition:color .3s}
+.scalenum.stable{color:var(--done);animation:pop .5s var(--ease)}
+.scalemsg{text-align:center;min-height:20px;font-weight:600}
+.scalebtn{display:flex;align-items:center;justify-content:center}
 </style>
 </head>
 <body>
@@ -618,6 +624,7 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
         <span class="note">kg</span>
         <button class="btn" id="wSave">Speichern</button>
       </div>
+      <button class="btn ghost wide scalebtn" id="wScale"><svg class="hi"><use href="#i-scale"/></svg>Mit der Renpho Waage wiegen</button>
     </div>
     <div class="card">
       <div class="stat">
@@ -2401,6 +2408,108 @@ function openStock(s){
   });
 }
 
+// ---------- Renpho Waage direkt per Bluetooth (QN Protokoll, z. B. ES-26M)
+// Zwei Varianten: a) Waage funkt das Gewicht einfach in der Werbung (Hersteller 0xFFFF, Kopf AA BB, Gewicht LE an 17-18, Status 15)
+//                 b) Verbindung über Dienst FFF0/FFE0 mit kurzem Handschlag, Gewicht BE an 3-4, stabil an 5, Widerstand an 6-7
+const BLE = () => (window.BleClient && isNative) ? window.BleClient : null;
+const QN_SVC=[["0000fff0-0000-1000-8000-00805f9b34fb","0000fff1-0000-1000-8000-00805f9b34fb","0000fff2-0000-1000-8000-00805f9b34fb"],["0000ffe0-0000-1000-8000-00805f9b34fb","0000ffe1-0000-1000-8000-00805f9b34fb","0000ffe3-0000-1000-8000-00805f9b34fb"]];
+let scaleRun=null;
+const qnSum = a => a.reduce((s,x)=>s+x,0) & 0xFF;
+const dvBytes = dv => dv ? new Uint8Array(dv.buffer, dv.byteOffset, dv.byteLength) : new Uint8Array(0);
+const qnTime = () => { const t=Math.floor(Date.now()/1000)-946702800; return [t&255,(t>>8)&255,(t>>16)&255,(t>>24)&255]; };
+function bodyFat(w, imp){
+  const pr=P(), h=(Number(pr.height)||0)/100, age=Number(pr.age)||0; if(!(imp>50) || !h || !age) return null;
+  const f=pr.sex==="f"?1:0, bmi=w/(h*h);
+  const bf=[0.103,0.097][f]*age + [1.524,1.545][f]*bmi - 500/imp - [22,12.7][f];
+  return Math.round(Math.max(5,Math.min(60,bf))*10)/10;
+}
+function scaleUI(){
+  const r=scaleRun; if(!r || !r.box) return;
+  r.num.textContent = r.w ? fmtAmt2(r.w) : "--,--"; r.num.classList.toggle("stable", !!r.done);
+  r.msg.textContent = r.msgText || "";
+}
+const fmtAmt2 = v => v.toFixed(2).replace(".",",");
+async function scaleStop(){
+  const r=scaleRun; scaleRun=null; if(!r) return; clearTimeout(r.to);
+  try{ await BLE().stopLEScan(); }catch(e){}
+  if(r.dev){ try{ await BLE().disconnect(r.dev); }catch(e){} }
+}
+async function scaleFinish(w, imp){
+  const r=scaleRun; if(!r || r.done) return; r.done=true; r.w=w;
+  try{ navigator.vibrate && navigator.vibrate([60,40,60]); }catch(e){}
+  const d=calToday(); state.weights[d]=Math.round(w*100)/100; state.wManual[d]=true;
+  const bf=bodyFat(w,imp); if(bf!=null) state.hc.fat={v:bf, d};
+  state.scale=state.scale||{}; state.scale.last={t:Date.now(), w, imp:imp||null, bf, mode:r.mode};
+  r.msgText = "Gespeichert"+(bf!=null?" · Körperfett ca. "+String(bf).replace(".",",")+" %":"")+". Du kannst runtergehen.";
+  scaleUI(); persist(); render(); setTimeout(scaleStop, 800);
+}
+async function qnConnect(id){
+  const r=scaleRun; if(!r || r.connecting) return; r.connecting=true; r.mode="gatt";
+  try{ await BLE().stopLEScan(); }catch(e){}
+  r.msgText="Verbinde mit der Waage …"; scaleUI();
+  try{
+    await BLE().connect(id, ()=>{ if(scaleRun && !scaleRun.done){ scaleRun.msgText="Verbindung weg. Nochmal draufstellen und neu starten."; scaleUI(); } });
+    r.dev=id;
+    const svcs=await BLE().getServices(id), has=u=>svcs.some(s=>s.uuid.toLowerCase()===u);
+    const set=QN_SVC.find(([s])=>has(s)); if(!set) throw new Error("Dienst nicht gefunden");
+    const [svc, nt, wr]=set; let ver=0x15;
+    const send=async a=>{ try{ await BLE().write(id, svc, wr, new DataView(new Uint8Array(a).buffer)); }catch(e){} };
+    const hello=async()=>{ const u=[0x13,0x09,ver,0x01,0x10,0x00,0x00,0x00]; await send(u.concat([qnSum(u)])); await send([0x02].concat(qnTime())); const s=[0x20,0x08,ver].concat(qnTime()); await send(s.concat([qnSum(s)])); };
+    await BLE().startNotifications(id, svc, nt, dv=>{
+      const b=dvBytes(dv); if(!b.length || !scaleRun) return;
+      if(b[0]===0x12 && b.length>2){ ver=b[2]; r.div = b.length>10 && b[10]===1 ? 100 : null; hello(); return; }
+      if(b[0]===0x14){ const s=[0x20,0x08,ver].concat(qnTime()); send(s.concat([qnSum(s)])); return; }
+      if(b[0]===0x10 && b.length>=10){
+        const raw=(b[3]<<8)|b[4]; let w=raw/100; if(w<1 || w>300) w=raw/10; if(w<1 || w>300) return;
+        const imp=(b[6]<<8)|b[7]; r.w=w; r.msgText="Wiege …"; scaleUI();
+        if(b[5]===1) scaleFinish(w, imp);
+      }
+    });
+    r.msgText="Verbunden, stell dich ruhig hin."; scaleUI();
+    await hello();
+  }catch(e){ r.msgText="Verbinden ging nicht ("+String(e&&e.message||e).slice(0,60)+"). Nochmal versuchen."; scaleUI(); r.connecting=false; }
+}
+function onScaleAdv(res){
+  const r=scaleRun; if(!r || r.done) return;
+  const md=res.manufacturerData||{}, aabb=md["65535"] && dvBytes(md["65535"]);
+  if(aabb && aabb.length>=19 && aabb[0]===0xAA && aabb[1]===0xBB){
+    r.mode="adv"; const w=(aabb[17]|(aabb[18]<<8))/100; if(w<0.5 || w>300) return;
+    const st=aabb[15], now=Date.now();
+    if(r.lastW && Math.abs(r.lastW-w)<0.06){ r.same=(r.same||0)+1; } else { r.same=0; r.since=now; } r.lastW=w; r.w=w;
+    r.msgText="Wiege …"; scaleUI();
+    // stabil: Statusbit 5 oder 0, sonst 2,5 Sekunden gleicher Wert
+    if((st & 0x20) || ((st & 0x01) && r.same>=2) || (r.same>=6 && now-r.since>2500)) scaleFinish(w, null);
+    return;
+  }
+  const name=(res.localName||(res.device&&res.device.name)||""), uu=(res.uuids||[]).join(" ").toLowerCase();
+  if(/qn-scale|renpho|fitindex/i.test(name) || /0000ff[ef]0-/.test(uu) || (state.scale && state.scale.id && res.device.deviceId===state.scale.id)){
+    state.scale=state.scale||{}; state.scale.id=res.device.deviceId; qnConnect(res.device.deviceId);
+  }
+}
+async function openScale(){
+  if(!BLE()){ toast("Die Waage verbindet sich nur in der App auf dem Handy"); return; }
+  await scaleStop();
+  scaleRun={w:null, msgText:"Bluetooth wird gestartet …"};
+  openSheet(p=>{
+    sheetHead(p,"Mit der Waage wiegen");
+    const box=el("div","scalebox"); const num=el("div","scalenum num","--,--"); const unit=el("div","note","kg"); const msg=el("div","note scalemsg");
+    box.append(num, unit); p.append(box, msg);
+    p.append(el("div","note","Morgens, nüchtern, barfuß. Die App muss offen bleiben, bis „Gespeichert“ kommt. Die Renpho App brauchst du dafür nicht."));
+    const again=el("button","btn wide ghost","Neu starten"); again.addEventListener("click",()=>openScale()); p.append(again);
+    Object.assign(scaleRun,{box,num,msg}); scaleUI();
+  }, "scale");
+  // Sheet zu: Scan beenden
+  const obs=new MutationObserver(()=>{ if($("sheet").hidden){ obs.disconnect(); scaleStop(); } }); obs.observe($("sheet"),{attributes:true, attributeFilter:["hidden"]});
+  try{
+    await BLE().initialize({androidNeverForLocation:true});
+    if(!(await BLE().isEnabled())){ try{ await BLE().requestEnable(); }catch(e){} }
+    if(!(await BLE().isEnabled())){ scaleRun && (scaleRun.msgText="Bitte Bluetooth einschalten und neu starten.", scaleUI()); return; }
+    scaleRun.msgText="Stell dich jetzt auf die Waage."; scaleUI();
+    await BLE().requestLEScan({allowDuplicates:true, scanMode:2}, onScaleAdv);
+    scaleRun.to=setTimeout(()=>{ if(scaleRun && !scaleRun.done && !scaleRun.connecting){ scaleRun.msgText="Keine Waage gefunden. Draufstellen, dann Neu starten. Ist die Renpho App offen, kurz schließen."; scaleUI(); try{ BLE().stopLEScan(); }catch(e){} } }, 60000);
+  }catch(e){ if(scaleRun){ scaleRun.msgText="Bluetooth ging nicht: "+String(e&&e.message||e).slice(0,80)+". Erlaubnis für Geräte in der Nähe geben."; scaleUI(); } }
+}
+
 // ---------- Körper
 function renderGewicht(k){
   const entries = Object.entries(state.weights).map(([d,v])=>[d,Number(v)]).filter(e=>isFinite(e[1])).sort((a,b)=>a[0]<b[0]?-1:1);
@@ -2922,6 +3031,7 @@ $("aScan").addEventListener("click",()=>scan(activeDay()));
 $("aSearch").addEventListener("click",()=>openSearch(activeDay()));
 $("aOut").addEventListener("click",()=>openOut(activeDay()));
 $("reviewOpen").addEventListener("click",openReview);
+$("wScale").addEventListener("click",openScale);
 $("miniStepsB").addEventListener("click",()=>openStepsDay(calToday()));
 $("miniSleepB").addEventListener("click",()=>{ const k=calToday(); openSleep(state.hc.sleep[k]!=null||(state.hc.sleepT||{})[k] ? k : addDays(k,-1)); });
 $("stepChart").addEventListener("click",e=>{ const r=e.target.closest("rect"); if(r && r.dataset.d) openStepsDay(r.dataset.d); }); $("reviewOpen2").addEventListener("click",openReview);
