@@ -366,6 +366,19 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
 .actions button:nth-child(2) svg{background:color-mix(in srgb,var(--carb) 16%,transparent);color:var(--carb)}
 .actions button:nth-child(3) svg{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
 .actions button:nth-child(4) svg{background:color-mix(in srgb,var(--done) 16%,transparent);color:var(--done)}
+
+.expic.photo{border-radius:14px;overflow:hidden;position:relative;background:var(--bg);cursor:zoom-in}
+.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.expic.photo img.alt{display:none}
+.exhero.photo{width:100%;height:auto;aspect-ratio:4/3;border-radius:18px;overflow:hidden;position:relative;background:var(--bg)}
+.exhero.photo img.alt{animation:exSwap 2.4s ease-in-out infinite}
+@keyframes exSwap{0%,40%{opacity:0}50%,90%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion: reduce){.exhero.photo img.alt{animation:none;opacity:0}}
+
+.foodhead{display:flex;align-items:center;gap:12px}.foodhead>div{flex:1}.bigemo{font-size:40px;width:60px;height:60px;border-radius:18px;background:var(--bg);display:grid;place-items:center;animation:pop .4s var(--ease)}
+.foodtot{background:var(--bg);border-radius:var(--rs);padding:10px}
+.ingrow{display:grid;grid-template-columns:1fr 74px 40px 30px;gap:6px;align-items:center;padding:5px 0;border-top:1px solid var(--line)}
+.ingrow .ingn{font-size:14px;min-width:0}.ingrow .ingu{font-size:12px;color:var(--muted)}.ingrow input{padding:7px 6px;text-align:right}.ingrow .emo{font-size:16px;text-align:center}
 </style>
 </head>
 <body>
@@ -1355,6 +1368,93 @@ const EX_ART={
   bank:{g:"chest", back: aLn(10,45,46,45,4), f:{hd:[42,38],sh:[35,41],hip:[19,41],k:[11,47],ft:[10,57],e:[33,33],h:[35,21]}}
 };
 
+
+// Übungsfotos (Free Exercise DB, gemeinfrei): Start und Endposition
+const EX_IMG={"Schrägbank Maschine": "Leverage_Incline_Chest_Press", "Schrägbankdrücken Multipresse": "Smith_Machine_Incline_Bench_Press", "Fliegende vom Kabel, von unten": "Low_Cable_Crossover", "Schrägbankdrücken Kurzhanteln": "Incline_Dumbbell_Press", "Schrägbankdrücken Langhantel": "Barbell_Incline_Bench_Press_-_Medium_Grip", "Brustpresse Maschine": "Leverage_Chest_Press", "Brustpresse am Kabel": "Cable_Chest_Press", "Bankdrücken Multipresse": "Smith_Machine_Bench_Press", "Bankdrücken Kurzhanteln": "Dumbbell_Bench_Press", "Liegestütze an Griffen": "Pushups", "Bankdrücken Langhantel": "Barbell_Bench_Press_-_Medium_Grip", "Butterfly Maschine": "Butterfly", "Cable Crossover": "Cable_Crossover", "Fliegende Kurzhanteln": "Dumbbell_Flyes", "Rudern mit Brustauflage Maschine": "Leverage_Iso_Row", "T-Bar Rudern": "T-Bar_Row_with_Handle", "Kabelrudern sitzend": "Seated_Cable_Rows", "Kurzhantel Rudern einarmig": "One-Arm_Dumbbell_Row", "Langhantel Rudern": "Bent_Over_Barbell_Row", "Latzug eng neutral": "V-Bar_Pulldown", "Latzug einarmig am Kabel": "One_Arm_Lat_Pulldown", "Klimmzug Maschine mit Unterstützung": "Band_Assisted_Pull-Up", "Pulldown Maschine": "Full_Range-Of-Motion_Lat_Pulldown", "Latzug weit": "Wide-Grip_Lat_Pulldown", "Klimmzüge": "Pullups", "Kabelrudern eng": "Seated_Cable_Rows", "Rudermaschine": "Leverage_High_Row", "Seitheben am Kabel einarmig": "Bent_Over_Low-Pulley_Side_Lateral", "Seitheben Maschine": "Cable_Seated_Lateral_Raise", "Seitheben Kurzhanteln": "Side_Lateral_Raise", "Face Pulls am Seil": "Face_Pull", "Reverse Butterfly": "Reverse_Machine_Flyes", "Vorgebeugtes Seitheben": "Seated_Bent-Over_Rear_Delt_Raise", "Trizeps Überkopf am Seil": "Cable_Rope_Overhead_Triceps_Extension", "Trizeps Maschine": "Machine_Triceps_Extension", "Trizeps Überkopf Kurzhantel": "Standing_Dumbbell_Triceps_Extension", "Trizepsdrücken am Seil": "Triceps_Pushdown_-_Rope_Attachment", "Trizepsdrücken an der Stange": "Triceps_Pushdown", "Dip Maschine": "Dip_Machine", "Kickbacks Kurzhantel": "Tricep_Dumbbell_Kickback", "Bizeps Curls am Kabel": "High_Cable_Curls", "Bizeps Maschine": "Machine_Bicep_Curl", "Kurzhantel Curls": "Dumbbell_Bicep_Curl", "SZ Curls": "EZ-Bar_Curl", "Hammer Curls am Seil": "Cable_Hammer_Curls_-_Rope_Attachment", "Hammer Curls Kurzhantel": "Hammer_Curls", "Preacher Curls Maschine": "Machine_Preacher_Curls", "Preacher Curls am Kabel": "Cable_Preacher_Curl", "Scottcurls SZ": "Preacher_Curl", "Scottcurls Kurzhantel einarmig": "One_Arm_Dumbbell_Preacher_Curl", "Bayesian Curls am Kabel": "Standing_One-Arm_Cable_Curl", "Schrägbank Curls Kurzhantel": "Incline_Dumbbell_Curl", "Schulterpresse Maschine, neutraler Griff": "Leverage_Shoulder_Press", "Schulterdrücken Multipresse": "Smith_Machine_Overhead_Shoulder_Press", "Landmine Press": "Landmine_Linear_Jammer", "Schulterdrücken Kurzhanteln": "Dumbbell_Shoulder_Press", "Mehr Seitheben statt Drücken": "Side_Lateral_Raise", "Hackenschmidt": "Hack_Squat", "Pendulum Squat": "Lying_Machine_Squat", "Kniebeuge an der Multipresse": "Smith_Machine_Squat", "Goblet Squat": "Goblet_Squat", "Kniebeuge Langhantel": "Barbell_Squat", "Beinpresse": "Leg_Press", "Beinpresse einbeinig": "Leg_Press", "Beinstrecker": "Leg_Extensions", "Beinstrecker einbeinig": "Single-Leg_Leg_Extension", "Sissy Squat": "Weighted_Sissy_Squat", "Beinbeuger sitzend": "Seated_Leg_Curl", "Beinbeuger liegend": "Lying_Leg_Curls", "Beinbeuger stehend einbeinig": "Standing_Leg_Curl", "Beinbeuger am Kabel": "Standing_Leg_Curl", "Wadenheben stehend Maschine": "Standing_Calf_Raises", "Wadenheben an der Beinpresse": "Calf_Press_On_The_Leg_Press_Machine", "Wadenheben Multipresse": "Smith_Machine_Calf_Raise", "Wadenheben sitzend Maschine": "Seated_Calf_Raise", "Bauchmaschine": "Ab_Crunch_Machine", "Kabelcrunch": "Cable_Crunch", "Beinheben am Dipständer": "Knee_Hip_Raise_On_Parallel_Bars", "Crunches am Boden": "Crunches", "Hip Thrust Maschine": "Barbell_Hip_Thrust", "Hip Thrust Multipresse": "Smith_Machine_Hip_Raise", "Rückenstrecker 45° mit Scheibe": "Hyperextensions_Back_Extensions", "Rumänisches Kreuzheben Kurzhanteln": "Stiff-Legged_Dumbbell_Deadlift", "Rumänisches Kreuzheben Langhantel": "Romanian_Deadlift", "Bulgarische Kniebeuge Multipresse": "Smith_Single-Leg_Split_Squat", "Bulgarische Kniebeuge ohne Gewicht": "Split_Squats", "Ausfallschritte an der Multipresse": "Smith_Single-Leg_Split_Squat", "Bulgarische Kniebeuge Kurzhanteln": "Split_Squat_with_Dumbbells", "Ausfallschritte gehend Kurzhanteln": "Dumbbell_Lunges", "Hyperextensions": "Hyperextensions_Back_Extensions", "Rückenstrecker Maschine": "Hyperextensions_With_No_Hyperextension_Bench", "Adduktoren Maschine": "Thigh_Adductor", "Adduktion am Kabel": "Cable_Hip_Adduction", "Rad": "Bicycling_Stationary", "Laufband schräg gehen": "Walking_Treadmill", "Stairmaster": "Stairmaster", "Draußen zügig gehen": "Trail_Running_Walking"};
+function exPicEl(name, pk, hero){
+  const box=el("div", hero?"exhero photo":"expic photo"), f=EX_IMG[name];
+  if(!f){ box.classList.remove("photo"); box.innerHTML=exArt(pk); return box; }
+  const a=el("img"); a.src="ex/"+f+"-0.jpg"; a.alt=name; a.loading="lazy"; a.decoding="async"; box.append(a);
+  const b=el("img"); b.src="ex/"+f+"-1.jpg"; b.alt=""; b.loading="lazy"; b.className="alt"; b.onerror=()=>b.remove(); box.append(b);
+  a.onerror=()=>{ box.classList.remove("photo"); box.innerHTML=exArt(pk); };
+  if(!hero){ box.title="Antippen für groß"; box.addEventListener("click",e=>{ e.stopPropagation(); openExPic(name,pk); }); }
+  return box;
+}
+function openExPic(name,pk){ openSheet(p=>{ sheetHead(p,name); p.append(exPicEl(name,pk,true)); p.append(el("div","note","Start und Endposition im Wechsel. Fotos: Free Exercise DB, gemeinfrei.")); }); }
+
+
+// ---------- Zutaten: Nährwerte je Einheit (g und ml je 100, sonst je Stück, EL, TL, Dose, Zehe, Glas) [kcal, Eiweiß, Kohlenhydrate, Fett]
+const ING={
+  "Haferflocken":[372,13.5,58.7,7],"Hähnchenbrust":[105,23.5,0,1.2],"Hähnchenbrust oder Schenkel ohne Haut":[120,21,0,4],"Schweineschnitzel oder Hähnchenbrust":[110,22.5,0,2],
+  "Rinderhack (5 % Fett)":[125,21,0,5],"Rinderhack (max. 10 % Fett)":[165,20,0,10],"Hüttenkäse":[98,12.5,2.5,4.5],"Magerquark":[67,12,4,0.2],"Skyr":[63,11,4,0.2],"Skyr oder Magerquark":[65,11.5,4,0.2],
+  "Frischkäse light":[145,7,4,11],"Geriebener Käse light":[280,30,0,17],"Mozzarella light oder Käse light":[165,19,1,9],"Hähnchenaufschnitt oder Kochschinken":[105,20,1.5,2],
+  "Lasagneplatten":[350,12,70,1.5],"Nudeln":[355,12.5,71,1.5],"Reis":[350,7,78,0.6],"Passierte Tomaten":[30,1.4,5,0.2],"Tomatensauce oder passierte Tomaten":[35,1.5,6,0.3],"Tomatenmark":[90,4.5,15,0.5],
+  "TK Beeren":[45,1,8,0.4],"TK Himbeeren":[45,1.3,5,0.3],"TK Brokkoli oder Gemüsemix":[35,3,4,0.4],"TK Erbsen":[80,5.5,12,0.5],"Whey":[380,75,8,6],"Kokosmilch light":[75,0.7,1.8,7],"Milch":[47,3.4,4.9,1.5],
+  "Dunkle Schokolade":[545,7,33,42],"Wasser":[0,0,0,0],
+  "Eier":[75,6.5,0.5,5.3],"Eisbergsalat":[70,5,8,1],"Gurke":[50,2.5,7,0.5],"Obst (Banane oder Apfel)":[100,1,22,0.3],"Banane":[105,1.2,24,0.3],"Paprika":[40,1.5,7,0.5],"Tomaten":[18,1,3,0.2],
+  "Vollkorn Wrap":[170,5.5,28,3.5],"Zucchini":[50,4,5,1],"Zwiebeln":[32,1,6,0.1],
+  "Currypulver oder Paste":[40,1.5,5,1.5],"Gyrosgewürz":[25,1,4,0.5],"Honig":[64,0,17,0],"Ketchup light":[10,0.2,2,0],"Senf":[12,0.8,0.6,0.7],"Sojasauce":[9,1.3,1,0],
+  "Backpulver":[5,0,1.2,0],"Ingwer":[3,0,0.6,0],"Speisestärke":[11,0,2.8,0],"Mais":[230,7,40,3],"Gehackte Tomaten":[90,4.5,14,0.8],"Kidneybohnen":[250,18,35,1.5],"Gewürzgurken":[60,2,10,0.5],"Knoblauch":[4,0.2,1,0]
+};
+const PER100={g:1,ml:1};
+function ingMacro(n,a,u){ const v=ING[n]; if(!v) return [0,0,0,0]; const f = PER100[u] ? a/100 : (u==="EL"&&n==="Tomatenmark" ? a*0.15 : a); return v.map(x=>x*f); }
+// Baukasten Einträge mit ihren Zutaten (eine Portion)
+const QUICK_SRC={"Protein Porridge":["porr",1],"Bolognese Box":["bolo",1],"Teriyaki Box":["teri",1],"Chili Box":["chili",1],"Curry Box":["curry",1],"Gyros Bowl":["gyros",1],"Paprika Pfanne":["paprika",1],"Burger Bowl":["burger",1],"Protein Lasagne":["lasagne",1],"Pizza Wrap":["wrap",1],"Quark mit Obst":["quark",1],"2 Protein Waffeln":["waff",2],
+  "Snack vor dem Training":[[[1,"Stk","Banane"],[250,"g","Skyr"]]],"Whey Shake":[[[30,"g","Whey"],[300,"ml","Wasser"]]],"Obst und Schoki":[[[1,"Stk","Obst (Banane oder Apfel)"],[20,"g","Dunkle Schokolade"]]]};
+function baseIngredients(f){
+  const src=QUICK_SRC[f.n] || (f.rid ? [f.rid,1] : null); if(!src) return null;
+  if(Array.isArray(src[0])) return src[0].map(([a,u,n])=>({a,u,n}));
+  const r=allRecipes().find(x=>x.id===src[0]); if(!r || !r.z) return null;
+  const rd=(v,u)=> PER100[u] ? Math.round(v) : u==="EL"||u==="TL" ? Math.round(v*2)/2 : Math.round(v*10)/10;
+  return r.z.map(([a,u,n])=>({a:rd(a*src[1]/r.por,u)||(PER100[u]?1:0.25),u,n}));
+}
+const sumIng = list => list.reduce((t,x)=>{ const m=ingMacro(x.n,num(x.a)||0,x.u); return t.map((v,i)=>v+m[i]); },[0,0,0,0]);
+function openFoodItem(k, f){
+  const base=baseIngredients(f), last=(state.lastVar||{})[f.n];
+  let mode = last ? "last" : "base", fac = last ? last.fac : 1, rows = null;
+  const reset = m => { mode=m; if(!base){ rows=null; fac = m==="last"&&last ? last.fac : 1; return; } rows = base.map(x=>({...x})); fac=1; if(m==="last" && last){ fac=last.fac||1; rows.forEach(x=>{ if(last.am && last.am[x.n]!=null) x.a=last.am[x.n]; }); (last.extra||[]).forEach(e=>rows.push({...e})); } };
+  reset(mode);
+  openSheet(p=>{
+    const h=el("div","foodhead"); h.append(el("span","bigemo",foodEmoji(f.n))); const ht=el("div"); ht.append(el("h2",null,f.n)); h.append(ht);
+    const x=el("button","x","×"); x.setAttribute("aria-label","Schließen"); x.addEventListener("click",closeSheet); h.append(x); p.append(h);
+    const seg=el("div","seg"); const bB=el("button",null,"Basis"), bL=el("button",null,"Wie letztes Mal"); seg.append(bB); if(last) seg.append(bL); p.append(seg);
+    const tot=el("div","stat4 foodtot"); p.append(tot);
+    p.append(el("div","cat","Menge"));
+    const fs=el("div","chips"); [0.5,0.75,1,1.25,1.5,2].forEach(v=>{ const b=el("button",null,v===1?"1 Portion":String(v).replace(".",",")+" ×"); b.dataset.v=v; b.addEventListener("click",()=>{ fac=v; draw(); }); fs.append(b); }); p.append(fs);
+    const go=el("button","btn wide","Eintragen"); p.append(go);
+    const ingBox=el("div"); p.append(ingBox);
+    const calc=()=>{ const sc=[f.kcal,f.p,f.c,f.f]; if(!rows) return sc.map(v=>v*fac);
+      const now=sumIng(rows), ref=sumIng(base); return sc.map((v,i)=>{ const r = ref[i]>0.5 ? now[i]/ref[i] : 1; return (ref[i]>0.5 ? v*r : v + now[i]-ref[i]) * fac; }); };
+    const drawTot=()=>{ const m=calc(); tot.innerHTML=""; [["kcal",de(m[0])],["Eiweiß",de(m[1])+" g"],["Kohlenh.",de(m[2])+" g"],["Fett",de(m[3])+" g"]].forEach(([a,b])=>{ const d=el("div"); d.append(el("span","label",a), el("span","mid",b)); tot.append(d); }); };
+    const draw=()=>{
+      bB.setAttribute("aria-pressed",mode==="base"?"true":"false"); bL.setAttribute("aria-pressed",mode==="last"?"true":"false");
+      fs.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", Number(b.dataset.v)===fac?"true":"false"));
+      ingBox.innerHTML="";
+      if(rows){
+        ingBox.append(el("div","cat","Drin für 1 Portion, Mengen änderbar"));
+        rows.forEach((x,i)=>{ const r=el("div","ingrow"); r.append(el("span","ingn",x.n));
+          const inp=el("input","num"); inp.type="number"; inp.inputMode="decimal"; inp.step="any"; inp.value=x.a; inp.addEventListener("input",()=>{ x.a=inp.value; mode="custom"; bB.setAttribute("aria-pressed","false"); bL.setAttribute("aria-pressed","false"); drawTot(); });
+          const u=el("span","ingu",x.u); const del=el("button","x","×"); del.setAttribute("aria-label",x.n+" entfernen"); del.addEventListener("click",()=>{ x.a=0; inp.value=0; mode="custom"; drawTot(); });
+          r.append(inp,u,del); ingBox.append(r); });
+        const add=el("div","row nowrap"); const sel=el("select"); const o0=el("option",null,"+ Zutat dazu …"); o0.value=""; sel.append(o0);
+        Object.keys(ING).filter(n=>!rows.some(x=>x.n===n)).sort().forEach(n=>{ const o=el("option",null,n); o.value=n; sel.append(o); });
+        sel.addEventListener("change",()=>{ const n=sel.value; if(!n) return; const pc=["Eier","Eisbergsalat","Gurke","Obst (Banane oder Apfel)","Banane","Paprika","Tomaten","Vollkorn Wrap","Zucchini","Zwiebeln"].includes(n); const sp=["Currypulver oder Paste","Gyrosgewürz","Honig","Ketchup light","Senf","Sojasauce"].includes(n);
+          rows.push({n, u: pc?"Stk":sp?"EL":n==="Milch"||n==="Kokosmilch light"?"ml":"g", a: pc?1:sp?1:50, extra:true}); mode="custom"; draw(); });
+        add.append(sel); ingBox.append(add);
+      } else ingBox.append(el("div","note","Für diesen Eintrag gibt es keine Zutatenliste, du kannst nur die Menge ändern."));
+      drawTot();
+    };
+    bB.addEventListener("click",()=>{ reset("base"); draw(); }); bL.addEventListener("click",()=>{ reset("last"); draw(); });
+    draw();
+    go.addEventListener("click",()=>{
+      const m=calc().map(v=>Math.round(v)); const changed = fac!==1 || mode!=="base";
+      if(rows){ state.lastVar=state.lastVar||{}; const am={}; rows.filter(x=>!x.extra).forEach(x=>am[x.n]=num(x.a)||0); state.lastVar[f.n]={fac, am, extra:rows.filter(x=>x.extra && num(x.a)>0).map(x=>({n:x.n,u:x.u,a:num(x.a),extra:true}))}; }
+      else { state.lastVar=state.lastVar||{}; state.lastVar[f.n]={fac}; }
+      closeSheet(); addFood(k,{n:f.n+(changed?(fac!==1?" ("+String(fac).replace(".",",")+" ×)":" (angepasst)"):""), kcal:m[0], p:m[1], c:m[2], f:m[3], free:f.free});
+    });
+  }, "food");
+}
+
 // ---------- Essen Symbole
 const FOOD_EMO=[[/porridge|oats|hafer|müsli/i,"🥣"],[/bolognese|lasagne|nudel|pasta/i,"🍝"],[/chili/i,"🌶️"],[/teriyaki|curry|reis/i,"🍛"],[/gyros|döner|dürüm|lahmacun/i,"🥙"],[/burger|whopper|big mac|mcchicken|royal|cheeseburger|hamburger/i,"🍔"],[/pizza/i,"🍕"],[/wrap|twister/i,"🌯"],[/paprika|pfanne/i,"🥘"],[/pfannkuchen/i,"🥞"],[/waffel/i,"🧇"],[/quark|skyr|pudding/i,"🥛"],[/shake|whey|drink/i,"🥤"],[/obst|banane|schoki|snack/i,"🍌"],[/frei/i,"🎉"],[/nugget|chicken|hähnchen|wings|original recipe|zinger/i,"🍗"],[/brötchen|brezel|sandwich|teriyaki 15|turkey|steak/i,"🥪"],[/pommes/i,"🍟"],[/jerky/i,"🥩"],[/riegel/i,"🍫"],[/salat|bowl/i,"🥗"],[/ei\b|eier/i,"🥚"]];
 const CHAIN_EMO={"McDonald's":"🍔","Burger King":"👑","KFC":"🍗","Subway":"🥪","Döner":"🥙","Bäcker":"🥨","Supermarkt":"🛒","Tankstelle":"⛽"};
@@ -1475,7 +1575,7 @@ function progressBlock(p, name, sr, o){
   const tb=el("table"), body=el("tbody"); rows.forEach(([a,b])=>{ const tr=el("tr"); tr.append(el("td",null,a), el("td","r num",b)); body.append(tr); }); tb.append(body); p.append(tb);
   p.append(el("div","note","Steigerung gerechnet mit "+String(Math.round(rate*1000)/10).replace(".",",")+" % pro Woche ("+src+"). In der Diät ist Kraft halten schon gut, alles darüber ist Bonus."));
 }
-function openProgress(name){ const {sr,o}=srFor(name); openSheet(p=>{ sheetHead(p,name); { const pk=exByName(name).pk; if(pk){ const hp=el("div","exhero"); hp.innerHTML=exArt(pk); p.append(hp); } } progressBlock(p,name,sr,o); const b=el("button","btn wide ghost","Sätze eintragen oder nachtragen"); b.addEventListener("click",()=>openLog(o,sr,calToday())); p.append(b); }); }
+function openProgress(name){ const {sr,o}=srFor(name); openSheet(p=>{ sheetHead(p,name); { const pk=exByName(name).pk; if(pk) p.append(exPicEl(name, pk, true)); } progressBlock(p,name,sr,o); const b=el("button","btn wide ghost","Sätze eintragen oder nachtragen"); b.addEventListener("click",()=>openLog(o,sr,calToday())); p.append(b); }); }
 function renderProgress(){
   const box=$("progList"); box.innerHTML="";
   const names=Object.keys(state.lifts||{}).filter(n=>state.lifts[n]&&state.lifts[n].length).sort((a,b)=>state.lifts[b][0].d.localeCompare(state.lifts[a][0].d));
@@ -1555,7 +1655,7 @@ function renderTraining(k, ph){
     $("unitNote").textContent=(w>0 && w<=2 ? "Einstieg: 2 Sätze pro Übung, 3 Wdh im Tank." : "1 bis 2 Wdh vor dem Versagen aufhören.")+" Pausen 2 bis 3 Min.";
     setup.forEach(({i,pk,o,sr})=>{
       const pat=PAT[pk], L=liftInfo(o[0]);
-      const r=el("div","ex"), left=el("div"), pic=el("div","expic"); pic.innerHTML=exArt(pk);
+      const r=el("div","ex"), left=el("div"), pic=exPicEl(o[0],pk);
       left.append(el("div","nm",o[0]));
       const h=el("div","hint"); h.append(tagEl(o[1]), document.createTextNode(o[3]||pat.n)); left.append(h);
       if(state.exNotes[o[0]]) left.append(el("div","hint","📝 "+state.exNotes[o[0]]));
@@ -1639,7 +1739,7 @@ function openLog(o,sr,k){
 function openSwap(u,i,hand){
   const pk=UNITS[u].s[i][0], pat=PAT[pk], cur=pickFor(u,i,hand), opts=options(pk);
   openSheet(p=>{
-    sheetHead(p, pat.n); { const hp=el("div","exhero"); hp.innerHTML=exArt(pk); p.append(hp); }
+    sheetHead(p, pat.n); p.append(exPicEl(opts[cur][0], pk, true));
     p.append(el("div","note","Alternative wählen, wenn ein Gerät besetzt ist, etwas weh tut oder dir etwas besser liegt. Die Wahl bleibt für diese Einheit gespeichert."));
     const box=el("div");
     opts.forEach((o,idx)=>{
@@ -1769,7 +1869,7 @@ function renderLive(){
   }
   run.ex.forEach((x,xi)=>{
     const card=el("div","card lex"+((x.sets?x.sets.every(s=>s.done):x.done)?" exdone":""));
-    const top=el("div","between"); const nm=el("div","lexh"); const lp=el("div","expic"); lp.innerHTML=exArt(UNITS[run.u].s[x.i][0]); const nmi=el("div"); nm.append(lp,nmi); nmi.append(el("div","nm",x.name)); const hint=el("div","hint"); hint.append(tagEl(x.o[1]), document.createTextNode(x.sr)); nmi.append(hint);
+    const top=el("div","between"); const nm=el("div","lexh"); const lp=exPicEl(x.name, UNITS[run.u].s[x.i][0]); const nmi=el("div"); nm.append(lp,nmi); nmi.append(el("div","nm",x.name)); const hint=el("div","hint"); hint.append(tagEl(x.o[1]), document.createTextNode(x.sr)); nmi.append(hint);
     const sw=el("button","link","Tauschen"); sw.addEventListener("click",()=>openSwap(run.u,x.i,ph.hand)); top.append(nm, sw); card.append(top);
     if(state.exNotes[x.name]) card.append(el("div","hint","📝 "+state.exNotes[x.name]));
     if(x.cardio){ const r=el("div","between"); r.append(el("span","note","Locker, Puls so dass du noch reden kannst.")); r.append(tickBtn(x.done,()=>{ x.done=!x.done; persist(); renderLive(); },"Cardio erledigt")); card.append(r); body.append(card); return; }
@@ -1878,8 +1978,8 @@ function renderLog(k){
   $("macroLeft").textContent = "Ziel "+de(G.kcal)+" kcal · P "+G.p+" · K "+G.c+" · F "+G.f+". Noch "+de(Math.max(0,G.kcal-T.kcal))+" kcal und "+de(Math.max(0,G.p-T.p))+" g Eiweiß.";
   const fc=freeCount(k); $("freeInfo").textContent=list.length+" Einträge · Freie Mahlzeiten diese Woche "+fc+" von 2"; $("freeInfo").classList.toggle("warnTxt", fc>2);
   const q=$("quick"); q.innerHTML="";
-  QUICK.concat((state.myRecipes||[]).map(r=>({n:r.n, kcal:r.kcal, p:r.p, c:r.c, f:r.f}))).forEach(f=>{ const b=el("button"); b.append(el("span","emo",foodEmoji(f.n)), document.createTextNode(f.n)); b.append(el("small",null,f.kcal+" kcal · "+f.p+" g P"));
-    b.addEventListener("click",()=>addFood(k,{n:f.n,kcal:f.kcal,p:f.p,c:f.c,f:f.f,free:f.free})); q.appendChild(b); });
+  QUICK.concat((state.myRecipes||[]).map(r=>({n:r.n, kcal:r.kcal, p:r.p, c:r.c, f:r.f, rid:r.id}))).forEach(f=>{ const b=el("button"); b.append(el("span","emo",foodEmoji(f.n)), document.createTextNode(f.n)); b.append(el("small",null,f.kcal+" kcal · "+f.p+" g P"));
+    b.addEventListener("click",()=>openFoodItem(k,f)); q.appendChild(b); });
   const ul=$("foodLog"); ul.innerHTML="";
   if(!list.length) ul.append(el("li","note","Noch nichts eingetragen. Baukasten antippen, scannen oder suchen."));
   list.forEach((f,idx)=>{
