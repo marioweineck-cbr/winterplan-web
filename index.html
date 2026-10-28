@@ -675,7 +675,7 @@ h3 .hi{width:22px;height:22px;padding:3px;border-radius:8px;background:color-mix
       <div class="note" id="chartNote"></div>
     </div>
     <div class="card" id="bcCard">
-      <div class="between"><h3><svg class="hi"><use href="#i-scale"/></svg>Körperanalyse</h3><button class="link" id="bcCal">Abgleichen</button></div>
+      <div class="between"><h3><svg class="hi"><use href="#i-scale"/></svg>Körperanalyse</h3><span class="row nowrap" style="gap:12px"><button class="link" id="bcCmp">Vergleichen</button><button class="link" id="bcCal">Abgleichen</button></span></div>
       <div id="bodyComp"></div>
     </div>
     <div class="card">
@@ -1810,7 +1810,7 @@ function badgeList(){
   tier("sr","🔥","# Tage Serie","Tage",streakInfo().n,[7,14,30,60]);
   tier("pr","🏆","# Rekorde","Rekorde",prCount(),[1,10,25,50]);
   const sg=strengthGain(); tier("st","💪","# % stärker","%",sg?Math.round(sg.g):0,[10,25,50],t=>"+"+t);
-  if(["cut","cutHard","mini","recomp"].includes(P().goal)){ const st=Number(P().weight), cur=wAvg(0,7); const lost=st&&cur?Math.round((st-cur)*10)/10:0; tier("kg","⚖️","# kg weniger","kg",lost,[1,3,5,8,10]); }
+  if(["cut","cutHard","mini","recomp"].includes(P().goal)){ const st=Number(P().startWeight||P().weight), cur=wAvg(0,7); const lost=st&&cur?Math.round((st-cur)*10)/10:0; tier("kg","⚖️","# kg weniger","kg",lost,[1,3,5,8,10]); }
   const G=goals(); tier("fd","🍽️","# Tage Essen eingetragen","Tage am Stück",runDays(d=>foodSum(d).n>=2),[7,14,30]);
   let pd=0; for(let i=1;i<=30;i++){ if(foodSum(addDays(calToday(),-i)).p>=G.p*0.9) pd++; } tier("pd","🥩","# Tage Eiweißziel (30 Tage)","Tage",pd,[7,15,25]);
   const st=state.hc.steps||{}; tier("sp","👟","# Tage über "+de(STEP_GOAL)+" Schritte","Tage",Object.values(st).filter(v=>v>=STEP_GOAL).length,[10,30,60]);
@@ -2892,7 +2892,7 @@ function bcEntries(){ return (state.wlog||[]).filter(x=>x.imp>150).sort((a,b)=>a
 function renderBodyComp(){
   const box=$("bodyComp"); if(!box) return; box.innerHTML="";
   const e=bcEntries(), last=e[e.length-1];
-  $("bcCal").hidden=!last;
+  $("bcCal").hidden=!last; $("bcCmp").hidden=e.length<2;
   if(!last){ box.append(el("div","note","Noch keine Analyse. Stell dich barfuß und mit trockenen Füßen auf die Waage, dann misst sie neben dem Gewicht auch den Widerstand im Körper. Daraus rechnet die App Körperfett, Muskeln, Viszeralfett, Wasser und mehr.")); return; }
   const ref=e.filter(x=>x.t<=last.t-6*86400000).pop() || (e.length>1?e[0]:null);
   box.append(el("div","note",fmtDate(keyOf(new Date(last.t)))+", "+hm(new Date(last.t))+" Uhr"+(ref?" · Vergleich mit "+fmtDate(keyOf(new Date(ref.t))):"")));
@@ -2909,6 +2909,33 @@ function bcChart(e){
     [[hi,T+8],[lo,H-B]].forEach(([val,y])=>{ const tx=document.createElementNS(NS,"text"); tx.setAttribute("x", side?W-2:2); tx.setAttribute("y",y); tx.setAttribute("text-anchor",side?"end":"start"); tx.setAttribute("font-size","10"); tx.setAttribute("fill",col); tx.textContent=dec1(Math.round(val*10)/10); svg.appendChild(tx); }); };
   line("bf","var(--accent)",0); line("muscle","var(--done)",1);
   const wrap=el("div"); wrap.append(svg); const lg=el("div","note"); lg.innerHTML='<b style="color:var(--accent)">Körperfett %</b> und <b style="color:var(--done)">Muskelmasse kg</b> im Verlauf'; wrap.append(lg); return wrap;
+}
+function openBcCompare(tA,tB){
+  const e=bcEntries(); if(e.length<2){ toast("Für einen Vergleich brauchst du mindestens 2 Messungen mit Körperanalyse"); return; }
+  const lab=x=>parseKey(keyOf(new Date(x.t))).toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit",year:"2-digit"})+" "+hm(new Date(x.t))+" · "+kg(x.w)+" kg";
+  let a=e.length-2, b=e.length-1;
+  { const last=e[e.length-1], w=e.filter(x=>x.t<=last.t-6*86400000).pop(); if(w) a=e.indexOf(w); }
+  if(tA!=null && tB!=null){ const ia=e.findIndex(x=>x.t===tA), ib=e.findIndex(x=>x.t===tB); if(ia>=0 && ib>=0){ a=ia; b=ib; } }
+  openSheet(p=>{ sheetHead(p,"Messungen vergleichen");
+    const mk=(t,v,on)=>{ const l=el("label","f",t), s2=el("select"); e.forEach((x,i)=>{ const o=el("option",null,lab(x)); o.value=i; s2.append(o); }); s2.value=String(v); s2.addEventListener("change",()=>on(Number(s2.value))); l.append(s2); return l; };
+    const quick=el("div","chips"); [["Letzte 2",()=>{ a=e.length-2; b=e.length-1; }],["1 Woche",()=>{ b=e.length-1; const w=e.filter(x=>x.t<=e[b].t-6*86400000).pop(); a=w?e.indexOf(w):0; }],["1 Monat",()=>{ b=e.length-1; const w=e.filter(x=>x.t<=e[b].t-28*86400000).pop(); a=w?e.indexOf(w):0; }],["Erste",()=>{ a=0; b=e.length-1; }]].forEach(([t,f])=>{ const bt=el("button",null,t); bt.addEventListener("click",()=>{ f(); draw(); }); quick.append(bt); });
+    const box=el("div"); p.append(quick, box);
+    const draw=()=>{ box.innerHTML=""; if(a>b){ const t=a; a=b; b=t; } box.append(mk("Vorher",a,v=>{ a=v; draw(); }), mk("Nachher",b,v=>{ b=v; draw(); }));
+      const A=e[a], B=e[b], ca=bodyComp(A.w,A.imp), cb=bodyComp(B.w,B.imp), days=Math.round((B.t-A.t)/86400000);
+      if(!ca || !cb){ box.append(el("div","note","Für eine der Messungen fehlt die Körperanalyse.")); return; }
+      const dW=Math.round((B.w-A.w)*10)/10, dF=Math.round((cb.fat-ca.fat)*10)/10, dM=Math.round((cb.muscle-ca.muscle)*10)/10;
+      const sum=el("div","alert "+(dF<=0&&dM>=-0.3?"ok":"")); sum.textContent=(days?"In "+days+" Tag"+(days===1?"":"en")+": ":"")+"Gewicht "+(dW>0?"+":"")+dec1(dW)+" kg, davon Fett "+(dF>0?"+":"")+dec1(dF)+" kg und Muskeln "+(dM>0?"+":"")+dec1(dM)+" kg."+(dF<0&&dM>=-0.3?" Genau so soll es sein: Fett runter, Muskeln bleiben.":dF<0&&dM<-0.3?" Fett geht runter, aber auch etwas Muskeln: Eiweiß hoch halten und schwer trainieren.":dF>0?" Etwas mehr Fett. Ein einzelner Wert schwankt, schau auf den Verlauf über Wochen.":"");
+      box.append(sum);
+      const t=el("table"), tb=el("tbody"); const head=el("tr"); head.append(el("td"), el("td","r note","vorher"), el("td","r note","nachher"), el("td","r note","Δ")); tb.append(head);
+      [["Gewicht",A.w,B.w," kg",true],["Körperfett",ca.bf,cb.bf," %",true],["Fettmasse",ca.fat,cb.fat," kg",true],["Muskelmasse",ca.muscle,cb.muscle," kg",false],["Skelettmuskel",ca.smmP,cb.smmP," %",false],["Viszeralfett",ca.vf,cb.vf,"",true],["Körperwasser",ca.water,cb.water," %",false],["Knochenmasse",ca.bone,cb.bone," kg",false],["Grundumsatz",ca.bmr,cb.bmr," kcal",false],["BMI",ca.bmi,cb.bmi,"",true],["Widerstand",A.imp,B.imp," Ω",null]].forEach(([n,va,vb,u,low])=>{
+        const tr=el("tr"), d=Math.round((vb-va)*10)/10, big=Math.abs(va)>=100; const f=v=>big?de(v):dec1(Math.round(v*10)/10);
+        const td=el("td","r num"+(low==null||Math.abs(d)<0.05?"":((low?d<0:d>0)?" up":" warnTxt")), (d>0?"+":"")+(big?de(d):dec1(d))+u);
+        tr.append(el("td",null,n), el("td","r num",f(va)), el("td","r num",f(vb)), td); tb.append(tr); });
+      t.append(tb); box.append(t);
+      box.append(el("div","note","Grün heißt in die richtige Richtung. Am aussagekräftigsten ist der Vergleich von Messungen zur gleichen Tageszeit, am besten morgens nüchtern. Wasser im Körper verschiebt Fett und Muskeln von Tag zu Tag um bis zu 1 kg."));
+      quick.querySelectorAll("button").forEach(x=>x.removeAttribute("aria-pressed")); };
+    draw();
+  });
 }
 function openBcCal(){
   const e=bcEntries(), last=e[e.length-1]; if(!last) return;
@@ -3050,6 +3077,7 @@ function openWeightDay(d){
       del.addEventListener("click",()=>{ state.wlog=state.wlog.filter(z=>z!==x); state.wDel=state.wDel||[]; state.wDel.push(x.t); state.wDel=state.wDel.slice(-300); wDay(d); persist(); closeSheet(); render(); toast("Messung "+hm(new Date(x.t))+" gelöscht",()=>{ state.wlog.push(x); state.wlog.sort((a,b)=>a.t-b.t); state.wDel=state.wDel.filter(t=>t!==x.t); wDay(d); persist(); render(); }); });
       li.append(tx,del); ul.append(li); });
     p.append(ul);
+    { const ie=e.filter(x=>x.imp>150).sort((x,y)=>x.t-y.t); if(ie.length>=2){ const cb=el("button","btn wide ghost","Messungen vergleichen"); cb.addEventListener("click",()=>openBcCompare(ie[0].t, ie[ie.length-1].t)); p.append(cb); } }
     { const im=e.filter(x=>x.imp>150).map(x=>x.imp); if(im.length>=2){ const lo=Math.min(...im), hi=Math.max(...im), dev=Math.round((hi-lo)/lo*100);
       p.append(el("div","alert"+(dev>8?" bad":" ok"), dev>8 ? "Der Widerstand schwankt heute um "+dev+" % ("+lo+" bis "+hi+" Ω). Meist liegt das an feuchten oder kalten Füßen, Socken, nicht ruhig stehen oder viel getrunken. Die Messung, die aus der Reihe fällt, lieber löschen." : "Widerstand passt zusammen ("+lo+" bis "+hi+" Ω, "+dev+" % Unterschied). Die Messungen sind stimmig.")); } }
     const all=el("button","link warnlink","Ganzen Tag löschen"); let sure=false;
@@ -3098,7 +3126,7 @@ function drawChart(entries){
   const s0 = startKey(), x0 = old.length ? old[0][0] : addDays(s0,-14), end = addDays(s0, (P().weeks||22)*7+7), span=Math.max(1,dayDiff(x0,end));
   const pts=entries.filter(([d])=>d>addDays(s0,-7) && d<=end);
   const tgt=Number(P().target)||null;
-  const vals=pts.map(e=>e[1]).concat(old.map(e=>e[1]), tgt?[tgt]:[], Number(P().weight)?[Number(P().weight)]:[]);
+  const vals=pts.map(e=>e[1]).concat(old.map(e=>e[1]), tgt?[tgt]:[], Number(P().startWeight||P().weight)?[Number(P().startWeight||P().weight)]:[]);
   if(!vals.length){ mk("text",{x:W/2,y:H/2,"text-anchor":"middle","font-size":12,fill:"var(--muted)"}).textContent="Noch keine Daten"; return; }
   const lo=Math.floor(Math.min(...vals))-1, hi=Math.ceil(Math.max(...vals))+1;
   const X=d=>L+(dayDiff(x0,d)/span)*(W-L-R), Y=v=>T+(hi-v)/(hi-lo)*(H-T-B);
@@ -3598,7 +3626,8 @@ function openSettings(first){
     const [ln,iN]=field("Name","text",pr.name||""); p.append(ln);
     const g=el("div","grid3"); const [la,iA]=field("Alter","number",pr.age); const [lh,iH]=field("Größe cm","number",pr.height);
     const ls=el("label","f","Geschlecht"), sS=el("select"); [["m","Mann"],["f","Frau"]].forEach(([v,l])=>{ const o=el("option",null,l); o.value=v; sS.append(o); }); sS.value=pr.sex||"m"; ls.append(sS); g.append(la,lh,ls); p.append(g);
-    const g2=el("div","grid2"); const [lw,iW]=field("Gewicht jetzt kg","number",pr.weight); const [lt,iT]=field("Zielgewicht kg","number",pr.target); g2.append(lw,lt); p.append(g2);
+    const lastW=(()=>{ const ks=Object.keys(state.weights).filter(d=>isFinite(Number(state.weights[d]))).sort(); return ks.length ? {d:ks[ks.length-1], w:Number(state.weights[ks[ks.length-1]])} : null; })();
+    const g2=el("div","grid2"); const [lw,iW]=field("Gewicht jetzt kg","number",lastW ? lastW.w : pr.weight); const [lt,iT]=field("Zielgewicht kg","number",pr.target); g2.append(lw,lt); p.append(g2);
     const lg=el("label","f","Ziel"), sG=el("select"); GOALS.forEach(([v,l])=>{ const o=el("option",null,l); o.value=v; sG.append(o); }); sG.value=pr.goal||"cut"; lg.append(sG); p.append(lg);
     const gNote=el("div","note"); const gN=()=>{ gNote.textContent={cut:"Der Klassiker: gut durchhaltbar, Kraft bleibt fast komplett.",cutHard:"Schneller, aber mehr Hunger. Eiweiß hoch halten, Training schwer lassen.",mini:"Kurz und hart, maximal 4 Wochen. Danach 1 bis 2 Wochen auf Erhaltung, dann weiter. Die App erinnert dich.",recomp:"Gut bei wenig Erfahrung oder nach Pause. Langsam auf der Waage, sichtbar im Spiegel.",keep:"Halten nach einer Diät oder zwischen zwei Phasen.",lean:"Ca. 0,25 % pro Woche zunehmen, wenig Fett dazu.",bulk:"Ca. 0,5 % pro Woche, schneller stärker, mehr Fett dabei."}[sG.value]||""; }; sG.addEventListener("change",gN); gN(); p.append(gNote);
     const lac=el("label","f","Alltag"), sAc=el("select"); const acts=ACTS.slice(); if(pr.act && !acts.some(a=>a[0]===String(pr.act))) acts.push([String(pr.act),"Bisherige Einstellung ("+String(pr.act).replace(".",",")+")"]); acts.forEach(([v,l])=>{ const o=el("option",null,l); o.value=v; sAc.append(o); }); sAc.value=String(pr.act||1.5); lac.append(sAc); p.append(lac);
@@ -3607,6 +3636,7 @@ function openSettings(first){
     sec("Ziele pro Tag");
     const g4=el("div","grid4"); const [lk,iK]=field("kcal","number",pr.kcal); const [lp,iP]=field("Eiweiß g","number",pr.p); const [lc,iC]=field("Kohlenh. g","number",pr.c); const [lf,iF]=field("Fett g","number",pr.f); g4.append(lk,lp,lc,lf); p.append(g4);
     const doCalc=()=>{ const x=calcGoals({weight:num(iW.value),height:num(iH.value),age:num(iA.value),target:num(iT.value),sex:sS.value,goal:sG.value,act:num(sAc.value)}); iK.value=x.kcal; iP.value=x.p; iC.value=x.c; iF.value=x.f; };
+    if(lastW) p.append(el("div","note","Gewicht jetzt: zuletzt gemessen am "+fmtDate(lastW.d)+" ("+kg(lastW.w)+" kg). Dein Startgewicht "+(pr.startWeight||pr.weight?kg(Number(pr.startWeight||pr.weight))+" kg ":"")+"bleibt für den Fortschritt gespeichert."));
     const calcB=el("button","btn ghost small","Aus meinen Daten berechnen"); calcB.addEventListener("click",doCalc); p.append(calcB);
     sec("Aufstehzeiten");
     const g5=el("div","grid3"); const wi={}; [["frueh","Früh"],["spaet","Spät"],["nacht","Nacht"],["frei","Frei"],["urlaub","Urlaub"]].forEach(([k,l])=>{ const [lab,i]=field(l,"time",pr.wake[k]); wi[k]=i; g5.append(lab); });
@@ -3642,6 +3672,7 @@ function openSettings(first){
     save.addEventListener("click",()=>{
       if(first && (!num(iW.value) || !num(iH.value))){ toast("Bitte mindestens Größe und Gewicht eintragen"); return; }
       if(!num(iK.value)) doCalc();
+      if(!P().startWeight && P().weight) P().startWeight=Number(P().weight);
       const np=Object.assign(P(),{setup:true, name:iN.value.trim(), sex:sS.value, age:num(iA.value)||null, height:num(iH.value)||null, weight:num(iW.value)||null, target:num(iT.value)||null, goal:sG.value, act:num(sAc.value),
         start:iSt.value||calToday(), weeks:parseInt(iWk.value,10)||20, kcal:num(iK.value)||2400, p:num(iP.value)||150, c:num(iC.value)||250, f:num(iF.value)||70, injury:inj, alpha, sleepGoal:num(iSl.value)||8, measEvery:parseInt(iMe.value,10)||14,
         wake:{frueh:wi.frueh.value||"05:00", spaet:wi.spaet.value||"08:00", nacht:wi.nacht.value||"15:00", frei:wi.frei.value||"09:00", urlaub:wi.urlaub.value||"09:00"}});
@@ -3676,7 +3707,7 @@ $("aScan").addEventListener("click",()=>scan(activeDay()));
 $("aSearch").addEventListener("click",()=>openSearch(activeDay()));
 $("aOut").addEventListener("click",()=>openOut(activeDay()));
 $("reviewOpen").addEventListener("click",openReview);
-$("wScale").addEventListener("click",openScale); $("suppRecB").addEventListener("click",openSuppRec); $("bcCal").addEventListener("click",openBcCal);
+$("wScale").addEventListener("click",openScale); $("suppRecB").addEventListener("click",openSuppRec); $("bcCal").addEventListener("click",openBcCal); $("bcCmp").addEventListener("click",openBcCompare);
 $("miniStepsB").addEventListener("click",()=>openStepsDay(calToday()));
 $("miniSleepB").addEventListener("click",()=>{ const k=calToday(); openSleep(state.hc.sleep[k]!=null||(state.hc.sleepT||{})[k] ? k : addDays(k,-1)); });
 $("stepChart").addEventListener("click",e=>{ const r=e.target.closest("rect"); if(r && r.dataset.d) openStepsDay(r.dataset.d); }); $("reviewOpen2").addEventListener("click",openReview);
