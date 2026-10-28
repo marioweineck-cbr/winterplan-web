@@ -810,6 +810,7 @@ const QUICK = [
   {n:"2 Protein Waffeln", kcal:340, p:28, c:34, f:9},
   {n:"Whey Shake", kcal:120, p:24, c:2, f:2},
   {n:"Obst und Schoki", kcal:200, p:3, c:30, f:8},
+  {n:"Fix Carbonara (ganzer Topf)", kcal:2995, p:103, c:325, f:139, rid:"carbo"},
   {n:"Freie Mahlzeit", kcal:900, p:35, c:100, f:40, free:true}
 ];
 // Tagesablauf: [Minuten nach dem Aufstehen, Text, Schlüssel]
@@ -915,6 +916,9 @@ const WARM = ["3 Min. Rad","Face Pulls leicht: 1 × 15","Wall Slides: 1 × 10","
 
 // ---------- Rezepte: Zutat [Menge, Einheit, Name, Kategorie], Makros pro Portion
 const RECIPES = [
+  {id:"carbo", n:"Fix Carbonara (ganzer Topf)", por:1, pot:true, kcal:2995, p:103, c:325, f:139,
+   z:[[375,"g","Nudeln","Vorrat"],[2,"Beutel","Fix Carbonara","Vorrat"],[200,"ml","Schlagsahne","Kühlregal"],[250,"g","Speckwürfel","Kühlregal"],[150,"ml","Milch","Kühlregal"]],
+   st:["Nudeln in Salzwasser kochen (nicht zu viel Salz, der Speck ist schon salzig).","Speckwürfel in der Pfanne anbraten.","Fix Beutel mit Wasser, Sahne und Milch einrühren, kurz aufkochen.","Nudeln untermischen. Beim Eintragen einfach den Anteil vom Topf wählen, z. B. 40 %.","Leichter: 1 Packung Speck (125 g) und 100 ml Sahne sparen ca. 650 kcal pro Topf."]},
   {id:"bolo", n:"Protein Bolognese", por:6, box:true, kcal:640, p:46, c:72, f:19,
    z:[[1000,"g","Rinderhack (max. 10 % Fett)","Fleisch"],[2,"Stk","Zwiebeln","Gemüse"],[2,"Zehen","Knoblauch","Gemüse"],[2,"Stk","Zucchini","Gemüse"],[2,"Stk","Paprika","Gemüse"],[1000,"g","Passierte Tomaten","Vorrat"],[70,"g","Tomatenmark","Vorrat"],[480,"g","Nudeln","Vorrat"]],
    st:["Hack in 1 EL Öl scharf anbraten.","Zwiebeln, Knoblauch, Zucchini und Paprika fein reiben oder würfeln und mitbraten.","Tomaten und Tomatenmark dazu, mit Salz, Pfeffer, Oregano, Basilikum und Paprikapulver würzen.","30 Minuten köcheln lassen, das Gemüse zerfällt fast komplett.","Pro Box 80 g Nudeln roh kochen und mit einem Sechstel der Sauce mischen."]},
@@ -1599,7 +1603,7 @@ const ING={
   "Eier":[75,6.5,0.5,5.3],"Eisbergsalat":[70,5,8,1],"Gurke":[50,2.5,7,0.5],"Obst (Banane oder Apfel)":[100,1,22,0.3],"Banane":[105,1.2,24,0.3],"Paprika":[40,1.5,7,0.5],"Tomaten":[18,1,3,0.2],
   "Vollkorn Wrap":[170,5.5,28,3.5],"Zucchini":[50,4,5,1],"Zwiebeln":[32,1,6,0.1],
   "Currypulver oder Paste":[40,1.5,5,1.5],"Gyrosgewürz":[25,1,4,0.5],"Honig":[64,0,17,0],"Ketchup light":[10,0.2,2,0],"Senf":[12,0.8,0.6,0.7],"Sojasauce":[9,1.3,1,0],
-  "Backpulver":[5,0,1.2,0],"Ingwer":[3,0,0.6,0],"Speisestärke":[11,0,2.8,0],"Mais":[230,7,40,3],"Gehackte Tomaten":[90,4.5,14,0.8],"Kidneybohnen":[250,18,35,1.5],"Gewürzgurken":[60,2,10,0.5],"Knoblauch":[4,0.2,1,0],"Leinsamen geschrotet":[530,18,2,42],"Brauner Zucker":[16,0,4,0],"Zimt":[0,0,0,0]
+  "Backpulver":[5,0,1.2,0],"Ingwer":[3,0,0.6,0],"Speisestärke":[11,0,2.8,0],"Mais":[230,7,40,3],"Gehackte Tomaten":[90,4.5,14,0.8],"Kidneybohnen":[250,18,35,1.5],"Gewürzgurken":[60,2,10,0.5],"Knoblauch":[4,0.2,1,0],"Leinsamen geschrotet":[530,18,2,42],"Fix Carbonara":[140,4,22,4],"Schlagsahne":[292,2.5,3,30],"Speckwürfel":[290,15,0.5,25],"Brauner Zucker":[16,0,4,0],"Zimt":[0,0,0,0]
 };
 const PER100={g:1,ml:1};
 function ingMacro(n,a,u){ const v=ING[n]; if(!v) return [0,0,0,0]; const f = PER100[u] ? a/100 : (u==="EL"&&n==="Tomatenmark" ? a*0.15 : a); return v.map(x=>x*f); }
@@ -1628,7 +1632,9 @@ function openFoodItem(k, f, ed){
     const seg=el("div","seg"); const bB=el("button",null,"Basis"), bL=el("button",null,"Wie letztes Mal"); seg.append(bB); if(last) seg.append(bL); p.append(seg);
     const tot=el("div","stat4 foodtot"); p.append(tot);
     p.append(el("div","cat","Menge"));
-    const fs=el("div","chips"); [0.5,0.75,1,1.25,1.5,2].forEach(v=>{ const b=el("button",null,v===1?"1 Portion":String(v).replace(".",",")+" ×"); b.dataset.v=v; b.addEventListener("click",()=>{ fac=v; draw(); }); fs.append(b); }); p.append(fs);
+    const isPot = !!(f.rid && (allRecipes().find(r=>r.id===f.rid)||{}).pot); if(isPot && !ed && fac===1) fac=0.4;
+    const fs=el("div","chips"); (isPot?[0.25,0.33,0.4,0.5,0.6,1]:[0.5,0.75,1,1.25,1.5,2]).forEach(v=>{ const b=el("button",null,isPot?(v===1?"ganzer Topf":Math.round(v*100)+" %"):v===1?"1 Portion":String(v).replace(".",",")+" ×"); b.dataset.v=v; b.addEventListener("click",()=>{ fac=v; draw(); }); fs.append(b); }); p.append(fs);
+    if(isPot){ const pr=el("div","row nowrap"); const pi=el("input","num"); pi.type="text"; pi.inputMode="decimal"; pi.style.maxWidth="90px"; pi.value=Math.round(fac*100); pi.setAttribute("aria-label","Anteil in Prozent"); pi.addEventListener("input",()=>{ const v=num(pi.value); if(v>0){ fac=Math.round(v)/100; fs.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", Number(b.dataset.v)===fac?"true":"false")); drawTot(); } }); pr.append(pi, el("span","note","% vom Topf gegessen")); p.append(pr); }
     const gRow=el("div","row nowrap"); const gIn=el("input","num"); gIn.type="text"; gIn.inputMode="decimal"; gIn.style.maxWidth="110px"; gIn.setAttribute("aria-label","Menge in Gramm"); const gNote=el("span","note"); gRow.append(gIn, el("span","note","g gegessen"), gNote); p.append(gRow);
     gIn.addEventListener("input",()=>{ const pg=portionG(f,rows), g=num(gIn.value); if(pg && g>0){ fac=Math.round(g/pg*1000)/1000; fs.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", Number(b.dataset.v)===fac?"true":"false")); gNote.textContent="= "+String(fac).replace(".",",")+" Portion"; drawTot(); } });
     const go=el("button","btn wide",ed?"Änderung speichern":"Eintragen"); p.append(go);
@@ -1640,10 +1646,10 @@ function openFoodItem(k, f, ed){
     const draw=()=>{
       bB.setAttribute("aria-pressed",mode==="base"?"true":"false"); bL.setAttribute("aria-pressed",mode==="last"?"true":"false");
       fs.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", Number(b.dataset.v)===fac?"true":"false"));
-      { const pg=portionG(f,rows); gRow.hidden=!pg; if(pg && document.activeElement!==gIn){ gIn.value=de(pg*fac); gNote.textContent="1 Portion = ca. "+de(pg)+" g"; } }
+      { const pg=isPot?null:portionG(f,rows); gRow.hidden=!pg; if(pg && document.activeElement!==gIn){ gIn.value=de(pg*fac); gNote.textContent="1 Portion = ca. "+de(pg)+" g"; } }
       ingBox.innerHTML="";
       if(rows){
-        ingBox.append(el("div","cat","Drin für 1 Portion, Mengen änderbar"));
+        ingBox.append(el("div","cat",isPot?"Drin im ganzen Topf, Mengen änderbar":"Drin für 1 Portion, Mengen änderbar"));
         rows.forEach((x,i)=>{ const r=el("div","ingrow"); r.append(el("span","ingn",x.n));
           const inp=el("input","num"); inp.type="number"; inp.inputMode="decimal"; inp.step="any"; inp.value=x.a; inp.addEventListener("input",()=>{ x.a=inp.value; mode="custom"; bB.setAttribute("aria-pressed","false"); bL.setAttribute("aria-pressed","false"); drawTot(); });
           const u=el("span","ingu",x.u); const del=el("button","x","×"); del.setAttribute("aria-label",x.n+" entfernen"); del.addEventListener("click",()=>{ x.a=0; inp.value=0; mode="custom"; drawTot(); });
@@ -1662,7 +1668,7 @@ function openFoodItem(k, f, ed){
       const m=calc().map(v=>Math.round(v)); const changed = fac!==1 || mode!=="base";
       if(rows){ state.lastVar=state.lastVar||{}; const am={}; rows.filter(x=>!x.extra).forEach(x=>am[x.n]=num(x.a)||0); state.lastVar[f.n]={fac, am, extra:rows.filter(x=>x.extra && num(x.a)>0).map(x=>({n:x.n,u:x.u,a:num(x.a),extra:true}))}; }
       else { state.lastVar=state.lastVar||{}; state.lastVar[f.n]={fac}; }
-      const pg=portionG(f,rows); const out={n:f.n+(changed?(fac!==1?(pg?" ("+de(pg*fac)+" g)":" ("+String(fac).replace(".",",")+" ×)"):" (angepasst)"):""), g:pg?Math.round(pg*fac):undefined, kcal:m[0], p:m[1], c:m[2], f:m[3], free:f.free, src:{n:f.n,kcal:f.kcal,p:f.p,c:f.c,f:f.f,free:f.free,rid:f.rid}, fac};
+      const pg=isPot?null:portionG(f,rows); const out={n:(isPot?f.n.replace(" (ganzer Topf)",""):f.n)+(isPot?" ("+Math.round(fac*100)+" % vom Topf)":changed?(fac!==1?(pg?" ("+de(pg*fac)+" g)":" ("+String(fac).replace(".",",")+" ×)"):" (angepasst)"):""), g:pg?Math.round(pg*fac):undefined, kcal:m[0], p:m[1], c:m[2], f:m[3], free:f.free, src:{n:f.n,kcal:f.kcal,p:f.p,c:f.c,f:f.f,free:f.free,rid:f.rid}, fac};
       if(rows) out.ing=rows.filter(x=>num(x.a)>0 || !x.extra).map(x=>({n:x.n,u:x.u,a:num(x.a)||0,extra:x.extra}));
       if(ed){ const e=ed.e; delete e.ing; Object.assign(e,out); if(!out.free) delete e.free; persist(); closeSheet(); render(); toast("Geändert: "+out.n); return; }
       closeSheet(); addFood(k,out);
@@ -1671,7 +1677,7 @@ function openFoodItem(k, f, ed){
 }
 
 // ---------- Essen Symbole
-const FOOD_EMO=[[/porridge|oats|hafer|müsli/i,"🥣"],[/bolognese|lasagne|nudel|pasta/i,"🍝"],[/chili/i,"🌶️"],[/paella/i,"🥘"],[/spätzle/i,"🧀"],[/seelachs|fisch/i,"🐟"],[/kartoffel/i,"🥔"],[/teriyaki|curry|reis/i,"🍛"],[/gyros|döner|dürüm|lahmacun/i,"🥙"],[/burger|whopper|big mac|mcchicken|royal|cheeseburger|hamburger/i,"🍔"],[/pizza/i,"🍕"],[/wrap|twister/i,"🌯"],[/paprika|pfanne/i,"🥘"],[/pfannkuchen/i,"🥞"],[/waffel/i,"🧇"],[/quark|skyr|pudding/i,"🥛"],[/shake|whey|drink/i,"🥤"],[/obst|banane|schoki|snack/i,"🍌"],[/frei/i,"🎉"],[/nugget|chicken|hähnchen|wings|original recipe|zinger/i,"🍗"],[/brötchen|brezel|sandwich|teriyaki 15|turkey|steak/i,"🥪"],[/pommes/i,"🍟"],[/jerky/i,"🥩"],[/riegel/i,"🍫"],[/salat|bowl/i,"🥗"],[/ei\b|eier/i,"🥚"]];
+const FOOD_EMO=[[/porridge|oats|hafer|müsli/i,"🥣"],[/bolognese|lasagne|nudel|pasta|carbonara|spaghetti/i,"🍝"],[/chili/i,"🌶️"],[/paella/i,"🥘"],[/spätzle/i,"🧀"],[/seelachs|fisch/i,"🐟"],[/kartoffel/i,"🥔"],[/teriyaki|curry|reis/i,"🍛"],[/gyros|döner|dürüm|lahmacun/i,"🥙"],[/burger|whopper|big mac|mcchicken|royal|cheeseburger|hamburger/i,"🍔"],[/pizza/i,"🍕"],[/wrap|twister/i,"🌯"],[/paprika|pfanne/i,"🥘"],[/pfannkuchen/i,"🥞"],[/waffel/i,"🧇"],[/quark|skyr|pudding/i,"🥛"],[/shake|whey|drink/i,"🥤"],[/obst|banane|schoki|snack/i,"🍌"],[/frei/i,"🎉"],[/nugget|chicken|hähnchen|wings|original recipe|zinger/i,"🍗"],[/brötchen|brezel|sandwich|teriyaki 15|turkey|steak/i,"🥪"],[/pommes/i,"🍟"],[/jerky/i,"🥩"],[/riegel/i,"🍫"],[/salat|bowl/i,"🥗"],[/ei\b|eier/i,"🥚"]];
 const CHAIN_EMO={"McDonald's":"🍔","Burger King":"👑","KFC":"🍗","Subway":"🥪","Döner":"🥙","Bäcker":"🥨","Supermarkt":"🛒","Tankstelle":"⛽"};
 function foodEmoji(n){ const m=FOOD_EMO.find(([r])=>r.test(n||"")); return m?m[1]:"🍽️"; }
 
