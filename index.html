@@ -626,6 +626,60 @@ input[type=range].big{width:100%;accent-color:var(--accent);height:30px}
 .studioMap .item.sel{filter:drop-shadow(0 0 5px #FF5E7E) drop-shadow(0 0 2px #FF5E7E)}
 .studioPrev svg .item{filter:drop-shadow(0 2px 1px rgba(0,0,0,.2))}
 
+/* ===== Mehr Farbe pro Bereich ===== */
+body[data-tab="woche"]{--accent:#7C6CF0;--soft:#ECE9FE}
+body[data-tab="training"]{--accent:#0FA89A;--soft:#DDF5F2}
+body[data-tab="essen"]{--accent:#22A55B;--soft:#E1F5E8}
+body[data-tab="koerper"]{--accent:#3F7FF0;--soft:#E3ECFE}
+@media (prefers-color-scheme: dark){
+  body[data-tab="woche"]{--accent:#A397FF;--soft:#2A2547}
+  body[data-tab="training"]{--accent:#3DD9C5;--soft:#173532}
+  body[data-tab="essen"]{--accent:#5FD68D;--soft:#183324}
+  body[data-tab="koerper"]{--accent:#7EA8FF;--soft:#1C2A47}}
+:root{--done:#0FA89A}
+@media (prefers-color-scheme: dark){:root{--done:#3DD9C5}}
+#pageTitle{background:linear-gradient(90deg,var(--ink) 30%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.btn:not(.ghost){background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 70%,#FF5E7E));border-color:transparent}
+.bar i{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 60%,#FFD166),var(--accent))}
+.bar.p i{background:linear-gradient(90deg,#5EE6C8,#0FA89A)}
+.bar.c i{background:linear-gradient(90deg,#8CC8FF,#3F7FF0)}
+.bar.fa i{background:linear-gradient(90deg,#FFE08A,#E8A317)}
+.bar.warnbar i{background:linear-gradient(90deg,#FF9AA8,#F0566A)}
+/* Bunte Kartensymbole, die beim Öffnen kurz wackeln */
+section > .card:nth-child(5n+1) h3 .hi,#f-log > .card:nth-child(5n+1) h3 .hi{color:#FF7A45;background:#FF7A4522}
+section > .card:nth-child(5n+2) h3 .hi,#f-log > .card:nth-child(5n+2) h3 .hi{color:#14B8A6;background:#14B8A622}
+section > .card:nth-child(5n+3) h3 .hi,#f-log > .card:nth-child(5n+3) h3 .hi{color:#8C7CF0;background:#8C7CF022}
+section > .card:nth-child(5n+4) h3 .hi,#f-log > .card:nth-child(5n+4) h3 .hi{color:#3F7FF0;background:#3F7FF022}
+section > .card:nth-child(5n+5) h3 .hi,#f-log > .card:nth-child(5n+5) h3 .hi{color:#F0566A;background:#F0566A22}
+.enter h3 .hi{animation:wig .9s var(--ease) .25s both}
+@keyframes wig{0%{transform:scale(.6) rotate(-20deg)}50%{transform:scale(1.15) rotate(8deg)}75%{transform:rotate(-4deg)}100%{transform:none}}
+h3 .hi{transition:transform .3s var(--ease)}.card:active h3 .hi{transform:scale(1.15) rotate(-8deg)}
+/* Reiterleiste: jede Seite ihre Farbe */
+nav.tabs button[data-tab="heute"]{--tc:#FF7A45}nav.tabs button[data-tab="woche"]{--tc:#7C6CF0}nav.tabs button[data-tab="training"]{--tc:#0FA89A}nav.tabs button[data-tab="essen"]{--tc:#22A55B}nav.tabs button[data-tab="koerper"]{--tc:#3F7FF0}
+nav.tabs button[aria-selected="true"]{color:var(--tc)}
+nav.tabs button[aria-selected="true"] svg{background:color-mix(in srgb,var(--tc) 20%,transparent);animation:tabPop .45s var(--ease)}
+@keyframes tabPop{0%{transform:scale(.8)}60%{transform:scale(1.12) translateY(-2px)}100%{transform:translateY(-1px)}}
+/* Hintergrund bewegt sich ganz langsam */
+body::before{animation:blobs 22s ease-in-out infinite alternate}
+@keyframes blobs{from{transform:translate(0,0) scale(1)}to{transform:translate(4vw,3vh) scale(1.08)}}
+body[data-tab="training"]::before{filter:hue-rotate(140deg)}body[data-tab="essen"]::before{filter:hue-rotate(90deg)}body[data-tab="koerper"]::before{filter:hue-rotate(200deg)}body[data-tab="woche"]::before{filter:hue-rotate(250deg)}
+/* Heute dran: Frosti größer unten rechts, Glanz läuft drüber */
+.todayCard{padding-right:118px;min-height:168px;animation:pop .5s var(--ease) both}
+.todayCard .mascot{position:absolute;right:-6px;bottom:-16px;width:132px;margin:0;z-index:1}
+.todayCard .shine{position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,.28) 50%,transparent 62%);transform:translateX(-120%);animation:shine 5s ease-in-out 1s infinite}
+@keyframes shine{0%{transform:translateX(-120%)}35%,100%{transform:translateX(120%)}}
+.todayCard .tbtns{flex-direction:column;align-items:flex-start}
+/* Serie */
+.streakRow{display:grid;grid-template-columns:repeat(14,1fr);gap:3px}
+.streakRow .sd{display:flex;flex-direction:column;align-items:center;gap:2px}
+.streakRow .sd i{font-style:normal;width:100%;aspect-ratio:1;border-radius:8px;display:grid;place-items:center;font-size:12px;background:var(--bg)}
+.streakRow .sd.tr i{background:color-mix(in srgb,#FF7A45 22%,var(--bg))}.streakRow .sd.ps i{background:color-mix(in srgb,#3F7FF0 18%,var(--bg))}.streakRow .sd.sk i{background:color-mix(in srgb,#F0566A 18%,var(--bg))}
+.streakRow .sd.today i{box-shadow:inset 0 0 0 2px var(--accent)}
+.streakRow small{font-size:10px;color:var(--muted);font-weight:700}
+@media (prefers-reduced-motion: reduce){body::before,.todayCard .shine{animation:none}}
+
+.head .sub{white-space:nowrap}
+
 :root{--mzb:color-mix(in srgb,var(--ink) 9%,var(--panel));--mz0:color-mix(in srgb,var(--ink) 20%,var(--panel))}
 .sheet{z-index:96}.toast{z-index:160}
 </style>
@@ -702,8 +756,9 @@ input[type=range].big{width:100%;accent-color:var(--accent);height:30px}
     <div class="card">
       <details>
         <summary>Schlafrechner <span class="note">wann ins Bett, wann essen</span></summary>
+        <div class="seg" id="slMode" style="margin-top:6px"><button data-v="wake" aria-pressed="true">Ich stehe auf um</button><button data-v="bed" aria-pressed="false">Ich gehe ins Bett um</button></div>
         <div class="grid2" style="margin-top:6px">
-          <label class="f">Morgen aufstehen um<input type="time" id="slWake"></label>
+          <label class="f"><span id="slLab">Morgen aufstehen um</span><input type="time" id="slWake"></label>
           <label class="f">Schlafziel in Std.<input type="number" class="num" id="slGoal" step="0.5" min="5" max="11"></label>
         </div>
         <div id="slOut" style="margin-top:8px;display:flex;flex-direction:column;gap:8px"></div>
@@ -1633,7 +1688,7 @@ function renderHeute(k, ph){
       if(!it.info){ wrap.style.cursor="pointer"; wrap.addEventListener("click",()=>openItemMenu(k,it)); }
       if(it.info){ li.classList.add("info"); li.append(el("span","t",it.t), wrap, el("span")); ul.appendChild(li); return; }
       const da=on&&!skp?doneAt(k,it):null; if(da){ const db=el("button","donet","✓ "+hm(new Date(da))+" Uhr"); db.setAttribute("aria-label","Uhrzeit ändern"); db.addEventListener("click",e=>{ e.stopPropagation(); openDoneTime(k,it); }); tx.append(db); }
-      li.append(el("span","t",it.t), wrap, tickBtn(on, ()=>{ if(skp){ delete c["skip:"+id]; persist(); render(); return; } if(isMeal) setMeal(k,it.key,!on); else if(it.key==="steps") c["h_steps"]=!on; else c[id]=on?false:Date.now(); persist(); render(); }, it.label));
+      li.append(el("span","t",it.t), wrap, tickBtn(on, ()=>{ if(skp){ delete c["skip:"+id]; persist(); render(); return; } if(isMeal){ setMeal(k,it.key,!on); if(!on){ const m=MEALS[it.key]; setTimeout(()=>toast(m.name+" eingetragen · "+m.kcal+" kcal",()=>{ const idx=dayFood(k).findIndex(f=>f.m===it.key); if(idx>=0) openFoodEdit(k,idx); },"Ändern"),30); } } else if(it.key==="steps") c["h_steps"]=!on; else c[id]=on?false:Date.now(); persist(); render(); }, it.label));
       ul.appendChild(li);
     });
     if(next){
@@ -1645,7 +1700,7 @@ function renderHeute(k, ph){
       if(n) nc.append(el("div","note",n));
     } else nc.append(el("div","label","Tag erledigt"), el("h3",null,"Alles abgehakt. Stark."));
   }
-  const hu=$("habits"); hu.innerHTML=""; const c=dayChecks(k);
+  const hu=$("habits"); hu.innerHTML=""; const c=dayChecks(k); hu.closest(".card").hidden=!P().habitsOn;
   HABITS.forEach(([key,label])=>{
     if(key==="steps" && state.hc.on) return;
     const on=!!c["h_"+key], li=el("li","item nt"+(on?" isdone":""));
@@ -1731,19 +1786,24 @@ function openCaf(c){
   });
 }
 function renderSleepCalc(){
-  const wI=$("slWake"), gI=$("slGoal");
+  const wI=$("slWake"), gI=$("slGoal"), md=$("slMode");
   if(!wI.dataset.init){
-    const t=addDays(calToday(),1), sh=state.shift[t]; wI.value = sh ? wakeFor(t,sh) : (P().wake.frei||"09:00"); gI.value=P().sleepGoal||8; wI.dataset.init="1";
+    const t=addDays(calToday(),1), sh=state.shift[t]; wI.value = sh ? wakeFor(t,sh) : (P().wake.frei||"09:00"); gI.value=P().sleepGoal||8; wI.dataset.init="1"; wI.dataset.mode="wake";
     wI.addEventListener("input",renderSleepCalc); gI.addEventListener("input",renderSleepCalc);
+    md.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{ const v=b.dataset.v; if(v===wI.dataset.mode) return; const g0=num(gI.value)||8, cur=toMin(wI.value);
+      wI.dataset.mode=v; md.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false")); $("slLab").textContent = v==="bed" ? "Ins Bett gehen um" : "Morgen aufstehen um";
+      if(cur!=null) wI.value = minTxt(v==="bed" ? cur-g0*60-15 : cur+g0*60+15); renderSleepCalc(); }));
   }
   const out=$("slOut"); out.innerHTML="";
-  const w=toMin(wI.value), g=num(gI.value)||8; if(w==null) return;
-  const bed=w-g*60-15;
-  out.append(el("div","alert ok","Ins Bett um "+minTxt(bed)+" Uhr (inklusive 15 Minuten zum Einschlafen)."));
-  out.append(el("div","note","In Schlafzyklen von 90 Minuten: "+[7.5,6].map(h=>minTxt(w-h*60-15)+" Uhr ("+String(h).replace(".",",")+" Std.)").join(" oder ")));
-  const mkT=rows=>{ const t=el("table"), tb=el("tbody"); rows.forEach(([n,m])=>{ const tr=el("tr"); tr.append(el("td",null,n), el("td","r num",minTxt(m))); tb.append(tr); }); t.append(tb); return t; };
-  out.append(el("div","cat","Am Abend davor"), mkT([["Letzter Kaffee oder Monster",bed-8*60],["Letztes großes Essen",bed-150],["Licht dimmen, Handy weg",bed-60],["Supplements vor dem Schlafen",bed-45]]),
-             el("div","cat","Essenszeiten am Tag"), mkT([["Frühstück",w+30],["Mittag",w+300],["Snack",w+450],["Abendessen",w+630]]));
+  const g=num(gI.value)||8, t=toMin(wI.value); if(t==null) return; const bedMode=wI.dataset.mode==="bed";
+  const bed = bedMode ? t : t-g*60-15, w = bedMode ? t+g*60+15 : t;
+  if(bedMode){ out.append(el("div","alert ok","Aufstehen um "+minTxt(w)+" Uhr für "+String(g).replace(".",",")+" Std. Schlaf (inklusive 15 Minuten zum Einschlafen)."));
+    out.append(el("div","note","Wecker in Schlafzyklen von 90 Minuten, dann wachst du leichter auf: "+[6,7.5,9].map(h=>minTxt(bed+15+h*60)+" Uhr ("+String(h).replace(".",",")+" Std.)").join(", "))); }
+  else { out.append(el("div","alert ok","Ins Bett um "+minTxt(bed)+" Uhr (inklusive 15 Minuten zum Einschlafen)."));
+    out.append(el("div","note","In Schlafzyklen von 90 Minuten: "+[7.5,6].map(h=>minTxt(w-h*60-15)+" Uhr ("+String(h).replace(".",",")+" Std.)").join(" oder "))); }
+  const mkT=rows=>{ const t0=el("table"), tb=el("tbody"); rows.forEach(([n,m])=>{ const tr=el("tr"); tr.append(el("td",null,n), el("td","r num",minTxt(m))); tb.append(tr); }); t0.append(tb); return t0; };
+  out.append(el("div","cat","Vor dem Schlafen"), mkT([["Letzter Kaffee oder Monster",bed-8*60],["Letztes großes Essen",bed-150],["Licht dimmen, Handy weg",bed-60],["Supplements vor dem Schlafen",bed-45]]),
+             el("div","cat","Essenszeiten danach"), mkT([["Frühstück",w+30],["Mittag",w+300],["Snack",w+450],["Abendessen",w+630]]));
 }
 function openShiftCal(m0){
   const sel=new Set(); let mo=m0||0;
@@ -3728,15 +3788,17 @@ async function hcConnect(force){
 const fmtMin = m => Math.floor(m/60)+" Std. "+pad(Math.round(m%60))+" Min.";
 function avgOf(obj, before, n){ const v=Object.keys(obj||{}).filter(d=>d<before).sort().slice(-n).map(d=>obj[d]); return v.length>=3 ? v.reduce((a,b)=>a+b,0)/v.length : null; }
 function calcReady(){
-  const k=calToday(); if(state.ready[k]) return state.ready[k];
+  const k=calToday(); if(state.ready[k] && (state.ready[k].parts || state.ready[k].manual)) return state.ready[k];
   const sl=state.hc.sleep[k]; if(sl==null) return null;
   const goal=(P().sleepGoal||8)*60, bS=avgOf(state.hc.sleep,k,14), tgt=bS ? Math.max(bS, goal-60) : goal;
   const parts=[[Math.max(0,Math.min(100,75+(sl-tgt)/60*20)),0.5,"Schlaf"]];
   const rhr=state.hc.rhr[k], bR=avgOf(state.hc.rhr,k,14); if(rhr && bR) parts.push([Math.max(0,Math.min(100,75+(bR-rhr)*6)),0.25,"Ruhepuls"]);
   const hrv=state.hc.hrv[k], bH=avgOf(state.hc.hrv,k,14); if(hrv && bH) parts.push([Math.max(0,Math.min(100,75+(hrv/bH-1)*150)),0.25,"HRV"]);
   const wsum=parts.reduce((a,x)=>a+x[1],0); let v=parts.reduce((a,x)=>a+x[0]*x[1],0)/wsum;
-  const run=streakBefore(addDays(k,1)); if(run>=3) v-=15; else if(run>=2) v-=7;
-  const r={v:Math.round(Math.max(0,Math.min(100,v))), from:parts.map(x=>x[2]), sl, rhr:rhr||null, hrv:hrv||null};
+  const run=streakBefore(addDays(k,1)); let pen=0, penWhy=""; if(run>=3){ pen=15; penWhy=run+" Trainingstage am Stück"; } else if(run>=2){ pen=7; penWhy="2 Trainingstage am Stück"; }
+  { const y=state.train.log.find(e=>e.d===addDays(k,-1) && e.u!=="P" && !e.skip); if(y && y.rpe>=8){ pen+=6; penWhy=(penWhy?penWhy+", ":"")+"gestern sehr hart (RPE "+y.rpe+")"; } }
+  v-=pen;
+  const r={v:Math.round(Math.max(0,Math.min(100,v))), from:parts.map(x=>x[2]), parts:parts.map(x=>[x[2],Math.round(x[0]),x[1]/wsum]), pen, penWhy, sl, rhr:rhr||null, hrv:hrv||null};
   state.ready[k]=r; Object.keys(state.ready).forEach(d=>{ if(dayDiff(d,k)>30) delete state.ready[d]; });
   return r;
 }
@@ -4090,6 +4152,7 @@ function openSettings(first){
     if(state.alphaData && !first){ const sA=toggleRow(tg,"Alpha Progression Daten anzeigen", alpha, null, "Startgewichte und alter Verlauf"); sA.addEventListener("click",()=>{ alpha=!alpha; sA.setAttribute("aria-checked",alpha?"true":"false"); }); }
     p.append(tg);
     const [lme,iMe]=field("Körpermaße alle ... Tage","number",pr.measEvery||14); p.append(lme);
+    if(!first){ const th=el("div"); let ho=!!P().habitsOn; const sH=toggleRow(th,"Gewohnheiten auf Heute anzeigen", ho, null, "Tageslicht, Nicht stören, TV Timer zum Abhaken"); sH.addEventListener("click",()=>{ ho=!ho; sH.setAttribute("aria-checked",ho?"true":"false"); P().habitsOn=ho; persist(); render(); }); p.append(th); }
     if(!first){ const tb=el("button","btn ghost small","Kurze Tour nochmal ansehen"); tb.addEventListener("click",()=>{ closeSheet(); const h=document.querySelector('nav.tabs [data-tab="heute"]'); if(h) h.click(); setTimeout(()=>startTour(0),450); }); p.append(tb); }
     { const ls=el("label","f","Schrittziel pro Tag"), ss=el("select"); [6000,8000,10000,12000].forEach(v=>{ const o=el("option",null,v.toLocaleString("de-DE")); o.value=v; ss.append(o); }); ss.value=String(pr.stepGoal||8000); ss.addEventListener("change",()=>{ P().stepGoal=Number(ss.value); persist(); }); ls.append(ss); p.append(ls); }
     sec("Trainingsplan");
@@ -4159,7 +4222,7 @@ $("photoShoot").addEventListener("click",openPhotoShoot); $("photoCmp").addEvent
 $("vitSync").addEventListener("click",async()=>{ const b=$("vitSync"); b.classList.add("spin"); try{ await hcSyncNow(); }finally{ b.classList.remove("spin"); } });
 setTimeout(()=>{ const i=$("intro"); if(i) i.remove(); },2200);
 { const M=["Stark durch den Winter","Jeder Satz zählt","Heute besser als gestern","Dranbleiben schlägt alles","Sommer wird im Winter gemacht"]; $("introS").textContent=M[new Date().getDate()%M.length]; }
-$("aManual").addEventListener("click",()=>openManual(activeDay())); $("aVoice").addEventListener("click",()=>voiceFood(activeDay())); $("streakChip").addEventListener("click",openBadges); $("aText").addEventListener("click",()=>openTextFood(activeDay()));
+$("aManual").addEventListener("click",()=>openManual(activeDay())); $("aVoice").addEventListener("click",()=>voiceFood(activeDay())); $("streakChip").addEventListener("click",openStreak); $("aText").addEventListener("click",()=>openTextFood(activeDay()));
 $("cartAddBtn").addEventListener("click",()=>{ const v=$("cartAdd").value.trim(); if(!v) return; if(!state.cart.custom.includes(v)) state.cart.custom.push(v); $("cartAdd").value=""; persist(); render(); });
 $("cartAdd").addEventListener("keydown",e=>{ if(e.key==="Enter") $("cartAddBtn").click(); });
 $("cartShare").addEventListener("click",async()=>{
@@ -4201,33 +4264,36 @@ document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ checkSh
 // ===================== Lebendiger: Frosti, Konfetti, Held, Heute dran, Verlauf, Ziele, Studio, Sprache, Einrichtung, Tour
 // ---------- Frosti, das Maskottchen (ein kleiner Yeti mit Stirnband)
 function mascotSVG(mood){
-  const fur="#FFFFFF", ln="#C3D3E2", face="#C4E6F8", band="#FF6F4A", eye="#1B2A3A";
-  const arm=(d,cls)=>'<g class="'+(cls||"")+'"><path d="'+d+'" stroke="'+ln+'" stroke-width="17" stroke-linecap="round" fill="none"/><path d="'+d+'" stroke="'+fur+'" stroke-width="12" stroke-linecap="round" fill="none"/></g>';
-  const LD="M28 80 Q17 93 21 104", RD="M92 80 Q103 93 99 104";
-  let arms, top="", eyes, mouth, brow="";
+  // Frosti: kleiner, etwas muskulöser Yeti mit Stirnband und Tanktop
+  const fur="#FFFFFF", ln="#BFD0E0", face="#C4E6F8", band="#FF6F4A", eye="#1B2A3A", top="#14B8A6", top2="#0E9384";
+  const arm=(d,b,cls)=>'<g class="'+(cls||"")+'"><path d="'+d+'" stroke="'+ln+'" stroke-width="21" stroke-linecap="round" fill="none"/><path d="'+d+'" stroke="'+fur+'" stroke-width="16" stroke-linecap="round" fill="none"/>'+(b?'<circle cx="'+b[0]+'" cy="'+b[1]+'" r="8.5" fill="'+fur+'" stroke="'+ln+'" stroke-width="2.5"/><path d="M'+(b[0]-4)+' '+(b[1]-2)+' q4 -4 8 0" stroke="'+ln+'" stroke-width="1.6" fill="none"/>':'')+'</g>';
+  const LD="M27 82 Q15 95 20 106", RD="M93 82 Q105 95 100 106";
+  let arms, extra="", eyes, mouth, brow;
   switch(mood){
-    case "wave": arms=arm(LD)+arm("M92 78 Q110 64 107 44","armR"); break;
-    case "cheer": arms=arm("M29 76 Q15 58 13 40")+arm("M91 76 Q105 58 107 40"); break;
-    case "lift": arms=arm("M31 72 Q22 52 33 30")+arm("M89 72 Q98 52 87 30");
-      top='<g><rect x="16" y="21" width="88" height="5" rx="2.5" fill="#56677A"/><rect x="12" y="12" width="9" height="23" rx="3" fill="'+band+'"/><rect x="99" y="12" width="9" height="23" rx="3" fill="'+band+'"/><rect x="4" y="15" width="8" height="17" rx="3" fill="#FF9A6E"/><rect x="108" y="15" width="8" height="17" rx="3" fill="#FF9A6E"/></g>'; break;
-    case "flex": arms=arm("M29 78 Q9 76 15 56")+arm("M91 78 Q111 76 105 56"); break;
-    default: arms=arm(LD)+arm(RD);
+    case "wave": arms=arm(LD,null)+arm("M93 80 Q112 66 108 44",[104,64],"armR"); break;
+    case "cheer": arms=arm("M28 78 Q12 60 12 40",[16,58])+arm("M92 78 Q108 60 108 40",[104,58]); break;
+    case "lift": arms=arm("M30 74 Q18 54 32 30",[22,52])+arm("M90 74 Q102 54 88 30",[98,52]);
+      extra='<g><rect x="14" y="21" width="92" height="5" rx="2.5" fill="#56677A"/><rect x="9" y="11" width="10" height="25" rx="3" fill="'+band+'"/><rect x="101" y="11" width="10" height="25" rx="3" fill="'+band+'"/><rect x="2" y="14" width="8" height="19" rx="3" fill="#FF9A6E"/><rect x="110" y="14" width="8" height="19" rx="3" fill="#FF9A6E"/></g>'; break;
+    case "flex": arms=arm("M27 80 Q6 78 12 54",[12,70])+arm("M93 80 Q114 78 108 54",[108,70]); break;
+    default: arms=arm(LD,null)+arm(RD,null);
   }
-  if(mood==="sleep"||mood==="chill"){ eyes='<path d="M44 60 Q49 64 54 60M66 60 Q71 64 76 60" stroke="'+eye+'" stroke-width="2.6" fill="none" stroke-linecap="round"/>'; }
-  else if(mood==="tired"){ eyes='<circle cx="49" cy="61" r="4" fill="'+eye+'"/><circle cx="71" cy="61" r="4" fill="'+eye+'"/><path d="M43 57 L55 58M65 58 L77 57" stroke="'+face+'" stroke-width="5"/><path d="M43 55 Q49 53 55 56M65 56 Q71 53 77 55" stroke="'+eye+'" stroke-width="2" fill="none" stroke-linecap="round"/>'; }
-  else { eyes='<g class="blink"><circle cx="49" cy="59" r="4.8" fill="'+eye+'"/><circle cx="71" cy="59" r="4.8" fill="'+eye+'"/><circle cx="50.6" cy="57.4" r="1.6" fill="#fff"/><circle cx="72.6" cy="57.4" r="1.6" fill="#fff"/></g>'; }
-  if(mood==="flex") brow='<path d="M43 51 L54 53M77 51 L66 53" stroke="'+eye+'" stroke-width="2.4" stroke-linecap="round"/>';
-  if(mood==="cheer"||mood==="lift") mouth='<path d="M51 68 Q60 80 69 68 Z" fill="'+eye+'"/><path d="M55 73 Q60 77 65 73 Q60 71 55 73Z" fill="#FF8FA3"/>';
+  const happy=!(mood==="sleep"||mood==="chill"||mood==="tired");
+  if(!happy && mood!=="tired"){ eyes='<path d="M44 60 Q49 64 54 60M66 60 Q71 64 76 60" stroke="'+eye+'" stroke-width="2.6" fill="none" stroke-linecap="round"/>'; }
+  else if(mood==="tired"){ eyes='<circle cx="49" cy="61" r="4" fill="'+eye+'"/><circle cx="71" cy="61" r="4" fill="'+eye+'"/><path d="M43 57 L55 58M65 58 L77 57" stroke="'+face+'" stroke-width="5"/>'; }
+  else { eyes='<g class="blink"><circle cx="49" cy="59" r="4.6" fill="'+eye+'"/><circle cx="71" cy="59" r="4.6" fill="'+eye+'"/><circle cx="50.6" cy="57.4" r="1.5" fill="#fff"/><circle cx="72.6" cy="57.4" r="1.5" fill="#fff"/></g>'; }
+  brow = mood==="sleep" ? "" : mood==="tired" ? '<path d="M43 55 Q49 53 55 56M65 56 Q71 53 77 55" stroke="'+eye+'" stroke-width="2.2" fill="none" stroke-linecap="round"/>' : '<path d="M42.5 51.5 L55 54M77.5 51.5 L65 54" stroke="'+eye+'" stroke-width="3" stroke-linecap="round"/>';
+  if(mood==="cheer"||mood==="lift") mouth='<path d="M51 68 Q60 79 69 68 Z" fill="'+eye+'"/><path d="M55 72.5 Q60 76 65 72.5 Q60 71 55 72.5Z" fill="#FF8FA3"/>';
   else if(mood==="sleep") mouth='<ellipse cx="60" cy="71" rx="3" ry="2.4" fill="'+eye+'"/>';
   else if(mood==="tired") mouth='<path d="M53 72 Q60 70 67 72" stroke="'+eye+'" stroke-width="2.4" fill="none" stroke-linecap="round"/>';
-  else mouth='<path d="M51 68 Q60 77 69 68" stroke="'+eye+'" stroke-width="2.6" fill="none" stroke-linecap="round"/>';
+  else mouth='<path d="M51 68 Q57 74 69 67" stroke="'+eye+'" stroke-width="2.8" fill="none" stroke-linecap="round"/>';
   const z = mood==="sleep" ? '<g fill="#7FA8C9" font-family="Arial" font-weight="700"><text x="92" y="30" font-size="12">z</text><text x="101" y="20" font-size="15">Z</text></g>' : "";
-  const shape=(f,s,sw)=>'<g fill="'+f+'"'+(s?' stroke="'+s+'" stroke-width="'+sw+'"':'')+'><ellipse cx="60" cy="76" rx="38" ry="43"/><circle cx="43" cy="37" r="9"/><circle cx="60" cy="32" r="10"/><circle cx="77" cy="37" r="9"/><circle cx="25" cy="70" r="7"/><circle cx="95" cy="70" r="7"/></g>';
-  return '<svg viewBox="0 0 120 132" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><ellipse cx="60" cy="126" rx="32" ry="4.5" fill="rgba(20,30,40,.13)"/>'+arms+
+  const shape=(f,s,sw)=>'<g fill="'+f+'"'+(s?' stroke="'+s+'" stroke-width="'+sw+'"':'')+'><path d="M60 33 C86 33 99 52 100 76 C101 104 86 120 60 120 C34 120 19 104 20 76 C21 52 34 33 60 33Z"/><circle cx="43" cy="37" r="9"/><circle cx="60" cy="31" r="10"/><circle cx="77" cy="37" r="9"/><circle cx="23" cy="72" r="11"/><circle cx="97" cy="72" r="11"/></g>';
+  const tank='<path d="M31 86 Q34 79 41 80 Q50 88 60 88 Q70 88 79 80 Q86 79 89 86 L92 108 Q60 124 28 108 Z" fill="'+top+'"/><path d="M29 104 Q60 118 91 104 L92 108 Q60 124 28 108 Z" fill="'+top2+'"/><path d="M57 92 L63 92 L59.5 99 L64 99 L56 109 L58.5 101 L54.5 101 Z" fill="#fff"/>';
+  return '<svg viewBox="0 0 120 132" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><ellipse cx="60" cy="126" rx="33" ry="4.5" fill="rgba(20,30,40,.13)"/>'+arms+
     '<ellipse cx="46" cy="119" rx="12" ry="6.5" fill="#EAF1F8" stroke="'+ln+'" stroke-width="2"/><ellipse cx="74" cy="119" rx="12" ry="6.5" fill="#EAF1F8" stroke="'+ln+'" stroke-width="2"/>'+
-    shape(ln,ln,4)+shape(fur)+'<ellipse cx="60" cy="100" rx="20" ry="14" fill="#EEF5FB"/><ellipse cx="60" cy="62" rx="25" ry="19" fill="'+face+'"/>'+
+    shape(ln,ln,4)+shape(fur)+tank+'<ellipse cx="60" cy="62" rx="24" ry="18.5" fill="'+face+'"/>'+
     '<path d="M34 47 Q60 37 86 47 L85 54 Q60 45 35 54 Z" fill="'+band+'"/><path d="M85 48 L99 42 L96 51 Z M85 51 L98 58 L93 47 Z" fill="'+band+'"/>'+
-    '<ellipse cx="41" cy="68" rx="5" ry="3" fill="#FF9DB0" opacity=".75"/><ellipse cx="79" cy="68" rx="5" ry="3" fill="#FF9DB0" opacity=".75"/>'+brow+eyes+mouth+top+z+'</svg>';
+    '<ellipse cx="41.5" cy="68" rx="4.5" ry="2.7" fill="#FF9DB0" opacity=".7"/><ellipse cx="78.5" cy="68" rx="4.5" ry="2.7" fill="#FF9DB0" opacity=".7"/>'+brow+eyes+mouth+extra+z+'</svg>';
 }
 function mascotEl(mood, cls){ const d=el("div","mascot "+(cls||"")); d.innerHTML=mascotSVG(mood); return d; }
 function confetti(n){
@@ -4240,7 +4306,7 @@ const greetWord = () => { const h=new Date().getHours(); return h<5?"Gute Nacht"
 
 // ---------- Kopf: Begrüßung und Serie
 function decorateHead(){
-  const k=activeDay(), si=streakInfo(), ch=$("streakChip");
+  document.body.dataset.tab=tab; const k=activeDay(), si=streakInfo(), ch=$("streakChip");
   if(ch){ ch.innerHTML=""; ch.className="streakChip"+(si.ice?" ice":""); ch.append(el("span","fl",si.ice?"❄️":"🔥"), document.createTextNode(si.n+" Tag"+(si.n===1?"":"e"))); ch.setAttribute("aria-label","Serie "+si.n+" Tage, Erfolge ansehen"); }
   const t=$("pageTitle"), sideTxt=$("weekLabel") && $("weekLabel").parentNode;
   if(tab==="heute"){ t.textContent = P().name ? "Hi, "+P().name+"!" : "Hi!"; t.className="hi1";
@@ -4282,7 +4348,7 @@ function renderHero(){
   const k=calToday(), rd=(state.ready||{})[k]||null, cx=heroContext(rd);
   const top=el("div","heroTop"), m=mascotEl(cx.mood,"bob"+(heroWaved?"":" wave")); m.style.width="84px"; heroWaved=true;
   const b=el("div","bubble"); b.append(document.createTextNode(cx.t[0]), el("b",null,cx.t[1])); top.append(m,b); box.append(top);
-  const gw=el("div","gaugeWrap"); gw.innerHTML=gaugeSVG(rd?rd.v:null); box.append(gw);
+  const gw=el("div","gaugeWrap"); gw.innerHTML=gaugeSVG(rd?rd.v:null); box.append(gw); if(rd){ gw.style.cursor="pointer"; gw.addEventListener("click",()=>openReadyInfo(rd)); }
   const lab=el("div","label","Trainingsbereitschaft"); lab.style.textAlign="center"; lab.style.marginTop="-6px"; box.insertBefore(lab, gw);
   if(rd){
     const av=readyAvg(k); let cmp = av==null ? "" : rd.v-av>12 ? "Deutlich besser als sonst." : rd.v-av>4 ? "Etwas besser als sonst." : av-rd.v>12 ? "Deutlich schwächer als sonst." : av-rd.v>4 ? "Etwas schwächer als sonst." : "Wie sonst auch.";
@@ -4293,6 +4359,7 @@ function renderHero(){
     const rhr=rd.rhr||state.hc.rhr[k]; if(rhr) tile("Ruhepuls",String(rhr),"bpm");
     const hrv=rd.hrv||state.hc.hrv[k]; if(hrv) tile("HRV",String(Math.round(hrv)),"ms");
     if(tiles.children.length) box.append(tiles);
+    { const wb=el("button","link","Wie kommt die Zahl zustande? ›"); wb.style.alignSelf="center"; wb.addEventListener("click",()=>openReadyInfo(rd)); box.append(wb); }
     if(rd.manual){ const ch=el("button","link","Gefühl ändern"); ch.style.alignSelf="center"; ch.addEventListener("click",()=>{ delete state.ready[k]; persist(); render(); }); box.append(ch); }
   } else {
     box.append(el("div","gCmp", state.hc.on ? "Noch kein Schlaf von der Uhr. Wie fühlst du dich?" : "Wie fühlst du dich heute?"));
@@ -4319,7 +4386,7 @@ function renderTodayCard(k){
     tc.append(el("div","tl","HEUTE DRAN"), el("h2",null,unit.t), el("div","tx",names.slice(0,4).join(" · ")+(names.length>4?" und "+(names.length-4)+" mehr":"")), el("div","tx","ca. "+est.min+" Min. · "+est.n+" Sätze"+(lowForm(k)?" · angepasst an deine Tagesform":"")));
     B("wbtn","▶ Training starten",()=>startLive(u,k,ph));
     B("gbtn","Heute Pause",()=>{ state.train.log.unshift({d:k,u:"P"}); state.train.log=state.train.log.slice(0,300); persist(); render(); toast("Pause eingetragen, "+unit.t+" bleibt dran",undoLast); }); }
-  tc.append(btns); box.append(tc, mascotEl(mood,"bob"));
+  tc.append(btns); box.append(el("span","shine"), tc, mascotEl(mood,"bob"));
 }
 
 // ---------- Serie: Ruhetage zählen mit, nur zu lange Lücken brechen sie
@@ -4545,7 +4612,8 @@ function studioMapSVG(sel, interactive){
 function renderStudioCard(){
   const box=$("studioCard"); if(!box) return; box.innerHTML=""; const c=studioCredit(), n=(state.studio.items||[]).length;
   const r=el("div","studioPrev"), pv=el("div"); pv.innerHTML=studioMapSVG(-1,false); const sv=pv.firstChild; r.append(sv);
-  const t=el("div"); t.style.cssText="display:flex;flex-direction:column;gap:6px;min-width:0"; t.append(el("h3",null,"🏗️ Mein Studio"), el("div","note",studioLevel(n)+" · "+n+" Gerät"+(n===1?"":"e")+". Jede Stunde Training gibt 1 h Guthaben."));
+  const t=el("div"); t.style.cssText="display:flex;flex-direction:column;gap:6px;min-width:0"; const nx=n<4?[4,"Keller-Studio"]:n<8?[8,"Fitnessstudio"]:n<12?[12,"Fitnesspalast"]:null;
+  t.append(el("h3",null,"🏗️ Mein Studio"), el("div","note","Reine Motivation: Jede Stunde Training gibt 1 h Guthaben, damit baust du dir dein eigenes Gym. "+studioLevel(n)+", "+n+" Gerät"+(n===1?"":"e")+(nx?". Noch "+(nx[0]-n)+" bis zum "+nx[1]+".":".")));
   const cr=el("span","credit","⏱ "+hTxt(c.left)+" Guthaben"); t.append(cr); const b=el("button","btn small","Studio öffnen"); b.style.alignSelf="flex-start"; b.addEventListener("click",openStudio); t.append(b); r.append(t); box.append(r);
   r.querySelector("svg").addEventListener("click",openStudio);
 }
@@ -4688,6 +4756,31 @@ function openAccount(){
     fg.addEventListener("click",async()=>{ if(!ie.value.trim()){ msg.textContent="Bitte erst die E-Mail eintragen."; return; } try{ await FB().reset(ie.value.trim()); msg.style.color="var(--done)"; msg.textContent="Mail zum Zurücksetzen ist unterwegs."; }catch(e){ msg.textContent=FB_ERR[e && e.code] || "Hat nicht geklappt."; } });
     p.append(fe,fp,msg,go,fg, el("div","note","Jeder sieht nur seine eigenen Daten. Liegen im Konto neuere Daten, werden die geladen, sonst werden deine hochgeladen."));
     setMode("login");
+  });
+}
+
+// ---------- Serie erklärt
+function openStreak(){
+  const si=streakInfo(), today=calToday();
+  openSheet(p=>{ sheetHead(p,"Deine Serie");
+    const f=el("div","flameBig",si.ice?"❄️":"🔥"); f.style.fontSize="70px"; const h=el("div","obH",si.n+" Tag"+(si.n===1?"":"e")); h.style.textAlign="center"; p.append(f,h);
+    p.append(el("div","note", si.n ? "So viele Tage am Stück bist du dabei. Training, Ruhetage, Kranktage und Urlaub zählen alle mit." : "Noch keine Serie. Trag dein erstes Training oder einen Ruhetag ein."));
+    const row=el("div","streakRow"); for(let i=13;i>=0;i--){ const d=addDays(today,-i), kd=dayKind(d)||(state.shift[d]==="urlaub"?"ps":""), c=el("div","sd "+(kd||"no")); c.append(el("i",null,kd==="tr"?"🏋️":kd==="sk"?"🤒":kd==="ps"?"😌":""), el("small",null,parseKey(d).toLocaleDateString("de-DE",{weekday:"narrow"}))); if(d===today) c.classList.add("today"); row.append(c); } p.append(row);
+    const lg=el("div","legend"); [["🏋️","Training"],["😌","Ruhetag"],["🤒","krank"]].forEach(([e,t])=>{ const s=el("span"); s.textContent=e+" "+t; lg.append(s); }); p.append(lg);
+    p.append(el("div", si.ice?"alert bad":"alert ok", si.ice ? "Achtung: noch ein Tag ohne Eintrag, dann ist die Serie weg." : "Die Serie bricht erst nach "+(si.gap+1)+" Tagen am Stück ohne Training oder Ruhetag. Mit deinem Plan ("+curPlan().pw+" × pro Woche) ist das fair machbar."+(si.n&&si.left!=null?" Puffer gerade: "+si.left+" Tag"+(si.left===1?"":"e")+".":"")));
+    const b=el("button","btn wide","🏅 Meine Erfolge ansehen"); b.addEventListener("click",()=>{ closeSheet(); setTimeout(openBadges,250); }); p.append(b);
+  });
+}
+// ---------- Bereitschaft erklärt
+function openReadyInfo(rd){
+  openSheet(p=>{ sheetHead(p,"Trainingsbereitschaft "+rd.v);
+    if(rd.manual){ p.append(el("div","note","Heute nach deinem Gefühl eingetragen. Mit verbundener Uhr rechnet die App jeden Morgen selbst aus Schlaf, Ruhepuls und HRV.")); return; }
+    p.append(el("div","note","Verglichen wird immer mit deinem eigenen Schnitt der letzten 14 Tage. 75 heißt: ein ganz normaler Tag für dich."));
+    const parts=rd.parts||[]; if(parts.length){ const box=el("div","pct"); parts.forEach(([n,v,w])=>{ const r=el("div","pctRow"); r.style.gridTemplateColumns="118px 1fr 30px"; const b=el("div","bar"), i=el("i"); i.style.width=v+"%"; i.style.background=readyCol(v); b.append(i); r.append(el("span",null,n+(w?" ("+Math.round(w*100)+" %)":"")), b, el("b",null,String(v))); box.append(r); }); p.append(box); }
+    if(rd.pen) p.append(el("div","alert","Abzug für Belastung: −"+rd.pen+" ("+(rd.penWhy||"mehrere Trainingstage am Stück")+")."));
+    const miss=["Ruhepuls","HRV"].filter(n=>!parts.some(x=>x[0]===n));
+    if(miss.length) p.append(el("div","note","Von der Uhr kam heute kein Wert für "+miss.join(" und ")+". Dann zählt der Schlaf stärker. Viele Garmin Uhren geben HRV nicht an Health Connect weiter."));
+    p.append(el("div","note","Die Zahl sinkt, wenn du kürzer schläfst als sonst, der Ruhepuls höher ist (Stress, Infekt, Alkohol), die HRV fällt, oder du 2 bis 3 Tage am Stück hart trainiert hast. Unter 50 nimmt die App dir je Übung einen Satz weg."));
   });
 }
 
