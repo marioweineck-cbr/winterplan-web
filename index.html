@@ -2528,7 +2528,7 @@ function openImport(){
 }
 // ---------- Text verstehen: "200 g Hähnchen, 1 Banane, 2 EL Honig"
 const UNIT_MAP={g:"g",gr:"g",gramm:"g",kg:"kg",ml:"ml",l:"l",liter:"l",el:"EL",essloeffel:"EL",tl:"TL",teeloeffel:"TL",stk:"Stk",stueck:"Stk",st:"Stk",prise:"Prise",prisen:"Prise",dose:"Dose",dosen:"Dose",becher:"Becher",packung:"Packung",pck:"Packung",pkg:"Packung",beutel:"Beutel",zehe:"Zehen",zehen:"Zehen",scheibe:"Scheiben",scheiben:"Scheiben",tasse:"Tasse",tassen:"Tasse",bund:"Bund",handvoll:"Handvoll",glas:"Glas",flasche:"Flasche",cup:"Tasse",cups:"Tasse"};
-const UNIT_G={EL:15,TL:5,Prise:0.5,Dose:400,Becher:200,Packung:250,Beutel:35,Zehen:4,Scheiben:20,Tasse:200,Bund:50,Handvoll:30,Glas:300,Flasche:500};
+const UNIT_G={EL:15,TL:5,Prise:0.5,Dose:400,Becher:200,Packung:250,Beutel:35,Zehen:4,Scheiben:20,Tasse:200,Bund:50,Handvoll:30,Glas:250,Flasche:500};
 function parseLine(line){
   let t=String(line).replace(/^\s*(?:[•\-–*·]+|\d+[.)](?=\s))\s*/,"").replace(/\(.*?\)/g," ").replace(/\bca\.?\s*/i,"").replace(/\s+/g," ").trim();
   if(!t) return null; t=t.replace(/½/g,"0.5").replace(/¼/g,"0.25").replace(/¾/g,"0.75");
@@ -2549,21 +2549,21 @@ function matchFood(name){
   const kw=keyWords(name); if(!kw.length) return null; const sc=s2=>{ const h=keyWords(s2).join(" "); let n=0; kw.forEach(w=>{ if(h.includes(w)) n+=w.length; }); return n/(kw.join("").length||1) - h.length/400; };
   const cand=[];
   Object.entries(ING).concat(Object.entries(state.myIng||{})).forEach(([n,v])=>cand.push({n, k100:v[0], p100:v[1], c100:v[2], f100:v[3], ing:true, s:sc(n)+0.15}));
-  state.myfoods.forEach(m=>cand.push(Object.assign({},m,{s:sc(m.n+" "+(m.brand||""))+0.1})));
+  state.myfoods.forEach(m=>{ const v=sc(m.n+" "+(m.brand||"")); cand.push(Object.assign({},m,{s:v+(v>0.4?0.3:0.1)})); });
   BASIC_FOODS.forEach(m=>cand.push(Object.assign({},m,{s:sc(m.n)+0.05})));
   if(FOODDB){ const seen=new Set(); kw.slice(0,3).forEach(w=>dbSearch(w, 40).forEach(m=>{ if(seen.has(m.code)) return; seen.add(m.code); cand.push(Object.assign(m,{s:sc(m.n)})); })); }
   cand.sort((a,b)=>b.s-a.s); return cand[0] && cand[0].s>0.45 ? cand.slice(0,8).filter(c=>c.s>0.3) : null;
 }
 // Gramm einer Zeile: g und ml direkt, sonst Stück oder Löffel geschätzt
-function lineGrams(L, m){ if(L.u==="g"||L.u==="ml") return L.a; if(L.a==null) return null; if(L.u==="Stk") return L.a*(PIECE_G[m&&m.n]||PIECE_G[(m&&m.n||"").replace(/ .*/,"")]||(/ei\b|eier/i.test(L.n)?60:/banane/i.test(L.n)?120:/apfel/i.test(L.n)?150:100)); return L.a*(UNIT_G[L.u]||50); }
-function lineMacro(L, m){ if(!m) return [0,0,0,0]; if(m.ing){ const v=[m.k100,m.p100,m.c100,m.f100]; if(PER100[L.u]||L.u==="ml") return v.map(x=>x*(L.a||0)/100); if(ING[m.n] && !PER100[L.u]) return ingMacro(m.n, L.a||1, L.u==="Stk"?"Stk":L.u); const g=lineGrams(L,m)||0; return v.map(x=>x*g/100); } const g=lineGrams(L,m)||0; return [m.k100,m.p100||0,m.c100||0,m.f100||0].map(x=>x*g/100); }
+function lineGrams(L, m){ if(L.u==="g"||L.u==="ml") return L.a; if(L.u==="Anteil") return (L.a||0)*pkgG(m); if(L.a==null) return null; if(L.u==="Stk") return L.a*(PIECE_G[m&&m.n]||PIECE_G[(m&&m.n||"").replace(/ .*/,"")]||(m&&m.serving)||(/ei\b|eier/i.test(L.n)?60:/banane/i.test(L.n)?120:/apfel/i.test(L.n)?150:100)); return L.a*(UNIT_G[L.u]||50); }
+function lineMacro(L, m){ if(!m) return [0,0,0,0]; if(L.u==="Anteil"){ const g=lineGrams(L,m)||0; return [m.k100,m.p100||0,m.c100||0,m.f100||0].map(x=>x*g/100); } if(m.ing){ const v=[m.k100,m.p100,m.c100,m.f100]; if(PER100[L.u]||L.u==="ml") return v.map(x=>x*(L.a||0)/100); if(ING[m.n] && ["Stk","EL","TL","Zehen","Dose","Dosen"].includes(L.u)) return ingMacro(m.n, L.a||1, L.u); const g=lineGrams(L,m)||0; return v.map(x=>x*g/100); } const g=lineGrams(L,m)||0; return [m.k100,m.p100||0,m.c100||0,m.f100||0].map(x=>x*g/100); }
 // Vorschau: Zeilen, Treffer, ändern
 function parsedList(box, lines, onChange){
   box.innerHTML=""; lines.forEach((L,i)=>{ const r=el("div","recrow"), tt=el("div","tt"); const mm=L.matches&&L.matches[L.pick||0];
-    const top=el("div","between"); top.append(el("b",null,(L.a!=null?fmtAmt(Math.round(L.a*10)/10)+" "+(L.u||""):"")+" "+L.n)); const mc=lineMacro(L,mm); top.append(el("span","num",mm?de(mc[0])+" kcal":"?")); tt.append(top);
+    const top=el("div","between"); top.append(el("b",null,L.u==="Anteil" ? (Math.round(L.a*100))+" % der Packung "+L.n+(mm?" (≈ "+de(lineGrams(L,mm))+" g von "+de(pkgG(mm))+" g)":"") : (L.a!=null?fmtAmt(Math.round(L.a*10)/10)+" "+(L.u||""):"")+" "+L.n)); const mc=lineMacro(L,mm); top.append(el("span","num",mm?de(mc[0])+" kcal":"?")); tt.append(top);
     if(mm){ const sel=el("select"); L.matches.forEach((c,j)=>{ const o=el("option",null,c.n+(c.brand&&c.brand!=="Basis"?" · "+c.brand:"")+" ("+de(c.k100)+" kcal/100 g)"); o.value=j; sel.append(o); }); const o0=el("option",null,"Weglassen"); o0.value=-1; sel.append(o0); sel.value=String(L.skip?-1:(L.pick||0)); sel.style.cssText="width:100%;font-size:13px;margin-top:4px"; sel.addEventListener("change",()=>{ const v=Number(sel.value); L.skip=v<0; if(v>=0) L.pick=v; onChange(); }); tt.append(sel); }
     else tt.append(el("div","note","Nicht gefunden, wird weggelassen. Tipp: einfacher schreiben, z. B. „Hähnchenbrust“."));
-    const am=el("input","num"); am.type="text"; am.inputMode="decimal"; am.value=L.a!=null?String(Math.round(L.a*10)/10).replace(".",","):""; am.style.cssText="max-width:80px;font-size:13px;padding:4px 8px;margin-top:4px"; am.setAttribute("aria-label","Menge"); am.addEventListener("change",()=>{ L.a=num(am.value)||0; onChange(); }); const ar=el("div","row nowrap"); ar.append(am, el("span","note",L.u||"Stk")); tt.append(ar);
+    const am=el("input","num"); am.type="text"; am.inputMode="decimal"; am.value=L.u==="Anteil" ? String(Math.round(lineGrams(L,mm)||0)) : L.a!=null?String(Math.round(L.a*10)/10).replace(".",","):""; if(L.u==="Anteil") am.addEventListener("change",()=>{ L.u="g"; L.a=num(am.value)||0; onChange(); }, {once:true}); am.style.cssText="max-width:80px;font-size:13px;padding:4px 8px;margin-top:4px"; am.setAttribute("aria-label","Menge"); am.addEventListener("change",()=>{ L.a=num(am.value)||0; onChange(); }); const ar=el("div","row nowrap"); ar.append(am, el("span","note",L.u==="Anteil"?"g":(L.u||"Stk"))); tt.append(ar);
     r.append(tt); box.append(r); });
 }
 const mmOf = L => L.skip ? null : (L.matches&&L.matches[L.pick||0]) || null;
@@ -2571,14 +2571,34 @@ function totalLines(lines){ return lines.reduce((t,L)=>{ const m=lineMacro(L,mmO
 async function openTextFood(k){
   await loadFoodDb();
   openSheet(p=>{ sheetHead(p,"Per Text eintragen");
-    p.append(el("div","note","Schreib einfach, was du gegessen hast, getrennt mit Komma oder neuer Zeile. Zum Beispiel: 200 g Hähnchenbrust, 125 g Reis, 1 Banane, 2 EL Honig."));
-    const ta=el("textarea"); ta.rows=3; ta.style.cssText="width:100%;font-size:15px"; ta.placeholder="200 g Hähnchenbrust, 125 g Reis"; p.append(ta);
+    p.append(el("div","note","Schreib oder sprich einfach, was du gegessen hast, auch als ganzen Satz. Zum Beispiel: „Ich hab eine Banane gegessen und von der Schokolade 2 von 10 Stückchen“ oder „200 g Hähnchen, 125 g Reis“. Zum Sprechen auf der Tastatur das Mikrofon antippen. Gekaufte Sachen aus Meine Lebensmittel werden bevorzugt."));
+    const ta=el("textarea"); ta.rows=3; ta.style.cssText="width:100%;font-size:15px"; ta.placeholder="Eine Banane und 2 von 10 Stück Schokolade"; p.append(ta);
     const go=el("button","btn wide ghost","Verstehen"); p.append(go); const list=el("div"), tot=el("div","alert ok"); tot.hidden=true; p.append(tot, list); const save=el("button","btn wide","Alles eintragen"); save.hidden=true; p.append(save);
     let lines=[]; const redraw=()=>{ parsedList(list, lines, redraw); const t=totalLines(lines); tot.hidden=false; tot.textContent="Zusammen: "+macroTxt({kcal:t[0],p:Math.round(t[1]),c:Math.round(t[2]),f:Math.round(t[3])}); save.hidden=!lines.some(mmOf); };
-    go.addEventListener("click",()=>{ lines=ta.value.split(/\n|,|;|\bund\b/).map(parseLine).filter(Boolean).map(L=>Object.assign(L,{matches:matchFood(L.n)||null, a:L.a!=null?L.a:1, u:L.u||"Stk"})); if(!lines.length){ toast("Nichts erkannt"); return; } redraw(); });
+    go.addEventListener("click",()=>{ lines=parseSentence(ta.value).map(L=>Object.assign(L,{matches:matchFood(L.n)||null, a:L.a!=null?L.a:1, u:L.u||"Stk"})); if(!lines.length){ toast("Nichts erkannt"); return; } redraw(); });
     save.addEventListener("click",()=>{ let n=0; lines.forEach(L=>{ const m=mmOf(L); if(!m) return; const mc=lineMacro(L,m), g=lineGrams(L,m); addFoodQuiet(k,{n:m.n+(m.brand&&m.brand!=="Basis"?" ("+m.brand+")":""), g:g?Math.round(g):undefined, kcal:Math.round(mc[0]), p:Math.round(mc[1]*10)/10, c:Math.round(mc[2]*10)/10, f:Math.round(mc[3]*10)/10, k100:m.k100, p100:m.p100, c100:m.c100, f100:m.f100}); if(!m.ing) rememberFood(Object.assign({},m)); n++; }); persist(); closeSheet(); render(); toast(n+" Einträge eingetragen"); });
   });
 }
+// Ganze Sätze: "Ich hab eine Banane gegessen und von der Schokolade 2 von 10 Stückchen"
+const NUMW={ein:1,eine:1,einen:1,einem:1,einer:1,eins:1,zwei:2,drei:3,vier:4,"fünf":5,fuenf:5,sechs:6,sieben:7,acht:8,neun:9,zehn:10,elf:11,"zwölf":12,halbe:0.5,halben:0.5,halber:0.5,halb:0.5,viertel:0.25,paar:2};
+function parseSentence(text){
+  let t=" "+String(text).replace(/\n/g,", ")+" ";
+  t=t.replace(/\b(ich|hab|habe|hatte|heute|gerade|eben|noch|jetzt|grad|so|ungefähr|etwa|circa|ca\.?|gegessen|getrunken|genommen|gefuttert|zum frühstück|zum mittag|zum abendessen|als snack|mir|mal|dazu|auch|davon)\b/gi," ");
+  t=t.replace(/,?\s*(die|den|das)\s+[^,]*?\b(gekauft|geholt|besorgt)\b[^,]*/gi," ");
+  const parts=t.split(/,|;|\.(?!\d)|\bund\b|\bsowie\b|\bplus\b/i).map(x=>x.trim()).filter(x=>x.length>1);
+  return parts.map(seg=>{
+    let frac=null; seg=seg.replace(/\b(\d+|[a-zäöü]+)\s+von\s+(\d+|[a-zäöü]+)\s*(stück\w*|riegel|rippe\w*|teile?n?|scheiben|kugeln|keksen?)?/i,(m,a,b)=>{ const x=num(NUMW[a.toLowerCase()]!=null?NUMW[a.toLowerCase()]:a), y=num(NUMW[b.toLowerCase()]!=null?NUMW[b.toLowerCase()]:b); if(x>0&&y>0){ frac=x/y; return " "; } return m; });
+    if(frac==null) seg=seg.replace(/\bvon\s+(\d+|[a-zäöü]+)\s*(stück\w*|riegel|rippe\w*|teilen|scheiben)\s+(\d+|[a-zäöü]+)\b/i,(m,b,u,a)=>{ const x=num(NUMW[a.toLowerCase()]!=null?NUMW[a.toLowerCase()]:a), y=num(NUMW[b.toLowerCase()]!=null?NUMW[b.toLowerCase()]:b); if(x>0&&y>0){ frac=x/y; return " "; } return m; });
+    if(frac==null){ const h=seg.match(/\b(die\s+)?hälfte\b/i); if(h){ frac=0.5; seg=seg.replace(h[0]," "); } }
+    seg=seg.replace(/\b(von|vom|der|die|das|dem|den|des)\b/gi," ").replace(/\s+/g," ").trim();
+    seg=seg.replace(/^([a-zäöü]+)\b/i,(m,w)=>NUMW[w.toLowerCase()]!=null?String(NUMW[w.toLowerCase()]):m);
+    if(!seg) return frac!=null ? {onlyFrac:frac} : null;
+    if(frac!=null){ const n=seg.replace(/^\d+([.,]\d+)?\s*/,"").trim(); return n?{a:frac,u:"Anteil",n,raw:seg}:{onlyFrac:frac}; }
+    const L=parseLine(seg); if(L && L.a==null){ L.a=1; L.u="Stk"; } if(L && /^(schokolade|quark|chips|kuchen|pizza|kekse|riegel|tafel)/i.test(L.n) && L.raw && !/^\s*\d/.test(seg)) L.bare=true; return L;
+  }).reduce((out,x)=>{ if(!x) return out; if(x.onlyFrac!=null){ const prev=out[out.length-1]; if(prev && prev.u!=="Anteil"){ prev.u="Anteil"; prev.a=x.onlyFrac; } return out; } out.push(x); return out; },[]);
+}
+// Packungsgröße: aus dem Namen ("100 g"), sonst üblich je Art
+function pkgG(m){ const n=(m&&(m.n+" "+(m.brand||"")))||""; const x=n.match(/(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l)\b/i); if(x){ const v=num(x[1]); return /kg|^l$/i.test(x[2])?v*1000:v; } if(m&&m.pkg) return m.pkg; if(/schoko|tafel/i.test(n)) return 100; if(/chips/i.test(n)) return 175; if(/riegel/i.test(n)) return m.serving||45; return m&&m.serving ? m.serving : 100; }
 function addFoodQuiet(k,f){ const e=Object.assign({t:Date.now()},f); const sl=slotFor(k,e); if(sl) e.slot=sl.key; dayFood(k).push(e); }
 // ---------- Rezept aus Text (TikTok, Instagram, Notizen)
 async function openRecipeImport(text, srcUrl){
