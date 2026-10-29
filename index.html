@@ -5204,7 +5204,7 @@ const THEMES=[["auto","Auto","linear-gradient(135deg,#fff 50%,#10161C 50%)"],["l
 const ACCENTS=[["","Bunt","conic-gradient(#FF7A45,#8C7CF0,#14B8A6,#2FB766,#4C8DFF,#FF7A45)"],["orange","Orange","#FF7A45"],["tuerkis","Türkis","#14B8A6"],["lila","Lila","#8C7CF0"],["blau","Blau","#4C8DFF"],["gruen","Grün","#2FB766"],["pink","Pink","#F0568C"],["rot","Rot","#E8473F"],["gold","Gold","#E3A21A"]];
 function applyTheme(){ const h=document.documentElement, t=P().theme||"auto", a=P().accent||""; if(t==="auto") delete h.dataset.theme; else h.dataset.theme=t; if(a) h.dataset.accent=a; else delete h.dataset.accent;
   try{ localStorage.setItem("wa_theme",JSON.stringify({t,a})); }catch(e){}
-  const m=document.querySelector('meta[name="theme-color"]'); const dark = t==="oled" ? "#000000" : t==="dark" || (t==="auto" && matchMedia("(prefers-color-scheme: dark)").matches) ? "#10161C" : "#EEF1F4"; if(m) m.content=dark; }
+  const m=document.querySelector('meta[name="theme-color"]'); const dark = t==="oled" ? "#000000" : t==="dark" || (t==="auto" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches) ? "#10161C" : "#EEF1F4"; if(m) m.content=dark; }
 function themePicker(p){
   p.append(el("div","cat","Aussehen"));
   const g=el("div","themeSeg"); THEMES.forEach(([v,t,c])=>{ const b=el("button"); const i=el("i"); i.style.background=c; b.append(i, document.createTextNode(t)); b.setAttribute("aria-pressed",(P().theme||"auto")===v?"true":"false"); b.addEventListener("click",()=>{ P().theme=v; persist(); applyTheme(); g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false")); render(); }); g.append(b); }); p.append(g);
