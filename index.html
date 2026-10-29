@@ -610,7 +610,7 @@ input[type=range].big{width:100%;accent-color:var(--accent);height:30px}
 .pwRow{position:relative}.pwRow button{position:absolute;right:10px;top:50%;transform:translateY(-50%);border:0;background:none;font-size:13px;font-weight:800;color:var(--accent)}
 .err{color:var(--warn);font-weight:700;font-size:14px;min-height:20px}
 /* Tour */
-.tourRing{position:fixed;z-index:150;border-radius:20px;box-shadow:0 0 0 9999px rgba(10,16,24,.62),0 0 0 3px var(--accent);transition:all .4s var(--ease);pointer-events:none}
+.tourRing{position:fixed;z-index:150;border-radius:20px;box-shadow:0 0 0 9999px rgba(10,16,24,.62),0 0 0 3px var(--accent);transition:left .25s var(--ease),top .25s var(--ease),width .25s var(--ease),height .25s var(--ease);pointer-events:none}
 .tourTip{position:fixed;z-index:151;left:14px;right:14px;max-width:460px;margin:0 auto;background:var(--panel);border-radius:22px;padding:14px;box-shadow:0 14px 40px rgba(0,0,0,.3);display:flex;flex-direction:column;gap:8px;animation:rise .35s var(--ease)}
 .tourTip .tt{display:flex;gap:10px;align-items:center}.tourTip .mascot{width:54px}
 .tourTip h3{font-style:italic}
@@ -1364,6 +1364,8 @@ Object.assign(UNITS, {
   U2:{legs:true, t:"Unterkörper 2, Hüfte", s:[["hinge","3 × 8 bis 12"],["presse","3 × 10 bis 15"],["beugerSitz","2 × 10 bis 12"],["adduktor","2 × 12 bis 15"],["wadeSitz","3 × 12 bis 20"],["cardio","15 bis 20 Min."]]},
   PU:{t:"Push: Brust, Schultern, Trizeps", s:[["flach","3 × 6 bis 10"],["schraeg","3 × 8 bis 12"],["schulter","2 × 8 bis 12"],["seit","3 × 12 bis 20"],["triPush","2 × 10 bis 12"],["triOver","2 × 10 bis 15"]]},
   PL:{t:"Pull: Rücken, Bizeps", s:[["latWeit","3 × 6 bis 10"],["rudBrust","3 × 8 bis 12"],["latEng","2 × 8 bis 12"],["face","3 × 12 bis 15"],["bizeps","2 × 8 bis 12"],["hammer","2 × 10 bis 12"]]},
+  PO:{legs:true, t:"Po und Beinbeuger", s:[["hinge","4 × 8 bis 12"],["einbein","3 × 8 bis 12"],["beugerLieg","3 × 10 bis 12"],["adduktor","2 × 12 bis 15"],["hyper","2 × 12 bis 15"],["bauch","2 × 10 bis 15"]]},
+  BE:{legs:true, t:"Beine: Oberschenkel und Waden", s:[["quad","3 × 6 bis 10"],["presse","3 × 10 bis 15"],["strecker","3 × 12 bis 15"],["beugerSitz","2 × 10 bis 12"],["wadeSteh","3 × 10 bis 15"],["wadeSitz","2 × 12 bis 20"]]},
   LE:{legs:true, t:"Beine und Bauch", s:[["quad","3 × 6 bis 10"],["hinge","3 × 8 bis 12"],["strecker","2 × 12 bis 15"],["beugerSitz","2 × 10 bis 12"],["wadeSteh","3 × 10 bis 15"],["bauch","2 × 10 bis 15"]]}
 });
 const PLANS = {
@@ -1371,6 +1373,8 @@ const PLANS = {
   okuk:{n:"Oberkörper und Unterkörper", pw:4, lvl:"Mittel", d:"4 Einheiten pro Woche, sehr beliebt und gut planbar. Jeder Muskel 2 Mal pro Woche.", seq:["O1","U1","P","O2","U2","P","P"]},
   ppl:{n:"Push Pull Beine", pw:5, lvl:"Fortgeschritten", d:"Drücken, Ziehen, Beine, dann ein Tag Pause. Ca. 5 Einheiten pro Woche.", seq:["PU","PL","LE","P"]},
   ppl3:{n:"Push Pull Beine, 3 Mal", pw:3, lvl:"Mittel", d:"Die gleichen Einheiten, aber nur 3 Mal pro Woche mit Pausen dazwischen.", seq:["PU","P","PL","P","LE","P","P"]},
+  pppb:{n:"Push Pull Po Beine", pw:4, lvl:"Mittel", d:"4 Einheiten pro Woche: Drücken, Ziehen, Po und hintere Kette, Oberschenkel vorne. Mehr Fokus auf Po und Beine als beim normalen Push Pull Beine.", seq:["PU","PL","P","PO","BE","P","P"]},
+  pppb6:{n:"Push Pull Po Beine, 6 Tage", pw:6, lvl:"Fortgeschritten", d:"Für viel Zeit: Push, Pull, Po, Push, Pull, Beine, dann ein Ruhetag. Jeder Muskel 2 Mal pro Woche.", seq:["PU","PL","PO","PU","PL","BE","P"]},
   gk3:{n:"Ganzkörper, 3 Mal", pw:3, lvl:"Einsteiger", d:"3 Mal pro Woche den ganzen Körper. Ideal für den Anfang oder wenn Schichten wenig Zeit lassen.", seq:["G1","P","G2","P","G1","P","P","G2","P","G1","P","G2","P","P"]},
   gk2:{n:"Ganzkörper, 2 Mal", pw:2, lvl:"Einsteiger", d:"Minimum mit gutem Effekt: 2 Mal pro Woche je ca. 60 Minuten.", seq:["G1","P","P","G2","P","P","P"]}
 };
@@ -4878,18 +4882,24 @@ function openOnboarding(){
 // ---------- Kurze Tour mit Sprechblasen
 const TOUR=[["#hero","Deine Bereitschaft","Jeden Morgen aus Schlaf und Puls. Ohne Uhr tippst du einfach an, wie du dich fühlst."],["#todayCard","Heute dran","Deine Einheit für heute. Ein Tipp und das Training läuft."],["#shiftPick","Deine Schicht","Tipp an, welche Schicht du heute hast. Der ganze Tag richtet sich danach."],["#schedule","Dein Tagesablauf","Essen, Supplements, Koffeinstopp und Schlafenszeit, passend zur Schicht. Abhaken mit einem Tipp."],['nav.tabs [data-tab="training"]',"Training und Verlauf","Kalender, Rekorde, Ziele, Muskelkarte und dein eigenes Studio."],['nav.tabs [data-tab="essen"]',"Essen","Scannen, suchen, per Text schreiben oder einfach einsprechen."],['nav.tabs [data-tab="koerper"]',"Körper","Gewicht, Waage, Fotos, Puls und Schritte."],["#streakChip","Deine Serie","Ruhetage zählen mit. Tipp drauf für deine Erfolge."],["#openSettings","Einstellungen","Hier änderst du alles, was du eben eingegeben hast."]];
 function startTour(i){
-  ["tourRing","tourTip","tourBlock"].forEach(id=>{ const x=$(id); if(x) x.remove(); });
+  ["tourRing","tourTip","tourBlock"].forEach(id=>{ const x=$(id); if(x) x.remove(); }); window.removeEventListener("scroll",tourPlace); window.removeEventListener("resize",tourPlace);
   if(i>=TOUR.length){ state.tourDone=true; persist(); window.scrollTo({top:0,behavior:"smooth"}); toast("Viel Spaß mit Winterarc!"); return; }
   const [sel,title,txt]=TOUR[i], t=document.querySelector(sel);
   if(!t || !t.getClientRects().length){ startTour(i+1); return; }
   const blk=el("div","tourBlock"); blk.id="tourBlock"; document.body.append(blk);
-  const inNav=!!t.closest("nav.tabs"); if(!inNav) t.scrollIntoView({block:"center", behavior:"smooth"});
-  setTimeout(()=>{ const r=t.getBoundingClientRect(), pd=6, ring=el("div","tourRing"); ring.id="tourRing"; Object.assign(ring.style,{left:(r.left-pd)+"px",top:(r.top-pd)+"px",width:(r.width+2*pd)+"px",height:(r.height+2*pd)+"px"}); document.body.append(ring);
-    const tip=el("div","tourTip"); tip.id="tourTip"; const tt=el("div","tt"); const tx=el("div"); tx.append(el("h3",null,title), el("div","note",txt)); tt.append(mascotEl(i===0?"wave":"cheer"), tx); tip.append(tt);
-    const nav=el("div","between"); const sk=el("button","link","Überspringen"); sk.addEventListener("click",()=>startTour(TOUR.length)); const nx=el("button","btn",i===TOUR.length-1?"Fertig":"Weiter ›"); nx.addEventListener("click",()=>startTour(i+1)); nav.append(sk, el("span","note",(i+1)+" / "+TOUR.length), nx); tip.append(nav);
-    if(r.top > innerHeight/2) tip.style.bottom=(innerHeight-r.top+pd+12)+"px"; else tip.style.top=(r.bottom+pd+12)+"px";
-    document.body.append(tip); }, inNav?60:420);
+  const inNav=!!t.closest("nav.tabs"); if(!inNav){ const r0=t.getBoundingClientRect(); window.scrollTo(0, Math.max(0, window.scrollY + r0.top - (r0.height > innerHeight*0.5 ? 70 : innerHeight*0.22))); }
+  const ring=el("div","tourRing"); ring.id="tourRing"; document.body.append(ring);
+  const tip=el("div","tourTip"); tip.id="tourTip"; const tt=el("div","tt"); const tx=el("div"); tx.append(el("h3",null,title), el("div","note",txt)); tt.append(mascotEl(i===0?"wave":"cheer"), tx); tip.append(tt);
+  const nav=el("div","between"); const sk=el("button","link","Überspringen"); sk.addEventListener("click",()=>startTour(TOUR.length)); const nx=el("button","btn",i===TOUR.length-1?"Fertig":"Weiter ›"); nx.addEventListener("click",()=>startTour(i+1)); nav.append(sk, el("span","note",(i+1)+" / "+TOUR.length), nx); tip.append(nav);
+  document.body.append(tip); tourEl=t;
+  [0,120,400,800].forEach(ms=>setTimeout(tourPlace,ms)); window.addEventListener("scroll",tourPlace,{passive:true}); window.addEventListener("resize",tourPlace);
 }
+let tourEl=null;
+function tourPlace(){ const ring=$("tourRing"), tip=$("tourTip"); if(!ring||!tip||!tourEl) return; const r=tourEl.getBoundingClientRect(), pd=6, top=Math.max(4,r.top-pd), bot=Math.min(innerHeight-4,r.bottom+pd);
+  Object.assign(ring.style,{left:(r.left-pd)+"px",top:top+"px",width:(r.width+2*pd)+"px",height:Math.max(20,bot-top)+"px"});
+  const th=tip.offsetHeight||150, below=innerHeight-bot, above=top;
+  tip.style.top=""; tip.style.bottom="";
+  if(below >= th+16) tip.style.top=(bot+10)+"px"; else if(above >= th+16) tip.style.bottom=(innerHeight-top+10)+"px"; else tip.style.bottom="96px"; }
 
 // ---------- Schöneres Anmelden
 function openAccount(){
