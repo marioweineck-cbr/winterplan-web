@@ -752,6 +752,16 @@ body[data-tab="training"]::before{filter:hue-rotate(140deg)}body[data-tab="essen
 .enter .gauge .arcv{animation:arcIn 1.3s var(--ease) both}
 @keyframes arcIn{from{stroke-dashoffset:100}}
 
+/* ===== v55 ===== */
+.suppRows{display:grid;gap:2px;margin-top:4px;padding:6px 8px;border-radius:12px;background:var(--bg)}
+.suppRows .sr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:8px;font-size:13px;padding:3px 0;border-top:1px dashed var(--line)}
+.suppRows .sr:first-child{border-top:0}.suppRows .spn{font-weight:700}.suppRows .spd{color:var(--muted);font-size:12px}
+.item.isdone .suppRows{opacity:.6}
+.altBtn{border:0;background:none;padding:0;color:var(--accent);font-weight:700;font-size:12px;display:block;margin-top:1px}
+.altBox{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 6px}
+.altBox button{border:0;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;background:color-mix(in srgb,var(--accent) 14%,var(--bg));color:var(--ink)}
+.ff .l{cursor:pointer}
+
 :root{--mzb:color-mix(in srgb,var(--ink) 9%,var(--panel));--mz0:color-mix(in srgb,var(--ink) 20%,var(--panel))}
 .sheet{z-index:96}.toast{z-index:160}
 </style>
@@ -1026,7 +1036,7 @@ body[data-tab="training"]::before{filter:hue-rotate(140deg)}body[data-tab="essen
         <span class="note">kg</span>
         <button class="btn" id="wSave">Speichern</button>
       </div>
-      <button class="btn ghost wide scalebtn" id="wScale"><svg class="hi"><use href="#i-scale"/></svg>Mit der Renpho Waage wiegen</button>
+      <button class="btn ghost wide scalebtn" id="wScale"><svg class="hi"><use href="#i-scale"/></svg>Mit der Waage wiegen (Bluetooth)</button>
       <div id="wToday"></div>
     </div>
     <div class="card">
@@ -1071,7 +1081,7 @@ body[data-tab="training"]::before{filter:hue-rotate(140deg)}body[data-tab="essen
       <div class="note" id="stepNote"></div>
     </div>
     <div class="card" id="hcCard">
-      <div class="between"><h3><svg class="hi"><use href="#i-watch"/></svg>Garmin und Waage</h3><span class="pill" id="hcPill">nicht verbunden</span></div>
+      <div class="between"><h3><svg class="hi"><use href="#i-watch"/></svg>Health Connect</h3><span class="pill" id="hcPill">nicht verbunden</span></div>
       <div class="note" id="hcText"></div>
       <div class="row">
         <button class="btn" id="hcConnect">Verbinden</button>
@@ -1086,8 +1096,8 @@ body[data-tab="training"]::before{filter:hue-rotate(140deg)}body[data-tab="essen
       <details>
         <summary>So richtest du es ein</summary>
         <ol class="steps">
-          <li>In der <b>Garmin Connect</b> App in den Einstellungen Health Connect suchen und einschalten (ab Android 14).</li>
-          <li>In der <b>Renpho</b> App bei den verbundenen Apps Health Connect einschalten und Gewicht freigeben.</li>
+          <li>In der App deiner <b>Uhr</b> (Garmin Connect, Samsung Health, Fitbit, Xiaomi, Huawei …) Health Connect einschalten. Ab Android 14 ist Health Connect eingebaut.</li>
+          <li>In der App deiner <b>Waage</b> (Renpho, Withings, Eufy, Fitdays …) bei verbundenen Apps Health Connect einschalten und Gewicht freigeben.</li>
           <li>Hier auf <b>Verbinden</b> tippen und Gewicht, Körperfett, Schritte und Schlaf erlauben. Auch „frühere Daten“ erlauben.</li>
           <li>Danach gleicht die App bei jedem Öffnen automatisch ab.</li>
         </ol>
@@ -1371,6 +1381,33 @@ const WARM = ["3 Min. Rad","Face Pulls leicht: 1 × 15","Wall Slides: 1 × 10","
 
 // ---------- Rezepte: Zutat [Menge, Einheit, Name, Kategorie], Makros pro Portion
 const RECIPES = [
+  {id:"oats", n:"Overnight Oats Protein", por:1, kcal:506, p:42, c:55, f:10,
+   z:[[60, "g", "Haferflocken", "Vorrat"], [150, "g", "Skyr", "Kühlregal"], [100, "ml", "Milch", "Kühlregal"], [15, "g", "Whey", "Vorrat"], [80, "g", "TK Beeren", "TK"], [10, "g", "Chiasamen", "Vorrat"]],
+   st:["Alles am Abend in ein Glas oder eine Box geben und gut verrühren.", "Über Nacht in den Kühlschrank, morgens fertig zum Mitnehmen.", "Tipp für die Frühschicht: 3 Gläser auf einmal machen, hält 3 Tage."]},
+  {id:"pancake", n:"Protein Pancakes", por:1, kcal:584, p:46, c:62, f:15,
+   z:[[50, "g", "Haferflocken", "Vorrat"], [1, "Stk", "Banane", "Gemüse"], [2, "Stk", "Eier", "Kühlregal"], [150, "g", "Magerquark", "Kühlregal"], [1, "TL", "Backpulver", "Vorrat"], [10, "g", "Whey", "Vorrat"]],
+   st:["Alles mit dem Pürierstab oder Mixer glatt mixen, 5 Minuten quellen lassen.", "Beschichtete Pfanne mit etwas Öl auf mittlere Hitze, kleine Pancakes ausbacken (ca. 2 Min. pro Seite).", "Mit Beeren oder etwas Skyr belegen."]},
+  {id:"gyrosreis", n:"Hähnchen Gyros mit Reis und Tzatziki", por:4, box:true, kcal:561, p:65, c:66, f:3,
+   z:[[800, "g", "Hähnchenbrust", "Fleisch"], [2, "EL", "Gyrosgewürz", "Vorrat"], [280, "g", "Reis", "Vorrat"], [400, "g", "Skyr", "Kühlregal"], [1, "Stk", "Gurke", "Gemüse"], [2, "Zehen", "Knoblauch", "Gemüse"], [2, "Stk", "Zwiebeln", "Gemüse"]],
+   st:["Hähnchen in Streifen schneiden, mit Gyrosgewürz und 1 TL Öl mischen, mindestens 30 Min. ziehen lassen.", "Reis kochen.", "Hähnchen mit Zwiebelringen scharf anbraten.", "Tzatziki: Gurke reiben und ausdrücken, mit Skyr, Knoblauch, Salz und Pfeffer verrühren.", "Auf 4 Boxen verteilen, Tzatziki extra lagern."]},
+  {id:"ofen", n:"Ofenblech Hähnchen mit Kartoffeln", por:4, box:true, kcal:552, p:58, c:56, f:9,
+   z:[[1200, "g", "Kartoffeln", "Gemüse"], [800, "g", "Hähnchenbrust", "Fleisch"], [600, "g", "TK Brokkoli oder Gemüsemix", "TK"], [2, "Stk", "Paprika", "Gemüse"], [20, "g", "Olivenöl", "Vorrat"]],
+   st:["Ofen auf 210 °C Umluft vorheizen.", "Kartoffeln würfeln, mit der Hälfte vom Öl, Salz, Paprikapulver und Rosmarin aufs Blech, 15 Min. vorbacken.", "Hähnchen und Paprika würfeln, mit Gemüse und restlichem Öl dazu, weitere 20 Min. backen.", "Ein Blech, wenig Abwasch, 4 Boxen."]},
+  {id:"thun", n:"Thunfisch Nudelsalat", por:3, box:true, kcal:532, p:48, c:76, f:3,
+   z:[[250, "g", "Nudeln", "Vorrat"], [260, "g", "Thunfisch im eigenen Saft", "Vorrat"], [300, "g", "Skyr", "Kühlregal"], [150, "g", "TK Erbsen", "TK"], [2, "Stk", "Paprika", "Gemüse"], [1, "Stk", "Zwiebeln", "Gemüse"]],
+   st:["Nudeln kochen, Erbsen die letzten 2 Minuten mitkochen, abschrecken.", "Thunfisch abtropfen, Paprika und Zwiebel klein würfeln.", "Mit Skyr, Senf, Salz, Pfeffer und etwas Gurkenwasser mischen.", "Kalt essen, perfekt für die Schicht ohne Mikrowelle."]},
+  {id:"pudding", n:"Schoko Protein Pudding", por:2, kcal:274, p:44, c:14, f:4,
+   z:[[500, "g", "Magerquark", "Kühlregal"], [30, "g", "Whey", "Vorrat"], [15, "g", "Backkakao", "Vorrat"], [100, "ml", "Milch", "Kühlregal"], [20, "g", "Erythrit", "Vorrat"]],
+   st:["Alles glatt rühren, bei Bedarf mehr Milch für cremiger.", "Mindestens 1 Stunde kalt stellen.", "Abends als Snack: viel Eiweiß, macht lange satt."]},
+  {id:"linsen", n:"Rote Linsen Curry mit Hähnchen", por:4, box:true, kcal:503, p:53, c:42, f:11,
+   z:[[250, "g", "Rote Linsen", "Vorrat"], [600, "g", "Hähnchenbrust", "Fleisch"], [400, "ml", "Kokosmilch light", "Vorrat"], [400, "g", "Passierte Tomaten", "Vorrat"], [2, "EL", "Currypulver oder Paste", "Vorrat"], [1, "Stk", "Zwiebeln", "Gemüse"]],
+   st:["Zwiebel und Hähnchen würfeln, anbraten, Curry kurz mitrösten.", "Linsen, Tomaten, Kokosmilch und 300 ml Wasser dazu.", "15 bis 20 Min. köcheln, bis die Linsen weich sind. Mit Salz und Zitrone abschmecken.", "Viele Ballaststoffe, ganz ohne Reis satt."]},
+  {id:"lachs", n:"Lachs mit Reis und Brokkoli", por:2, box:true, kcal:674, p:43, c:76, f:21,
+   z:[[300, "g", "Lachsfilet", "Fleisch"], [150, "g", "Reis", "Vorrat"], [400, "g", "TK Brokkoli oder Gemüsemix", "TK"], [2, "EL", "Sojasauce", "Vorrat"], [1, "EL", "Honig", "Vorrat"]],
+   st:["Reis kochen, Brokkoli dämpfen.", "Lachs mit Sojasauce und Honig einpinseln, 12 Min. bei 200 °C in den Ofen.", "Gut für Omega 3 am Wochenende."]},
+  {id:"eiwrap", n:"Rührei Wrap", por:1, kcal:550, p:45, c:33, f:26,
+   z:[[3, "Stk", "Eier", "Kühlregal"], [1, "Stk", "Vollkorn Wrap", "Vorrat"], [30, "g", "Geriebener Käse light", "Kühlregal"], [50, "g", "Hähnchenaufschnitt oder Kochschinken", "Kühlregal"], [1, "Stk", "Tomaten", "Gemüse"]],
+   st:["Eier verquirlen, in der Pfanne stocken lassen.", "Wrap kurz in der Pfanne warm machen.", "Rührei, Käse, Schinken und Tomate drauf, einrollen. In 5 Minuten fertig."]},
   {id:"fantakuchen", n:"Fanta Protein Kuchen", por:20, unit:"Stück", kcal:171, p:15, c:19, f:4,
    z:[[480,"g","Dinkelmehl Type 630","Vorrat"],[180,"g","Sahneprotein (Whey und Kasein)","Vorrat"],[320,"g","Erythrit","Vorrat"],[15,"g","Flavor Powder","Vorrat"],[5,"TL","Backpulver","Vorrat"],[300,"g","Magerquark","Kühlregal"],[6,"Stk","Eier","Kühlregal"],[530,"ml","Fanta Zero","Getränke"],[30,"ml","Rapsöl","Vorrat"],[200,"g","Frischkäse 0,2 % (Exquisa Fitline)","Kühlregal"]],
    st:["Ofen auf 175 °C Ober und Unterhitze (160 °C Umluft) vorheizen, tiefes Blech (30 × 40 cm) mit Backpapier auslegen.","6 Eier, 200 g Erythrit, 300 g Magerquark und 30 ml Rapsöl glatt rühren. 480 g Dinkelmehl, 180 g Sahneprotein, 9 bis 18 g Flavor Powder, 25 g Backpulver und 1 Prise Salz separat mischen.","Trockene Zutaten mit ca. 500 ml Fanta Zero zur Eier Quark Masse geben, nur kurz verrühren. Teig soll dickflüssig sein, sonst 30 bis 60 ml Fanta nachgeben.","Teig aufs Blech, 25 bis 35 Min. backen, ab 25 Min. Stäbchenprobe. Komplett abkühlen lassen.","Frosting: 200 g Exquisa Fitline 0,2 % mit 120 g fein gemahlenem Erythrit glatt rühren, teelöffelweise Fanta Zero dazu bis streichfähig. Auf den kalten Kuchen, optional Streusel, kühl stellen.","In 20 Stücke schneiden (ca. 6 × 10 cm). Mehr als 2 bis 3 Stück am Tag: Erythrit kann blähen."]},
@@ -1753,7 +1790,7 @@ function renderHeute(k, ph){
       const isMeal = it.key in MEALS, id = it.key+"@"+it.i, on = itemDone(k,it), skp = itemSkipped(k,it);
       const li=el("li","item"+(on?" isdone":"")+(skp?" skipped":""));
       if(!on && !next){ next=it; li.classList.add("isnext"); }
-      const tx=el("div","txt"); tx.append(el("span",null,it.label));
+      const tx=el("div","txt"); if(/^supp/.test(it.key) && it.label.indexOf(": ")>0){ tx.append(el("span",null,it.label.split(": ")[0])); tx.append(suppRowsEl(it.label,k)); } else tx.append(el("span",null,it.label));
       if(isMeal){ const m=MEALS[it.key]; tx.append(el("div","sub", skp ? "übersprungen · "+m.kcal+" kcal gespart" : m.kcal+" kcal · P "+m.p+" · K "+m.c+" · F "+m.f)); }
       else if(skp) tx.append(el("div","sub","übersprungen"));
       if(it.key==="gym" && sh!=="urlaub") tx.append(el("div","sub", nextSlot()==="P" ? "Laut Reihenfolge Pause" : "Einheit "+nextSlot()));
@@ -2067,7 +2104,7 @@ const ING={
   "Eier":[75,6.5,0.5,5.3],"Eisbergsalat":[70,5,8,1],"Gurke":[50,2.5,7,0.5],"Obst (Banane oder Apfel)":[100,1,22,0.3],"Banane":[105,1.2,24,0.3],"Paprika":[40,1.5,7,0.5],"Tomaten":[18,1,3,0.2],
   "Vollkorn Wrap":[170,5.5,28,3.5],"Zucchini":[50,4,5,1],"Zwiebeln":[32,1,6,0.1],
   "Currypulver oder Paste":[40,1.5,5,1.5],"Gyrosgewürz":[25,1,4,0.5],"Honig":[64,0,17,0],"Ketchup light":[10,0.2,2,0],"Senf":[12,0.8,0.6,0.7],"Sojasauce":[9,1.3,1,0],
-  "Backpulver":[5,0,1.2,0],"Ingwer":[3,0,0.6,0],"Speisestärke":[11,0,2.8,0],"Mais":[230,7,40,3],"Gehackte Tomaten":[90,4.5,14,0.8],"Kidneybohnen":[250,18,35,1.5],"Gewürzgurken":[60,2,10,0.5],"Knoblauch":[4,0.2,1,0],"Leinsamen geschrotet":[530,18,2,42],"Fix Carbonara":[140,4,22,4],"Schlagsahne":[292,2.5,3,30],"Speckwürfel":[290,15,0.5,25],"Dinkelmehl Type 630":[343,12.6,69,1.5],"Sahneprotein (Whey und Kasein)":[370,75,6,5],"Erythrit":[0,0,0,0],"Flavor Powder":[267,0,53,0],"Fanta Zero":[1,0,0.1,0],"Rapsöl":[828,0,0,92],"Frischkäse 0,2 % (Exquisa Fitline)":[65,12,4,0.2],"Brauner Zucker":[16,0,4,0],"Zimt":[0,0,0,0]
+  "Backpulver":[5,0,1.2,0],"Ingwer":[3,0,0.6,0],"Speisestärke":[11,0,2.8,0],"Mais":[230,7,40,3],"Gehackte Tomaten":[90,4.5,14,0.8],"Kidneybohnen":[250,18,35,1.5],"Gewürzgurken":[60,2,10,0.5],"Knoblauch":[4,0.2,1,0],"Leinsamen geschrotet":[530,18,2,42],"Fix Carbonara":[140,4,22,4],"Schlagsahne":[292,2.5,3,30],"Speckwürfel":[290,15,0.5,25],"Dinkelmehl Type 630":[343,12.6,69,1.5],"Sahneprotein (Whey und Kasein)":[370,75,6,5],"Erythrit":[0,0,0,0],"Flavor Powder":[267,0,53,0],"Fanta Zero":[1,0,0.1,0],"Rapsöl":[828,0,0,92],"Frischkäse 0,2 % (Exquisa Fitline)":[65,12,4,0.2],"Brauner Zucker":[16,0,4,0],"Zimt":[0,0,0,0],"Chiasamen":[486, 17, 8, 31],"Kartoffeln":[75, 2, 15.5, 0.1],"Olivenöl":[884, 0, 0, 100],"Backkakao":[350, 20, 11, 21],"Thunfisch im eigenen Saft":[110, 26, 0, 1],"Lachsfilet":[200, 20, 0, 13],"Rote Linsen":[340, 24, 50, 1.5],"Haferdrink":[45,1,6.5,1.5]
 };
 const PER100={g:1,ml:1};
 function ingMacro(n,a,u){ const v=ING[n] || (state.myIng||{})[n]; if(!v) return [0,0,0,0]; const f = PER100[u] ? a/100 : (u==="EL"&&n==="Tomatenmark" ? a*0.15 : a); return v.map(x=>x*f); }
@@ -2120,7 +2157,8 @@ function openFoodItem(k, f, ed){
       ingBox.innerHTML="";
       if(rows){
         ingBox.append(el("div","cat",isPot?"Drin im ganzen Topf, Mengen änderbar":unitR?"Drin in 1 "+unitR+", Mengen änderbar":"Drin für 1 Portion, Mengen änderbar"));
-        rows.forEach((x,i)=>{ const r=el("div","ingrow"); r.append(el("span","ingn",x.n));
+        rows.forEach((x,i)=>{ const r=el("div","ingrow"); const nm=el("span","ingn",x.n); r.append(nm);
+          if(ALT[x.n] && (x.u==="g"||x.u==="ml")){ const ab=el("button","altBtn","⇄ Nicht da? Alternative"); nm.append(ab); ab.addEventListener("click",()=>{ const ex=r.nextSibling; if(ex && ex.classList && ex.classList.contains("altBox")){ ex.remove(); return; } const bx=el("div","altBox"); ALT[x.n].forEach(([to,bs])=>{ const na=altAmount(x.n,to,num(x.a)||0,bs); const b=el("button",null,to+" "+de(na)+" "+x.u); b.addEventListener("click",()=>{ x.n=to; x.a=na; mode="custom"; draw(); toast("Getauscht: "+to+(bs==="p"?", gleich viel Eiweiß":bs==="kcal"?", gleich viele Kalorien":"")); }); bx.append(b); }); r.after(bx); }); }
           const inp=el("input","num"); inp.type="number"; inp.inputMode="decimal"; inp.step="any"; inp.value=x.a; inp.addEventListener("input",()=>{ x.a=inp.value; mode="custom"; bB.setAttribute("aria-pressed","false"); bL.setAttribute("aria-pressed","false"); drawTot(); });
           const u=el("span","ingu",x.u); const del=el("button","x","×"); del.setAttribute("aria-label",x.n+" entfernen"); del.addEventListener("click",()=>{ x.a=0; inp.value=0; mode="custom"; drawTot(); });
           r.append(inp,u,del); ingBox.append(r); });
@@ -2773,7 +2811,7 @@ function openOut(k){
       items.sort((a,b)=>b.score-a.score);
       let show=items; if(!chain && !qf){ const per={}; show=items.filter(i=>{ per[i.ch]=(per[i.ch]||0)+1; return per[i.ch]<=2; }); }
       show.forEach((i,ix)=>{
-        const r=el("div","ff"+(ix<3&&i.fit?" top":"")); const l=el("div"); const nm=el("div","nm"); nm.append(document.createTextNode(CHAIN_EMO[i.ch]+" "+(chain?"":i.ch+": ")+i.n)); nm.append(el("span","fit "+(i.fit?"ok":"no"), i.fit?"passt":"zu viel")); l.append(nm, el("div","macros",macroTxt(i)+" · "+Math.round(i.p/i.kcal*100)+" g Eiweiß je 100 kcal"));
+        const r=el("div","ff"+(ix<3&&i.fit?" top":"")); const l=el("div"); const nm=el("div","nm"); nm.append(document.createTextNode(CHAIN_EMO[i.ch]+" "+(chain?"":i.ch+": ")+i.n)); nm.append(el("span","fit "+(i.fit?"ok":"no"), i.fit?"passt":"zu viel")); l.append(nm, el("div","macros",macroTxt(i)+" · "+Math.round(i.p/i.kcal*100)+" g Eiweiß je 100 kcal"), el("div","note","Antippen für Details und Anpassen ›")); l.className="l"; l.addEventListener("click",()=>{ closeSheet(); setTimeout(()=>openFFItem(k,i),230); });
         const b=el("button","btn small ghost","+"); b.setAttribute("aria-label",i.n+" eintragen"); b.addEventListener("click",()=>{ closeSheet(); addFood(k,{n:i.ch+": "+i.n, kcal:i.kcal, p:i.p, c:i.c, f:i.f, out:true}); });
         r.append(l,b); box.append(r);
       });
@@ -3537,7 +3575,7 @@ function openBcCal(){
 }
 function scaleUI(){
   const r=scaleRun; if(!r || !r.box) return;
-  r.num.textContent = r.w ? fmtAmt2(r.w) : "--,--"; r.num.classList.toggle("stable", !!r.done);
+  r.num.textContent = r.w ? fmtAmt2(r.w) : "--,--"; r.num.classList.toggle("stable", !!r.done); if(r.done && !r._snd){ r._snd=true; sfx("scale"); }
   r.msg.textContent = r.msgText || "";
 }
 const fmtAmt2 = v => v.toFixed(2).replace(".",",");
@@ -4098,10 +4136,10 @@ function renderHC(){
   $("hcConnect").textContent = on ? "Freigaben ändern" : "Verbinden";
   $("hcSync").hidden=!HC; $("hcSettings").hidden = !HC;
   let t="Über Health Connect holt sich die App Gewicht und Körperfett von deiner Waage sowie Schritte und Schlaf von deiner Uhr.";
-  if(on && state.hc.last){ const d=new Date(state.hc.last); t="Zuletzt abgeglichen "+d.toLocaleDateString("de-DE")+" "+hm(d)+". Gefunden: "+((state.hc.got&&state.hc.got.length)? state.hc.got.join(", ") : "noch keine Daten. Prüfe, ob Garmin und Renpho an Health Connect senden")+"."; }
+  if(on && state.hc.last){ const d=new Date(state.hc.last); t="Zuletzt abgeglichen "+d.toLocaleDateString("de-DE")+" "+hm(d)+". Gefunden: "+((state.hc.got&&state.hc.got.length)? state.hc.got.join(", ") : "noch keine Daten. Prüfe, ob die Apps von Uhr und Waage an Health Connect senden")+"."; }
   if(hcAvail==="NotInstalled") t="Health Connect muss installiert oder aktualisiert werden. Ab Android 14 ist es eingebaut, sonst gibt es die App im Play Store.";
   if(hcAvail==="NotSupported") t="Health Connect meldet, dass es auf diesem Gerät nicht geht. Probier trotzdem verbinden und schick mir die Technischen Infos.";
-  if(!HC){ t = on ? "Garmin und Waage laufen über die App auf dem Handy. Die Werte kommen per Sync hierher"+(state.hc.last?", zuletzt "+new Date(state.hc.last).toLocaleDateString("de-DE")+" "+hm(new Date(state.hc.last)):"")+"." : "Verbinden geht nur in der App auf dem Handy (Health Connect gibt es nur auf Android). Wenn du dort verbunden und angemeldet bist, siehst du Gewicht, Schritte und Schlaf auch hier."; $("hcPill").textContent = on ? "über Handy" : "nur am Handy"; }
+  if(!HC){ t = on ? "Uhr und Waage laufen über Health Connect in der App auf dem Handy. Die Werte kommen per Sync hierher"+(state.hc.last?", zuletzt "+new Date(state.hc.last).toLocaleDateString("de-DE")+" "+hm(new Date(state.hc.last)):"")+"." : "Verbinden geht nur in der App auf dem Handy (Health Connect gibt es nur auf Android). Wenn du dort verbunden und angemeldet bist, siehst du Gewicht, Schritte und Schlaf auch hier."; $("hcPill").textContent = on ? "über Handy" : "nur am Handy"; }
   $("hcConnect").hidden = !HC; $("hcForce").hidden = !HC || hcAvail==="Available" || hcAvail==null;
   $("hcText").textContent=t;
   const dg=state.hc.diag, box=$("hcDiag"); box.innerHTML="";
@@ -4219,6 +4257,7 @@ function openSettings(first){
     if(state.alphaData && !first){ const sA=toggleRow(tg,"Alpha Progression Daten anzeigen", alpha, null, "Startgewichte und alter Verlauf"); sA.addEventListener("click",()=>{ alpha=!alpha; sA.setAttribute("aria-checked",alpha?"true":"false"); }); }
     p.append(tg);
     const [lme,iMe]=field("Körpermaße alle ... Tage","number",pr.measEvery||14); p.append(lme);
+    if(!first){ const ts=el("div"); let so=P().sound!==false; const sS=toggleRow(ts,"Töne", so, null, "Kurze Klänge beim Abhaken, bei Erfolgen und wenn die Waage fertig gemessen hat"); sS.addEventListener("click",()=>{ so=!so; sS.setAttribute("aria-checked",so?"true":"false"); P().sound=so; persist(); if(so) sfx("done"); }); p.append(ts); }
     if(!first){ const th=el("div"); let ho=!!P().habitsOn; const sH=toggleRow(th,"Gewohnheiten auf Heute anzeigen", ho, null, "Tageslicht, Nicht stören, TV Timer zum Abhaken"); sH.addEventListener("click",()=>{ ho=!ho; sH.setAttribute("aria-checked",ho?"true":"false"); P().habitsOn=ho; persist(); render(); }); p.append(th); }
     if(!first){ const tb=el("button","btn ghost small","Kurze Tour nochmal ansehen"); tb.addEventListener("click",()=>{ closeSheet(); const h=document.querySelector('nav.tabs [data-tab="heute"]'); if(h) h.click(); setTimeout(()=>startTour(0),450); }); p.append(tb); }
     { const ls=el("label","f","Schrittziel pro Tag"), ss=el("select"); [6000,8000,10000,12000].forEach(v=>{ const o=el("option",null,v.toLocaleString("de-DE")); o.value=v; ss.append(o); }); ss.value=String(pr.stepGoal||8000); ss.addEventListener("change",()=>{ P().stepGoal=Number(ss.value); persist(); }); ls.append(ss); p.append(ls); }
@@ -4364,6 +4403,7 @@ function mascotSVG(mood){
 }
 function mascotEl(mood, cls){ const d=el("div","mascot "+(cls||"")); d.innerHTML=mascotSVG(mood); return d; }
 function confetti(n){
+  sfx("success");
   try{ if(matchMedia("(prefers-reduced-motion: reduce)").matches) return; }catch(e){}
   const c=el("div","confetti"), cols=["#FF8A3D","#FF5E7E","#B46CF0","#43C6F0","#36D1A0","#FFB547"];
   for(let i=0;i<(n||90);i++){ const x=el("i"); x.style.left=(Math.random()*100)+"vw"; x.style.background=cols[i%cols.length]; x.style.setProperty("--dx",(Math.random()*40-20)+"vw"); x.style.setProperty("--r",(Math.random()*1080-540)+"deg"); x.style.animationDuration=(1.8+Math.random()*1.6)+"s"; x.style.animationDelay=(Math.random()*0.35)+"s"; if(i%3===0){ x.style.borderRadius="50%"; x.style.width="8px"; x.style.height="8px"; } c.append(x); }
@@ -5039,8 +5079,8 @@ function renderFoodList(k, list, ul){
 // ===================== v2.0.54: Schnell eintragen kompakt, Auswahlfenster, Prozent in den Ringen
 const FCATS=[["","Alle","🍽️"],["fr","Frühstück","☕"],["main","Mittag & Abend","🍝"],["sn","Snacks","🍎"],["pmm","Prep My Meal","❄️"],["mine","Eigene","⭐"]];
 const FCAT_BG={fr:"linear-gradient(135deg,#FFE3B8,#FFC48A)",main:"linear-gradient(135deg,#FFD0C2,#FF9E8A)",sn:"linear-gradient(135deg,#D8F5D0,#9EE3A8)",pmm:"linear-gradient(135deg,#D3ECFF,#9CCBFF)",mine:"linear-gradient(135deg,#EAD9FF,#C7A8FF)"};
-function quickCat(f){ if(f.pmm) return "pmm"; if(f.mine) return "mine"; const n=(f.n||"").toLowerCase(); if(/frei/.test(n)) return "main"; if(/snack|shake|obst|schoki|kuchen|riegel|whey/.test(n)) return "sn"; if(/porridge|quark|waffel|müsli|joghurt|skyr|frühstück|brötchen|\beier?\b/.test(n) && !/box|bowl|pfanne/.test(n)) return "fr"; return "main"; }
-function quickAll(){ return QUICK.map(f=>Object.assign({},f)).concat((state.myRecipes||[]).map(r=>({n:r.n, kcal:r.kcal, p:r.p, c:r.c, f:r.f, rid:r.id, mine:true}))).concat(PMM.map(x=>Object.assign(pmmItem(x),{pmm:true}))); }
+function quickCat(f){ if(f.pmm) return "pmm"; if(f.mine) return "mine"; const n=(f.n||"").toLowerCase(); if(/frei/.test(n)) return "main"; if(/snack|shake|obst|schoki|kuchen|riegel|whey|pudding/.test(n)) return "sn"; if(/porridge|oats|pancake|rührei|quark|waffel|müsli|joghurt|skyr|frühstück|brötchen|\beier?\b/.test(n) && !/box|bowl|pfanne/.test(n)) return "fr"; return "main"; }
+function quickAll(){ const used=new Set(QUICK.map(q=>q.rid||(QUICK_SRC[q.n]||[])[0]).filter(Boolean)); return QUICK.map(f=>Object.assign({},f)).concat(RECIPES.filter(r=>!used.has(r.id)).map(r=>({n:r.n, kcal:r.kcal, p:r.p, c:r.c, f:r.f, rid:r.id}))).concat((state.myRecipes||[]).map(r=>({n:r.n, kcal:r.kcal, p:r.p, c:r.c, f:r.f, rid:r.id, mine:true}))).concat(PMM.map(x=>Object.assign(pmmItem(x),{pmm:true}))); }
 let qCat=null, qQuery="";
 function defaultQCat(k){ const s=mealSlotOf(k,{t:Date.now()}); return s==="fr"?"fr":s==="sn"?"sn":"main"; }
 function qFilter(cat,q){ const nq=normTxt(q||""); return quickAll().filter(f=>(!cat||quickCat(f)===cat) && (!nq || normTxt(f.n).includes(nq))); }
@@ -5070,6 +5110,46 @@ function openFoodPicker(k){
 }
 // Eiweißziel geschafft: einmal am Tag feiern
 function proteinCheer(k){ const T=foodSum(k), g=P().p||150; state.pCheer=state.pCheer||{}; if(k===calToday() && T.p>=g && !state.pCheer[k]){ state.pCheer[k]=true; Object.keys(state.pCheer).forEach(d=>{ if(dayDiff(d,k)>10) delete state.pCheer[d]; }); persist(); setTimeout(()=>{ confetti(90); toast("🍗 Eiweißziel geschafft: "+de(T.p)+" g. Stark!"); },400); } }
+
+
+// ===================== v2.0.55: Töne, Unterwegs im Detail, Alternativen, Supplements sortiert
+function sfx(t){ if(P().sound===false) return; const seq={tick:[[880,0.05]],done:[[660,0.07],[990,0.12]],success:[[523,0.08],[659,0.08],[784,0.08],[1047,0.16]],scale:[[784,0.12],[1175,0.28]]}[t]; if(!seq) return; let d=0; seq.forEach(([f,l])=>{ setTimeout(()=>beep(f,l),d*1000); d+=l*0.8; }); }
+document.addEventListener("click",e=>{ const t=e.target.closest && e.target.closest(".tick,.dayPick button,.feel button,.mplus,.qtile"); if(t && t.getAttribute("aria-pressed")!=="true") sfx("tick"); },true);
+// Unterwegs: was drin ist, abwählen, nur einen Teil gegessen
+function ffInfo(i){ const n=(i.n||"").toLowerCase(), ch=i.ch, big=/30 cm/.test(n)?2:1, M=[];
+  let desc="Ca. Werte je Portion, so wie die Kette es verkauft.";
+  if(ch==="Subway"){ const fill=i.n.replace(/ (15|30) cm/,""); desc=(big===2?"30":"15")+" cm Brot (Italian oder Vollkorn), "+fill+", Salat, Tomate, Gurke, Zwiebeln, Paprika. Werte mit Soße light.";
+    M.push(["Ohne Käse",-45,-3,0,-3.5],["Ohne Soße",-40,0,-6,-1.5],["Mayo oder Chipotle statt light",90,0,1,10],["Doppelt Käse",45,3,0,3.5],["Extra Fleisch",70,12,1,2],["Als Wrap statt Brot",60,2,8,3]); M.forEach(m=>{ for(let x=1;x<5;x++) m[x]*=big; }); }
+  else if(/burger|whopper|big mac|mac|royal|zinger|long chicken/.test(n)){ const cheese=/cheese|royal ts|big mac/.test(n); desc="Brötchen, "+(/chicken|zinger/.test(n)?"Hähnchen paniert":"Rindfleisch Patty")+(cheese?", Käse":"")+", Soße, Salat oder Gurke und Zwiebeln.";
+    M.push(["Ohne Soße oder Mayo",-70,0,-2,-7]); if(cheese) M.push(["Ohne Käse",-50,-3,0,-4]); M.push(["Extra Patty",200,15,0,15],["Ohne Brötchen",-200,-6,-38,-3],["+ Pommes klein",230,3,29,11],["+ Getränk mit Zucker 0,5 l",210,0,53,0]); }
+  else if(/nugget|wings|original recipe|hähnchen|chicken/.test(n)){ desc="Paniertes Hähnchen. Dips zählen extra."; M.push(["+ Dip süß (Süßsauer, BBQ)",50,0,12,0],["+ Mayo oder Knoblauch Dip",100,0,1,11],["+ Pommes klein",230,3,29,11]); }
+  else if(/pommes/.test(n)){ desc="Pommes frittiert, gesalzen."; M.push(["+ Ketchup",30,0,7,0],["+ Mayo",100,0,0,11]); }
+  else if(/wrap|twister|dürüm|döner/.test(n)){ desc="Fladen oder Wrap, Fleisch, Salat, Soße."; M.push(["Ohne Soße",-60,0,-3,-5],["Extra Fleisch",120,15,0,6],["Ohne Käse",-40,-3,0,-3]); }
+  else if(/pizza/.test(n)){ desc="Teig, Tomatensoße, Käse, Belag."; M.push(["Extra Käse",120,8,1,9]); }
+  return {desc, mods:M, cm: ch==="Subway" ? (big===2?30:15) : null}; }
+function openFFItem(k,i){
+  const inf=ffInfo(i), on=new Set(); let pct=100;
+  openSheet(p=>{ const h=el("div","foodhead"); h.append(el("span","bigemo",foodEmoji(i.n))); const ht=el("div"); ht.append(el("h2",null,i.n), el("div","note",(CHAIN_EMO[i.ch]||"")+" "+i.ch)); h.append(ht); const x=el("button","x","×"); x.setAttribute("aria-label","Schließen"); x.addEventListener("click",closeSheet); h.append(x); p.append(h);
+    const tot=el("div","stat4 foodtot"); p.append(tot, el("div","note",inf.desc));
+    if(inf.mods.length){ p.append(el("div","cat","Anpassen")); const mb=el("div","chips wrap"); inf.mods.forEach((m,mi)=>{ const b=el("button",null,m[0]+" ("+(m[1]>0?"+":"")+Math.round(m[1])+" kcal)"); b.setAttribute("aria-pressed","false"); b.addEventListener("click",()=>{ if(on.has(mi)) on.delete(mi); else on.add(mi); b.setAttribute("aria-pressed",on.has(mi)?"true":"false"); drawT(); }); mb.append(b); }); p.append(mb); }
+    p.append(el("div","cat","Wie viel hast du geschafft?")); const pc=el("div","chips"); [25,50,75,100].forEach(v=>{ const b=el("button",null,v===100?"Alles":v+" %"); b.dataset.v=v; b.addEventListener("click",()=>{ pct=v; inp.value=v; if(cmI) cmI.value=Math.round(inf.cm*v/100*10)/10; drawT(); }); pc.append(b); }); p.append(pc);
+    const r=el("div","row nowrap"), inp=el("input","num"); inp.type="number"; inp.inputMode="decimal"; inp.value=100; inp.style.maxWidth="90px"; inp.addEventListener("input",()=>{ const v=num(inp.value); if(v>0 && v<=300){ pct=v; if(cmI) cmI.value=Math.round(inf.cm*v/100*10)/10; drawT(); } }); r.append(inp, el("span","note","%")); let cmI=null;
+    if(inf.cm){ cmI=el("input","num"); cmI.type="number"; cmI.inputMode="decimal"; cmI.value=inf.cm; cmI.style.maxWidth="80px"; cmI.addEventListener("input",()=>{ const v=num(cmI.value); if(v>0){ pct=Math.round(v/inf.cm*1000)/10; inp.value=pct; drawT(); } }); r.append(el("span","note","oder"), cmI, el("span","note","cm gegessen")); }
+    p.append(r);
+    const calc=()=>{ const m=[i.kcal,i.p,i.c,i.f]; on.forEach(mi=>{ for(let x=0;x<4;x++) m[x]+=inf.mods[mi][x+1]; }); return m.map(v=>Math.max(0,v*pct/100)); };
+    const drawT=()=>{ const m=calc(); tot.innerHTML=""; [["kcal",de(m[0])],["Eiweiß",de(m[1])+" g"],["Kohlenh.",de(m[2])+" g"],["Fett",de(m[3])+" g"]].forEach(([a,b])=>{ const d=el("div"); d.append(el("span","label",a), el("span","mid",b)); tot.append(d); }); pc.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",Number(b.dataset.v)===pct?"true":"false")); };
+    const go=el("button","btn wide","Eintragen"); go.addEventListener("click",()=>{ const m=calc().map(v=>Math.round(v)); const extra=[...on].map(mi=>inf.mods[mi][0].replace(/^\+ /,"mit ").toLowerCase()); if(pct!==100) extra.push(Math.round(pct)+" %"); closeSheet(); addFood(k,{n:i.ch+": "+i.n+(extra.length?" ("+extra.join(", ")+")":""), kcal:m[0], p:m[1], c:m[2], f:m[3], out:true}); }); p.append(go);
+    drawT(); });
+}
+// Alternativen, wenn etwas nicht da ist: gleiche Menge Eiweiß oder Kalorien
+const ALT={"Whey":[["Magerquark","p"],["Skyr","p"]],"Skyr":[["Magerquark","p"],["Hüttenkäse","p"]],"Magerquark":[["Skyr","p"],["Hüttenkäse","p"]],"Skyr oder Magerquark":[["Hüttenkäse","p"]],"Hüttenkäse":[["Skyr","p"],["Magerquark","p"]],
+  "TK Himbeeren":[["TK Beeren","g"]],"TK Beeren":[["TK Himbeeren","g"]],"Milch":[["Haferdrink","g"],["Wasser","g"]],"Haferdrink":[["Milch","g"]],
+  "Hähnchenbrust":[["Schweineschnitzel oder Hähnchenbrust","p"],["Rinderhack (5 % Fett)","p"],["Thunfisch im eigenen Saft","p"]],"Rinderhack (max. 10 % Fett)":[["Rinderhack (5 % Fett)","g"],["Hähnchenbrust","p"]],"Rinderhack (5 % Fett)":[["Rinderhack (max. 10 % Fett)","g"],["Hähnchenbrust","p"]],
+  "Reis":[["Nudeln","g"],["Kartoffeln","kcal"]],"Nudeln":[["Reis","g"],["Kartoffeln","kcal"]],"Kartoffeln":[["Reis","kcal"],["Nudeln","kcal"]],
+  "Geriebener Käse light":[["Mozzarella light oder Käse light","p"]],"Mozzarella light oder Käse light":[["Geriebener Käse light","p"]],"Lachsfilet":[["Hähnchenbrust","p"],["Thunfisch im eigenen Saft","p"]],"Thunfisch im eigenen Saft":[["Hähnchenbrust","p"]],"Schlagsahne":[["Milch","kcal"]],"Kokosmilch light":[["Milch","kcal"]]};
+function altAmount(from,to,a,basis){ const A=ING[from], B=ING[to]; if(!A||!B) return a; const ix=basis==="p"?1:basis==="kcal"?0:-1; if(ix<0 || !(B[ix]>0)) return a; return Math.round(a*A[ix]/B[ix]/5)*5; }
+// Supplements im Tagesablauf als Liste
+function suppRowsEl(label,k){ const t=/Schlafen/.test(label)?"E":"M", L=state.supps.filter(s=>s.on && s.t===t && suppToday(s,k)); const box=el("div","suppRows"); L.forEach(s=>{ const r=el("div","sr"); r.append(el("span","spn","💊 "+s.n), el("span","spd",s.dose||"")); box.append(r); }); return box; }
 
 // ---------- Start
 (async function(){
