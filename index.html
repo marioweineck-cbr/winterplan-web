@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Winterarc</title>
+<meta name="theme-color" content="#EEF1F4">
+<script>try{var wt=JSON.parse(localStorage.getItem("wa_theme")||"{}");if(wt.t&&wt.t!=="auto")document.documentElement.dataset.theme=wt.t;if(wt.a)document.documentElement.dataset.accent=wt.a;}catch(e){}</script>
 <style>
 /* Layout: App mit festem Kopf, Inhalt in ruhigen Karten, Reiterleiste unten wie bei nativen Android Apps. */
 :root{
@@ -764,6 +766,50 @@ body[data-tab="training"]::before{filter:hue-rotate(140deg)}body[data-tab="essen
 
 :root{--mzb:color-mix(in srgb,var(--ink) 9%,var(--panel));--mz0:color-mix(in srgb,var(--ink) 20%,var(--panel))}
 .sheet{z-index:96}.toast{z-index:160}
+/* ===== v56: Aussehen wählbar (Hell, Dunkel, OLED Schwarz) und Akzentfarbe ===== */
+:root[data-theme="dark"],:root[data-theme="oled"]{
+  --bg:#10161C; --panel:#18212A; --ink:#E6ECF1; --muted:#98A5B0; --line:#29343E;
+  --accent:#E8904A; --accent-ink:#1A1208; --done:#3DD9C5; --warn:#E07A66; --soft:#2C2218;
+  --carb:#6E9ED6; --fat:#D9B24A; --f:#E8904A; --s:#6E9ED6; --n:#9A8BDB; --x:#4DB59C; --u:#E07AAE; color-scheme:dark;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25)}
+:root[data-theme="oled"]{--bg:#000000; --panel:#0B0D10; --line:#1C2228; --soft:#14161A; --shadow:none}
+:root[data-theme="oled"] body::before{display:none}
+:root[data-theme="oled"] .card,:root[data-theme="oled"] nav.tabs{border:1px solid #161B20}
+:root[data-theme="oled"] nav.tabs{background:rgba(0,0,0,.92)}
+:root[data-theme="oled"] .ob{background:#000}
+:root[data-theme="dark"] .mwarn,:root[data-theme="oled"] .mwarn{color:#FFC14D}
+:root[data-theme="dark"] body[data-tab="woche"],:root[data-theme="oled"] body[data-tab="woche"]{--accent:#A397FF;--soft:#2A2547}
+:root[data-theme="dark"] body[data-tab="training"],:root[data-theme="oled"] body[data-tab="training"]{--accent:#3DD9C5;--soft:#173532}
+:root[data-theme="dark"] body[data-tab="essen"],:root[data-theme="oled"] body[data-tab="essen"]{--accent:#5FD68D;--soft:#183324}
+:root[data-theme="dark"] body[data-tab="koerper"],:root[data-theme="oled"] body[data-tab="koerper"]{--accent:#7EA8FF;--soft:#1C2A47}
+:root[data-theme="oled"] body[data-tab]{--soft:#121417}
+@media (prefers-color-scheme: dark){
+  :root[data-theme="light"]{--bg:#EEF1F4; --panel:#FFFFFF; --ink:#16212B; --muted:#5E6B76; --line:#DCE1E6;
+    --accent:#D9792A; --accent-ink:#FFFFFF; --done:#0FA89A; --warn:#B8432F; --soft:#F7EADD;
+    --carb:#3C6FA8; --fat:#B58B1E; --f:#D9792A; --s:#3C6FA8; --n:#5B4C9A; --x:#2F8F7A; --u:#C2477E; color-scheme:light;
+    --shadow:0 1px 2px rgba(16,24,32,.05),0 6px 20px rgba(16,24,32,.06)}
+  :root[data-theme="light"] .mwarn{color:#D98A00}
+  :root[data-theme="light"] body[data-tab="woche"]{--accent:#7C6CF0;--soft:#ECE9FE}
+  :root[data-theme="light"] body[data-tab="training"]{--accent:#0FA89A;--soft:#DDF5F2}
+  :root[data-theme="light"] body[data-tab="essen"]{--accent:#22A55B;--soft:#E1F5E8}
+  :root[data-theme="light"] body[data-tab="koerper"]{--accent:#3F7FF0;--soft:#E3ECFE}
+  :root:not([data-theme="light"]):not([data-theme="dark"]) body{}
+}
+@media (prefers-color-scheme: dark){ :root[data-theme="auto"].oledAuto{--bg:#000;--panel:#0B0D10;--line:#1C2228} }
+/* Eine feste Akzentfarbe statt bunter Seiten */
+html[data-accent] body,html[data-accent] body[data-tab]{--accent:var(--acc)!important;--accent-ink:#fff!important}
+html[data-accent="orange"]{--acc:#FF7A45} html[data-accent="tuerkis"]{--acc:#14B8A6} html[data-accent="lila"]{--acc:#8C7CF0} html[data-accent="blau"]{--acc:#4C8DFF}
+html[data-accent="gruen"]{--acc:#2FB766} html[data-accent="pink"]{--acc:#F0568C} html[data-accent="rot"]{--acc:#E8473F} html[data-accent="gold"]{--acc:#E3A21A}
+html[data-accent] nav.tabs button{--tc:var(--acc)}
+/* Auswahl im Zahnrad */
+.themeSeg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.themeSeg button{border:0;border-radius:16px;padding:10px 4px 8px;background:var(--bg);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;font-weight:800;color:var(--ink)}
+.themeSeg button i{width:34px;height:34px;border-radius:50%;display:block;box-shadow:inset 0 0 0 1px rgba(128,128,128,.35)}
+.themeSeg button[aria-pressed="true"]{box-shadow:inset 0 0 0 2.5px var(--accent)}
+.swatches{display:flex;flex-wrap:wrap;gap:10px}
+.swatches button{width:40px;height:40px;border-radius:50%;border:0;padding:0;position:relative;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.swatches button[aria-pressed="true"]::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-weight:800;font-size:18px}
+.swatches button[aria-pressed="true"]{box-shadow:0 0 0 3px var(--panel),0 0 0 5px var(--ink)}
 </style>
 </head>
 <body>
@@ -1755,7 +1801,7 @@ function widgetPush(){ clearTimeout(widgetT); widgetT=setTimeout(async ()=>{ try
   await Prefs.set({key:"widget", value:JSON.stringify(data)}); const WB=plug("WidgetBridge"); if(WB && WB.update) await WB.update();
 }catch(e){} }, 1500); }
 function render(){
-  applyPlan(); STEP_GOAL = Number(P().stepGoal)||8000; widgetPush(); setTimeout(checkBadges, 50);
+  applyPlan(); applyTheme(); STEP_GOAL = Number(P().stepGoal)||8000; widgetPush(); setTimeout(checkBadges, 50);
   const k = activeDay(), w = planWeek(k), ph = phase(w);
   $("dateLabel").textContent = (P().name ? "Hi "+P().name+" · " : "") + parseKey(k).toLocaleDateString("de-DE",{weekday:"long", day:"numeric", month:"long"}) + (k!==calToday() ? " · Schicht läuft noch" : "");
   $("weekLabel").textContent = w===0 ? "Start in "+dayDiff(k, startKey())+" Tagen" : "Woche "+w+" von "+(P().weeks||22);
@@ -4229,6 +4275,7 @@ function openSettings(first){
     if(first){ p.append(el("div","note","Kurz einrichten, dann rechnet die App deine Ziele aus. Alles lässt sich später über das Zahnrad oben rechts ändern."));
       if(FB()){ const a=el("button","btn ghost wide","Ich habe schon ein Konto: anmelden"); a.onclick=()=>openAccount(); p.append(a); } }
     const sec=t=>p.append(el("div","cat",t));
+    if(!first) themePicker(p);
     if(!first){ sec("Konto und Sync"); p.append(Object.assign(el("div","note"),{id:"syncLine"})); const sb=el("div","row"); sb.id="syncBtns"; p.append(sb); setTimeout(renderSyncLine,0); }
     sec("Über dich");
     const [ln,iN]=field("Name","text",pr.name||""); p.append(ln);
@@ -5150,6 +5197,21 @@ const ALT={"Whey":[["Magerquark","p"],["Skyr","p"]],"Skyr":[["Magerquark","p"],[
 function altAmount(from,to,a,basis){ const A=ING[from], B=ING[to]; if(!A||!B) return a; const ix=basis==="p"?1:basis==="kcal"?0:-1; if(ix<0 || !(B[ix]>0)) return a; return Math.round(a*A[ix]/B[ix]/5)*5; }
 // Supplements im Tagesablauf als Liste
 function suppRowsEl(label,k){ const t=/Schlafen/.test(label)?"E":"M", L=state.supps.filter(s=>s.on && s.t===t && suppToday(s,k)); const box=el("div","suppRows"); L.forEach(s=>{ const r=el("div","sr"); r.append(el("span","spn","💊 "+s.n), el("span","spd",s.dose||"")); box.append(r); }); return box; }
+
+
+// ===================== v2.0.56: Aussehen
+const THEMES=[["auto","Auto","linear-gradient(135deg,#fff 50%,#10161C 50%)"],["light","Hell","#FFFFFF"],["dark","Dunkel","#18212A"],["oled","OLED","#000000"]];
+const ACCENTS=[["","Bunt","conic-gradient(#FF7A45,#8C7CF0,#14B8A6,#2FB766,#4C8DFF,#FF7A45)"],["orange","Orange","#FF7A45"],["tuerkis","Türkis","#14B8A6"],["lila","Lila","#8C7CF0"],["blau","Blau","#4C8DFF"],["gruen","Grün","#2FB766"],["pink","Pink","#F0568C"],["rot","Rot","#E8473F"],["gold","Gold","#E3A21A"]];
+function applyTheme(){ const h=document.documentElement, t=P().theme||"auto", a=P().accent||""; if(t==="auto") delete h.dataset.theme; else h.dataset.theme=t; if(a) h.dataset.accent=a; else delete h.dataset.accent;
+  try{ localStorage.setItem("wa_theme",JSON.stringify({t,a})); }catch(e){}
+  const m=document.querySelector('meta[name="theme-color"]'); const dark = t==="oled" ? "#000000" : t==="dark" || (t==="auto" && matchMedia("(prefers-color-scheme: dark)").matches) ? "#10161C" : "#EEF1F4"; if(m) m.content=dark; }
+function themePicker(p){
+  p.append(el("div","cat","Aussehen"));
+  const g=el("div","themeSeg"); THEMES.forEach(([v,t,c])=>{ const b=el("button"); const i=el("i"); i.style.background=c; b.append(i, document.createTextNode(t)); b.setAttribute("aria-pressed",(P().theme||"auto")===v?"true":"false"); b.addEventListener("click",()=>{ P().theme=v; persist(); applyTheme(); g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false")); render(); }); g.append(b); }); p.append(g);
+  p.append(el("div","note","OLED ist echtes Schwarz: auf OLED Handys spart das Akku, weil schwarze Pixel aus sind."));
+  const s=el("div","swatches"); ACCENTS.forEach(([v,t,c])=>{ const b=el("button"); b.style.background=c; b.setAttribute("aria-label","Farbe "+t); b.title=t; b.setAttribute("aria-pressed",(P().accent||"")===v?"true":"false"); b.addEventListener("click",()=>{ P().accent=v; persist(); applyTheme(); s.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false")); render(); toast(v?"Farbe: "+t:"Bunt: jede Seite ihre eigene Farbe"); }); s.append(b); });
+  p.append(el("div","note","Farbe: Bunt heißt jede Seite hat ihre eigene Farbe, sonst überall dieselbe."), s);
+}
 
 // ---------- Start
 (async function(){
