@@ -1247,7 +1247,8 @@ const TPL = {
 const CAT = {steps:"steps", suppM:"supp", suppE:"supp", fr:"essen", b1:"essen", b2:"essen", ab:"essen", sn:"essen", sh:"essen", gym:"gym", caf:"koffein", wind:"schlaf", sleep:"schlaf"};
 const CATS = [["essen","Essen"],["gym","Training"],["koffein","Koffeinstopp"],["schlaf","Licht dimmen und Schlafen"],["supp","Supplements morgens und abends"],["steps","Schritte Check in der Freizeit"],["meas","Körpermaße nehmen"],["plan","Abends: Schicht für morgen fehlt"]];
 const HABITS = [["steps","Schrittziel geschafft"],["sun","Morgens 10 Min. Tageslicht"],["dnd","Handy ab Schlafenszeit auf Nicht stören"],["tv","TV nur mit Sleep Timer (max. 30 Min.)"]];
-const CAF_DRINKS = [["Kaffee",90],["Monster 0,5 l",160],["Red Bull 0,25 l",80],["Cola 0,5 l",50]];
+const CAF_DRINKS = [["Kaffee",90],["Espresso",65,"1 Shot, ca. 25 ml",0],["Doppelter Espresso",125,"2 Shots, ca. 50 ml",0],["Cappuccino",65,"Espresso + 120 ml Milchschaum",120],["Latte Macchiato",65,"Espresso + 200 ml Milch",200],["Flat White",125,"2 Shots + 120 ml Milch",120],["Monster 0,5 l",160],["Red Bull 0,25 l",80],["Cola 0,5 l",50]];
+function drinkMilk(n,ml){ const c=coffeeSet(), key=c.milk && c.milk!=="none" ? c.milk : "m15", m=MILK[key], f=ml/100; return {n:n+" ("+ml+" ml "+m[0]+")", kcal:Math.round(m[1]*f), p:Math.round(m[2]*f*10)/10, c:Math.round(m[3]*f*10)/10, f:Math.round(m[4]*f*10)/10}; }
 const CAF_HALF = 5; // Stunden
 let STEP_GOAL = 8000;
 // Empfehlungen: Stufe 1 gut belegt, 2 sinnvoll in bestimmten Fällen, 3 optional, 4 eher nicht
@@ -1879,8 +1880,8 @@ function renderCaf(k){
   const cb=$("cafBtns"); cb.innerHTML="";
   const addCaf=(n,mg,t)=>{ const atBed = bed && bed>new Date() ? cafLevel(bed)+mg*Math.pow(0.5,(bed-t)/3600000/CAF_HALF) : 0; state.caf.unshift({n,mg,t}); state.caf.sort((a,b)=>b.t-a.t); state.caf=state.caf.filter(c=>Date.now()-c.t<48*3600000); persist(); render(); toast(atBed>50 ? n+" eingetragen. Achtung, wird knapp für den Schlaf" : n+" eingetragen um "+hm(new Date(t))+" Uhr"); };
   const cf=coffeeSet();
-  CAF_DRINKS.forEach(([n0,mg0,sub])=>{ const isK=n0==="Kaffee", n=isK?coffeeName():n0, mg=isK?coffeeMg():mg0; const b=el("button"); b.append(document.createTextNode(isK?"Kaffee":n)); b.append(el("small",null,(isK?de(cf.ml)+" ml"+(coffeeMilk()?" + Milch":"")+" · ":"")+mg+" mg"));
-    b.addEventListener("click",()=>{ if(isK){ const mk=coffeeMilk(); if(mk) dayFood(calToday()).push(Object.assign({t:Date.now()},mk)); } addCaf(n,mg,Date.now()); }); cb.append(b); });
+  CAF_DRINKS.forEach(([n0,mg0,sub,ml])=>{ const isK=n0==="Kaffee", n=isK?coffeeName():n0, mg=isK?coffeeMg():mg0; const b=el("button"); b.append(document.createTextNode(isK?"Kaffee":n)); b.append(el("small",null,(isK?de(cf.ml)+" ml"+(coffeeMilk()?" + Milch":"")+" · ":ml?ml+" ml Milch · ":"")+mg+" mg")); if(sub) b.title=sub;
+    b.addEventListener("click",()=>{ if(isK){ const mk=coffeeMilk(); if(mk) dayFood(calToday()).push(Object.assign({t:Date.now()},mk)); } else if(ml){ dayFood(calToday()).push(Object.assign({t:Date.now()},drinkMilk(n0,ml))); } addCaf(n,mg,Date.now()); }); cb.append(b); });
   const own=el("button"); own.append(document.createTextNode("Eigenes")); own.append(el("small",null,"mit Uhrzeit")); own.addEventListener("click",()=>openCaf(null)); cb.append(own);
   if(!(document.activeElement && $("cafCoffee").contains(document.activeElement))) drawCoffee();
   const ul=$("cafLog"); ul.innerHTML="";
@@ -1931,7 +1932,7 @@ function openCaf(c){
     const [l3,iT]=field("Uhrzeit","time", pad(d0.getHours())+":"+pad(d0.getMinutes()));
     const ls=el("label","f","Tag"), sel=el("select"); [["0","Heute"],["1","Gestern"]].forEach(([v,t])=>{ const o=el("option",null,t); o.value=v; sel.append(o); });
     sel.value = keyOf(d0)===calToday() ? "0" : "1"; ls.append(sel); g2.append(l3,ls); p.append(g2);
-    p.append(el("div","note","Vollautomat: Stärke 1 ca. 70 mg, 2 ca. 90 mg, 3 ca. 110 mg pro Tasse. Doppelter Kaffee etwa doppelt so viel."));
+    p.append(el("div","note","Vollautomat: Stärke 1 ca. 70 mg, 2 ca. 90 mg, 3 ca. 110 mg pro Tasse. Espresso ca. 65 mg pro Shot, Cappuccino und Latte Macchiato haben meist 1 Shot, Flat White 2. Doppelter Kaffee etwa doppelt so viel."));
     const sv=el("button","btn wide", c?"Speichern":"Eintragen");
     sv.addEventListener("click",()=>{
       const mg=Math.round(num(iM.value)), tm=toMin(iT.value), n=iN.value.trim()||"Koffein";
