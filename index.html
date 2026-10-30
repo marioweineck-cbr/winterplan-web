@@ -2874,7 +2874,7 @@ function openOut(k){
 }
 
 function addFood(k,f){
-  const e=Object.assign({t:Date.now()},f); let sl=null; if(!e.m && !e.noslot){ sl=slotFor(k,e); if(sl) e.slot=sl.key; } delete e.noslot;
+  const e=Object.assign({t:Date.now()},f); if(pendingMeal && Date.now()-pendingMeal.ts<180000 && !e.meal){ e.meal=pendingMeal.id; pendingMeal=null; } let sl=null; if(!e.m && !e.noslot){ sl=slotFor(k,e); if(sl) e.slot=sl.key; } delete e.noslot;
   dayFood(k).push(e);
   toast(f.free && freeCount(k)>2 ? "Das ist schon die "+freeCount(k)+". freie Mahlzeit diese Woche" : f.n+" eingetragen"+(sl?", im Tagesablauf um "+hm(new Date(e.t))+" abgehakt":""));
   persist(); render();
@@ -5118,20 +5118,26 @@ function openWater(k){ state.water=state.water||{};
     const ok=el("button","btn wide ghost","Fertig"); ok.addEventListener("click",()=>{ closeSheet(); render(); }); p.append(ok); upd(); });
 }
 const MEAL_SLOTS=[["fr","☕","Frühstück",0.3],["mi","🍝","Mittagessen",0.35],["ab","🥗","Abendessen",0.25],["sn","🍎","Snacks",0.1]];
-function mealSlotOf(k,f){ const mk=f.m||f.slot; if(mk) return mk==="fr"?"fr":mk==="b1"?"mi":mk==="b2"?"ab":"sn"; if(!f.t) return "sn"; const sh=state.shift[k]||"frei", w=toMin(wakeFor(k,sh))||420, d=new Date(f.t); let m=d.getHours()*60+d.getMinutes()-w; if(m<-120) m+=1440; return m<240?"fr":m<510?"mi":m<840?"ab":"sn"; }
+function mealSlotOf(k,f){ if(f.meal) return f.meal; const mk=f.m||f.slot; if(mk) return mk==="fr"?"fr":mk==="b1"?"mi":mk==="b2"?"ab":"sn"; if(!f.t) return "sn"; const sh=state.shift[k]||"frei", w=toMin(wakeFor(k,sh))||420, d=new Date(f.t); let m=d.getHours()*60+d.getMinutes()-w; if(m<-120) m+=1440; return m<240?"fr":m<510?"mi":m<840?"ab":"sn"; }
 function renderFoodList(k, list, ul){
   const G=goalKcal(k), groups={}; list.forEach((f,idx)=>{ const s=mealSlotOf(k,f); (groups[s]=groups[s]||[]).push([f,idx]); });
   MEAL_SLOTS.forEach(([id,e,n,share])=>{ const arr=groups[id]||[], kc=arr.reduce((a,[f])=>a+(f.kcal||0),0), tgt=Math.round(G*share/10)*10;
     const h=el("li","mealHead"), l=el("div","mh"), d=el("div"); d.append(el("b",null,n), el("small",null,de(kc)+" / "+de(tgt)+" kcal")); l.append(el("span","me",e), d);
-    const b=el("button","mplus","+"); b.setAttribute("aria-label",n+" hinzufügen"); b.addEventListener("click",()=>openSearch(k)); h.append(l,b); ul.append(h);
+    const b=el("button","mplus","+"); b.setAttribute("aria-label",n+" hinzufügen"); b.addEventListener("click",()=>{ pendingMeal={id,ts:Date.now()}; openFoodPicker(k); }); h.append(l,b); ul.append(h);
     const bar=el("li","mbar"), i=el("i"); i.style.width=Math.min(100,tgt?kc/tgt*100:0)+"%"; if(kc>tgt*1.15) i.style.background="#F0566A"; bar.append(i); ul.append(bar);
     arr.forEach(([f,idx])=>{ const li=el("li","item nt"); const tx=el("div","txt"); tx.append(el("span",null,foodEmoji(f.n)+" "+f.n));
       tx.append(el("div","macros",(f.t?hm(new Date(f.t))+" · ":"")+(f.g?fmtAmt(f.g)+" g · ":"")+macroTxt(f)));
       tx.style.cursor="pointer"; tx.addEventListener("click",()=>openFoodEdit(k,idx));
       const x=el("button","x","×"); x.setAttribute("aria-label",f.n+" entfernen"); x.addEventListener("click",()=>{ list.splice(idx,1); persist(); render(); toast(f.n+" entfernt",()=>{ list.splice(idx,0,f); persist(); render(); }); });
-      li.append(tx,x); ul.appendChild(li); });
+      const mv=el("button","x mv","↕"); mv.setAttribute("aria-label",f.n+" verschieben"); mv.addEventListener("click",()=>openMoveMeal(k,f)); const bx=el("div","row nowrap"); bx.style.gap="6px"; bx.append(mv,x);
+      li.append(tx,bx); ul.appendChild(li); });
   });
 }
+
+let pendingMeal=null;
+function openMoveMeal(k,f){ openSheet(p=>{ sheetHead(p,"Verschieben nach"); p.append(el("div","note",f.n));
+  const g=el("div","qlist"); MEAL_SLOTS.forEach(([id,e,n])=>{ const cur=mealSlotOf(k,f)===id; const b=el("button","qrow"); b.append(el("span","qe",e), (()=>{ const d=el("span","qt"); d.append(el("b",null,n), el("small",null,cur?"ist gerade hier":"hierhin verschieben")); return d; })(), el("span","chev",cur?"✓":"›")); b.addEventListener("click",()=>{ f.meal=id; persist(); closeSheet(); render(); toast(f.n.slice(0,40)+" ist jetzt bei "+n); }); g.append(b); });
+  p.append(g); if(f.meal){ const a=el("button","link","Wieder automatisch nach Uhrzeit"); a.addEventListener("click",()=>{ delete f.meal; persist(); closeSheet(); render(); }); p.append(a); } }); }
 
 
 // ===================== v2.0.54: Schnell eintragen kompakt, Auswahlfenster, Prozent in den Ringen
