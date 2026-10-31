@@ -2189,7 +2189,7 @@ function ingMacro(n,a,u){ const v=ING[n] || (state.myIng||{})[n]; if(!v) return 
   else if((u==="EL"||u==="TL") && (n==="Tomatenmark" || v[0]>150 || !ING[n])) f=a*(u==="TL"?5:/öl\b|öl$/i.test(n)?10:15)/100; // Wert je 100 g, Löffel in Gramm
   else f=a;
   return v.map(x=>x*f); }
-function fixMyRecipes(){ (state.myRecipes||[]).forEach(r=>{ if(r.fix64 || !r.z || !r.z.some(([a,u,n])=>(u==="EL"||u==="TL") && (ING[n]||(state.myIng||{})[n]))) return; const T=sumIng(r.z.map(([a,u,n])=>({a,u,n}))), n=Math.max(1,r.por||1); r.kcal=Math.round(T[0]/n); r.p=Math.round(T[1]/n); r.c=Math.round(T[2]/n); r.f=Math.round(T[3]/n); r.fix64=true; }); }
+function fixMyRecipes(){ (state.myRecipes||[]).forEach(r=>{ try{ recNameFix(r); }catch(e){} if(r.fix64 || !r.z || !r.z.some(([a,u,n])=>(u==="EL"||u==="TL") && (ING[n]||(state.myIng||{})[n]))) return; const T=sumIng(r.z.map(([a,u,n])=>({a,u,n}))), n=Math.max(1,r.por||1); r.kcal=Math.round(T[0]/n); r.p=Math.round(T[1]/n); r.c=Math.round(T[2]/n); r.f=Math.round(T[3]/n); r.fix64=true; }); }
 // Baukasten Einträge mit ihren Zutaten (eine Portion)
 const QUICK_SRC={"Protein Porridge":["porr",1],"Bolognese Box":["bolo",1],"Teriyaki Box":["teri",1],"Chili Box":["chili",1],"Curry Box":["curry",1],"Gyros Bowl":["gyros",1],"Paprika Pfanne":["paprika",1],"Burger Bowl":["burger",1],"Protein Lasagne":["lasagne",1],"Pizza Wrap":["wrap",1],"Quark mit Obst":["quark",1],"2 Protein Waffeln":["waff",2],
   "Snack vor dem Training":[[[1,"Stk","Banane"],[250,"g","Skyr"]]],"Whey Shake":[[[30,"g","Whey"],[300,"ml","Wasser"]]],"Obst und Schoki":[[[1,"Stk","Obst (Banane oder Apfel)"],[20,"g","Dunkle Schokolade"]]]};
@@ -5498,6 +5498,16 @@ function layoutV63(){
   const wc=cardOf("wChart"), bc=$("bcCard"), sc=el("div","card"); sc.id="sleepCard"; sc.innerHTML='<h3><svg class="hi"><use href="#i-clock"/></svg>Schlaf</h3><div id="sleepCardBody"></div>';
   const order=[wc && wc.previousElementSibling && wc.previousElementSibling.classList.contains("card") && !wc.previousElementSibling.id ? wc.previousElementSibling : null, wc, bc, sc, $("stepCard"), $("heartCard"), cardOf("measTable"), cardOf("reviewOpen2"), $("hcCard")].filter(Boolean);
   let anchor=order[0]; order.slice(1).forEach(c=>{ anchor.after(c); anchor=c; });
+}
+
+
+// v2.0.64: kaputte Rezepttitel aus dem Import reparieren
+function recNameFix(r){
+  const n=String(r.n||"").trim(); const bad=/^\d/.test(n) || /^(salz|pfeffer|öl|olivenöl|wasser|gewürze?|kräuter|etwas|zucker|neues rezept)\b/i.test(n);
+  if(!bad) return; const clean=x=>String(x).replace(/\(.*?\)/g," ").replace(/\b(roh|frisch|tk|ca\.?)(?=\s|$)/gi," ").replace(/\s+/g," ").trim();
+  if(/^\d/.test(n)){ const x=clean(n.replace(/^[\d.,½¼¾\s]+/,"").split(/,| à | a ca| ca\./)[0]).replace(/^(große?n?|kleine?n?|mittlere?n?|halbe?)\s+/i,"").replace(/\s+(g|ml|kg|stk)$/i,"").trim(); if(x.length>=3){ r.n=x[0].toUpperCase()+x.slice(1); return; } }
+  const g=(r.z||[]).map(([a,u,nm])=>[u==="g"||u==="ml"?a:u==="Stk"?a*100:a*15, clean(nm)]).filter(x=>x[1] && !/^(salz|pfeffer|öl|olivenöl|rapsöl|wasser|tomatenmark)/i.test(x[1])).sort((a,b)=>b[0]-a[0]);
+  if(g.length) r.n = g[0][1] + (g[1] ? " mit "+g[1][1] : "");
 }
 
 // ---------- Start
