@@ -778,6 +778,14 @@ body[data-tab="training"]::before{filter:hue-rotate(140deg)}body[data-tab="essen
 .wstats .ws b{white-space:nowrap;font-size:13px}
 .wstats .ws .label{letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .slPlan .grid2{grid-template-columns:1.7fr 1fr}
+.wmchips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:10px -2px 0;padding:2px}
+.wmchips::-webkit-scrollbar{display:none}
+.wmchips button{flex:0 0 auto}
+.bcgrid .bctile{cursor:pointer;transition:transform .15s}
+.bcgrid .bctile:active{transform:scale(.97)}
+#sleepCard .statgrid{margin-top:4px}
+#sleepCard .statgrid>div{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+#sleepCard .wstats{grid-template-columns:1fr 1fr}
 
 :root{--mzb:color-mix(in srgb,var(--ink) 9%,var(--panel));--mz0:color-mix(in srgb,var(--ink) 20%,var(--panel))}
 .sheet{z-index:96}.toast{z-index:160}
@@ -1820,7 +1828,7 @@ function widgetPush(){ clearTimeout(widgetT); widgetT=setTimeout(async ()=>{ try
   const js=JSON.stringify(Object.assign({},data,{u:0})); if(js===widgetLast) return; widgetLast=js;
   await Prefs.set({key:"widget", value:JSON.stringify(data)}); const WB=plug("WidgetBridge"); if(WB && WB.update) await WB.update();
 }catch(e){} }, 1500); }
-function render(){
+function render(){ try{ renderSleepCard(); }catch(e){}
   applyPlan(); applyTheme(); STEP_GOAL = Number(P().stepGoal)||8000; widgetPush(); setTimeout(checkBadges, 50);
   const k = activeDay(), w = planWeek(k), ph = phase(w);
   $("dateLabel").textContent = (P().name ? "Hi "+P().name+" · " : "") + parseKey(k).toLocaleDateString("de-DE",{weekday:"long", day:"numeric", month:"long"}) + (k!==calToday() ? " · Schicht läuft noch" : "");
@@ -1859,6 +1867,7 @@ function renderHeute(k, ph){
       const tx=el("div","txt"); if(/^supp/.test(it.key) && it.label.indexOf(": ")>0){ tx.append(el("span",null,it.label.split(": ")[0])); tx.append(suppRowsEl(it.label,k)); } else tx.append(el("span",null,it.label));
       if(isMeal){ const m=MEALS[it.key]; tx.append(el("div","sub", mealSubTxt(k,it.key,skp))); }
       else if(skp) tx.append(el("div","sub","übersprungen"));
+      if(it.key==="caf" && !skp && !on) tx.append(el("div","sub",cafSub()));
       if(it.key==="gym" && sh!=="urlaub") tx.append(el("div","sub", nextSlot()==="P" ? "Laut Reihenfolge Pause" : "Einheit "+nextSlot()));
       if(it.key==="steps" && state.hc.on){ const st=state.hc.steps[k]; tx.append(el("div","sub", st!=null ? "Uhr: "+de(st)+" Schritte, wird automatisch abgehakt" : "wird automatisch abgehakt, sobald die Uhr "+de(STEP_GOAL)+" meldet")); }
       const wrap=el("div","wi"); wrap.append(icoEl(KEY_ICON[it.key]), tx);
@@ -3570,7 +3579,7 @@ function bcBlock(x, prev){
     ["vf","Viszeralfett",c.vf,"",0,true],["water","Körperwasser",c.water," %",1,false],["bone","Knochenmasse",c.bone," kg",1,false],["protein","Eiweiß",c.protein," %",1,false],
     ["bmr","Grundumsatz",c.bmr," kcal",0,false],["bmi","BMI",c.bmi,"",1,true]];
   if(x.imp) rows.push(["imp","Widerstand",x.imp," Ω",0,false]);
-  rows.forEach(([k,lab,v,u,dg,lowGood])=>{ const d=el("div"); d.append(el("span","label",lab), el("span","big num",(dg?dec1(v):de(v))+u));
+  rows.forEach(([k,lab,v,u,dg,lowGood])=>{ const d=el("div"); if(WM[k]||k==="smmP"){ d.classList.add("bctile"); d.addEventListener("click",()=>setWMetric(k,true)); } d.append(el("span","label",lab), el("span","big num",(dg?dec1(v):de(v))+u));
     if(k==="imp"){ if(x.imp2) d.append(el("span","tag","zweiter Wert "+x.imp2+" Ω")); if(prev&&prev.imp){ const dv=x.imp-prev.imp; if(Math.abs(dv)>=5) d.append(el("span","tag",(dv>0?"+":"")+dv+" Ω zur Vergleichsmessung")); } g.append(d); return; }
     if(pc){ const dv=Math.round((v-pc[k])*10)/10; if(Math.abs(dv)>=(dg?0.1:1)){ const good = lowGood ? dv<0 : dv>0; d.append(el("span","dl "+(good?"dn":"up"),(dv>0?"+":"")+(dg?dec1(dv):de(dv))+u)); } }
     const rt=bcRate(k,v); if(rt) d.append(el("span","tag "+rt[1],rt[0])); g.append(d); });
@@ -3585,7 +3594,7 @@ function renderBodyComp(){
   const ref=e.filter(x=>x.t<=last.t-6*86400000).pop() || (e.length>1?e[0]:null);
   box.append(el("div","note",fmtDate(keyOf(new Date(last.t)))+", "+hm(new Date(last.t))+" Uhr"+(ref?" · Vergleich mit "+fmtDate(keyOf(new Date(ref.t))):"")));
   box.append(bcBlock(last, ref));
-  if(e.length>=2) box.append(bcChart(e));
+  box.append(el("div","note bctap","Wert antippen, dann siehst du oben den Verlauf. Gemessen werden nur Gewicht und Widerstand, alles andere rechnet die App daraus."));
   box.append(el("div","note","Geschätzt aus dem Widerstand, den die Waage misst. Renpho rechnet mit eigenen Formeln, deshalb können die Zahlen etwas abweichen. Wichtig ist der Verlauf: immer morgens nüchtern vergleichen, Wasser im Körper verschiebt die Werte."+(state.scale&&state.scale.cal?" Mit Renpho abgeglichen.":"")));
 }
 function bcChart(e){
@@ -5346,12 +5355,13 @@ function wRangeUI(){
   return st;
 }
 function wRangeNote(){
+  if(wMetric!=="w") return wMetricNote();
   if(wRange==="a") return (P().alpha ? "Grau: Verlauf aus Alpha Progression und der Waage. " : "")+"Farbige Linie: ab Start."+(P().target ? " Grüne Linie: Ziel "+String(P().target).replace(".",",")+" kg." : "");
   return wRange==="w" ? "Jeder Punkt ein Tag. Schwankungen von 1 kg sind normal (Wasser, Salz, Essen)." : "Punkte: Messungen. Linie: Schnitt über 7 Tage, der zählt.";
 }
 function trend7(pts){ return pts.map(([d,v])=>{ const a=pts.filter(([e])=>e<=d && e>addDays(d,-7)); return [d, a.reduce((s,x)=>s+x[1],0)/a.length]; }); }
 function drawChart(entries){
-  wLastEntries=entries; const st=wRangeUI(); st.innerHTML="";
+  wLastEntries=entries; const st=wRangeUI(); st.innerHTML=""; wMetricUI(); if(wMetric!=="w"){ drawMetric(st); return; }
   const full=entries.filter(e=>e[1]>0);
   if(wRange==="a"){ drawChartAll(entries); const s0=startKey(); wStatsFill(st, full.filter(([d])=>d>=s0), "Seit Start"); return; }
   const days=WR[wRange][1], end=calToday(), x0=addDays(end,-(days-1));
@@ -5386,8 +5396,106 @@ function wStatsFill(st, pts, lbl){
   st.append(c(lbl,(ch>0?"+":ch<0?"−":"±")+f(Math.abs(ch))+" kg", Math.abs(ch)>=0.1?(good?"ok":"bad"):""), c("Schnitt",f(vs.reduce((a,b)=>a+b,0)/vs.length)+" kg"), c("Tief",f(Math.min(...vs))+" kg"), c("Hoch",f(Math.max(...vs))+" kg"));
 }
 
+
+// ===================== v2.0.63: Aufräumen der Tabs, Waage mit allen Werten, Schlaf bei Körper, Koffein im Tagesablauf
+const WM={w:["Gewicht"," kg",null,"gemessen"], bf:["Körperfett"," %",1], fat:["Fettmasse"," kg",1], muscle:["Muskelmasse"," kg",0], ffm:["Magermasse"," kg",0], ffmi:["FFMI","",0], smmP:["Skelettmuskel"," %",0], vf:["Viszeralfett","",1], water:["Wasser"," %",0], bone:["Knochen"," kg",-1], protein:["Eiweiß"," %",0], bmr:["Grundumsatz"," kcal",-1], bmi:["BMI","",1]};
+let wMetric=(()=>{ try{ return localStorage.getItem("wa_wmetric")||"w"; }catch(e){ return "w"; } })();
+function bcSeries(key){
+  const H=(Number(P().height)||0)/100, by={};
+  bcEntries().forEach(x=>{ const c=bodyComp(x.w,x.imp); if(!c) return; let v=c[key]; if(key==="ffmi") v=H? Math.round((c.ffm/(H*H)+6.1*(1.8-H))*10)/10 : null; if(v==null) return; by[keyOf(new Date(x.t))]=v; });
+  return Object.entries(by).sort((a,b)=>a[0]<b[0]?-1:1);
+}
+function wMetricUI(){
+  let row=$("wMetric"); const seg=$("wRange"); if(!seg) return;
+  const has=bcEntries().length>=2;
+  if(!row){ row=el("div","chips wmchips"); row.id="wMetric"; seg.parentNode.insertBefore(row, seg); }
+  row.innerHTML=""; row.hidden=!has; if(!has){ wMetric="w"; return; }
+  Object.keys(WM).forEach(k=>{ const b=el("button",null,WM[k][0]); b.setAttribute("aria-pressed",k===wMetric?"true":"false"); b.addEventListener("click",()=>setWMetric(k)); row.append(b); });
+  const on=row.querySelector("[aria-pressed=true]"); if(on) requestAnimationFrame(()=>{ try{ row.scrollLeft=Math.max(0,on.offsetLeft-row.clientWidth/2+on.clientWidth/2); }catch(e){} });
+}
+function setWMetric(k, scroll){ wMetric=k; try{ localStorage.setItem("wa_wmetric",k); }catch(e){} drawChart(wLastEntries); $("chartNote").textContent=wRangeNote(); if(scroll){ const c=$("wChart").closest(".card"); c.scrollIntoView({behavior:"smooth",block:"start"}); } }
+function wMetricNote(){
+  if(wMetric==="w") return "";
+  const m=WM[wMetric]; return m[0]+": berechnet aus Gewicht und Widerstand der Waage, keine direkte Messung. Der Verlauf zählt mehr als der einzelne Wert. "+(wMetric==="ffmi"?"FFMI: Muskelmasse im Verhältnis zur Größe, 20 ist trainiert, 22 bis 23 sehr muskulös. ":wMetric==="ffm"?"Magermasse: alles außer Fett, also Muskeln, Wasser, Knochen. ":"");
+}
+function drawMetric(st){
+  const m=WM[wMetric], all=bcSeries(wMetric), end=calToday();
+  const days=WR[wRange][1], x0= wRange==="a" ? (all.length?all[0][0]:end) : addDays(end,-(days-1));
+  const pts=all.filter(([d])=>d>=x0 && d<=end);
+  { if(pts.length>=2){ st.hidden=false; const vs=pts.map(e=>e[1]), dg=/kcal/.test(m[1])||wMetric==="vf"?0:1, f=x=>dg?String(Math.round(x*10)/10).replace(".",","):de(Math.round(x)), ch=Math.round((vs[vs.length-1]-vs[0])*10)/10;
+      const good = m[2]===1 ? ch<0 : m[2]===0 ? ch>0 : null; const c=(n,v,cls)=>{ const d=el("div","ws"+(cls?" "+cls:"")); d.append(el("span","label",n), el("b","num",v)); return d; };
+      st.append(c(wRange==="w"?"Diese Woche":wRange==="m"?"30 Tage":wRange==="j"?"12 Monate":"Insgesamt",(ch>0?"+":ch<0?"−":"±")+f(Math.abs(ch))+m[1], Math.abs(ch)>=0.1&&good!=null?(good?"ok":"bad"):""), c("Jetzt",f(vs[vs.length-1])+m[1]), c("Tief",f(Math.min(...vs))+m[1]), c("Hoch",f(Math.max(...vs))+m[1])); } else st.hidden=true; }
+  const svg=$("wChart"), W=340, H=170, L=36, R=10, T=14, B=24, NS="http://www.w3.org/2000/svg"; svg.innerHTML="";
+  const mk=(n,a)=>{ const e=document.createElementNS(NS,n); for(const k in a) e.setAttribute(k,a[k]); svg.appendChild(e); return e; };
+  if(!pts.length){ mk("text",{x:W/2,y:H/2,"text-anchor":"middle","font-size":12,fill:"var(--muted)"}).textContent="Keine Analyse in diesem Zeitraum"; return; }
+  let lo=Math.min(...pts.map(e=>e[1])), hi=Math.max(...pts.map(e=>e[1])); const pad=Math.max(wMetric==="bmr"?20:0.3,(hi-lo)*0.15); lo-=pad; hi+=pad;
+  const span=Math.max(1,dayDiff(x0,end)), X=d=>L+(dayDiff(x0,d)/span)*(W-L-R), Y=v=>T+(hi-v)/(hi-lo)*(H-T-B);
+  for(let i=0;i<=4;i++){ const v=lo+(hi-lo)*i/4; mk("line",{x1:L,x2:W-R,y1:Y(v),y2:Y(v),stroke:"var(--line)","stroke-width":1}); mk("text",{x:L-6,y:Y(v)+4,"text-anchor":"end","font-size":10,fill:"var(--muted)"}).textContent= hi-lo>20? de(Math.round(v)) : String(Math.round(v*10)/10).replace(".",","); }
+  const lab=(k,t)=>mk("text",{x:X(k),y:H-7,"text-anchor":"middle","font-size":10,fill:"var(--muted)"}).textContent=t;
+  if(wRange==="w"){ for(let i=0;i<7;i++){ const k=addDays(x0,i); lab(k, parseKey(k).toLocaleDateString("de-DE",{weekday:"short"}).replace(".","").slice(0,2)); } }
+  else if(span<=40){ for(let i=0;i<=span;i+=7){ const d=parseKey(addDays(x0,i)); lab(keyOf(d), d.getDate()+"."+(d.getMonth()+1)+"."); } }
+  else { const months=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"]; const d=parseKey(x0); d.setDate(1); d.setMonth(d.getMonth()+1); const every=span>200?2:1; let n=0; while(keyOf(d)<=end){ if(n%every===0) lab(keyOf(d), months[d.getMonth()]); d.setMonth(d.getMonth()+1); n++; } }
+  if(pts.length>1) mk("path",{d:pts.map(([d,v],i)=>(i?"L":"M")+X(d).toFixed(1)+" "+Y(v).toFixed(1)).join(" "),fill:"none",stroke:"var(--accent)","stroke-width":2.5,"stroke-linejoin":"round","stroke-linecap":"round",pathLength:1,class:"draw"});
+  pts.forEach(([d,v],i)=>mk("circle",{cx:X(d),cy:Y(v),r:i===pts.length-1?4:2.6,fill:"var(--accent)"}));
+}
+
+// Schlaf bei Körper
+let slRange="w"; function hTxtS(m){ return Math.floor(m/60)+":"+String(Math.round(m%60)).padStart(2,"0")+" h"; }
+function renderSleepCard(){
+  const box=$("sleepCardBody"); if(!box) return; box.innerHTML="";
+  const sl=state.hc.sleep||{}, goal=(P().sleepGoal||8)*60, k=calToday();
+  const any=Object.keys(sl).length>0;
+  if(!any){ box.append(el("div","note","Schlaf kommt automatisch von deiner Uhr über Health Connect. Sobald Daten da sind, siehst du hier jede Nacht, deinen Schnitt und wie regelmäßig du ins Bett gehst.")); return; }
+  const last = sl[k]!=null ? [k,sl[k]] : sl[addDays(k,-1)]!=null ? [addDays(k,-1),sl[addDays(k,-1)]] : null;
+  const top=el("div","grid2 statgrid");
+  const a=el("div"); a.append(el("span","label","Letzte Nacht"), el("span","big num", last? hTxtS(last[1]) : "-")); if(last) a.append(el("span","tag "+(last[1]>=goal-30?"good":"warn"), last[1]>=goal-30?"im Ziel":"unter Ziel"));
+  const n=slRange==="w"?7:30, days=[]; for(let i=n-1;i>=0;i--) days.push(addDays(k,-i));
+  const vals=days.map(d=>sl[d]!=null?sl[d]:null), have=vals.filter(v=>v!=null), avg=have.length? have.reduce((x,y)=>x+y,0)/have.length : null;
+  const b=el("div"); b.append(el("span","label","Schnitt "+(n===7?"7":"30")+" Tage"), el("span","big num", avg? hTxtS(Math.round(avg/5)*5):"-")); top.append(a,b); box.append(top);
+  const seg=el("div","seg"); seg.style.margin="8px 0 2px"; [["w","Woche"],["m","Monat"]].forEach(([v,t])=>{ const x=el("button",null,t); x.setAttribute("aria-pressed",v===slRange?"true":"false"); x.addEventListener("click",()=>{ slRange=v; renderSleepCard(); }); seg.append(x); }); box.append(seg);
+  const NS="http://www.w3.org/2000/svg", W=340, H=140, L=30, R=6, T=10, B=22; const svg=document.createElementNS(NS,"svg"); svg.setAttribute("viewBox",`0 0 ${W} ${H}`); svg.setAttribute("class","chart"); svg.setAttribute("role","img"); svg.setAttribute("aria-label","Schlaf pro Nacht");
+  const mk=(nm,at)=>{ const e=document.createElementNS(NS,nm); for(const q in at) e.setAttribute(q,at[q]); svg.appendChild(e); return e; };
+  const hi=Math.max(goal+60, ...have)+30, Y=v=>T+(1-v/hi)*(H-T-B), bw=(W-L-R)/n;
+  [4,6,8,10].forEach(h=>{ if(h*60>hi) return; mk("line",{x1:L,x2:W-R,y1:Y(h*60),y2:Y(h*60),stroke:"var(--line)","stroke-width":1}); mk("text",{x:L-5,y:Y(h*60)+4,"text-anchor":"end","font-size":10,fill:"var(--muted)"}).textContent=h+" h"; });
+  vals.forEach((v,i)=>{ const x=L+i*bw+bw*0.15; if(v!=null) mk("rect",{x, y:Y(v), width:bw*0.7, height:Math.max(1,Y(0)-Y(v)), rx:Math.min(4,bw*0.25), fill: v>=goal-30?"var(--done)":"var(--carb)"});
+    if(n===7 || i%7===(n-1)%7){ const d=parseKey(days[i]); mk("text",{x:L+i*bw+bw/2,y:H-6,"text-anchor":"middle","font-size":10,fill:"var(--muted)"}).textContent= n===7 ? d.toLocaleDateString("de-DE",{weekday:"short"}).replace(".","").slice(0,2) : d.getDate()+"."+(d.getMonth()+1)+"."; } });
+  mk("line",{x1:L,x2:W-R,y1:Y(goal),y2:Y(goal),stroke:"var(--accent)","stroke-width":1.5,"stroke-dasharray":"4 3"}); mk("text",{x:W-R-2,y:Y(goal)-4,"text-anchor":"end","font-size":10,fill:"var(--accent)"}).textContent="Ziel "+(goal/60)+" h";
+  box.append(svg);
+  const tm=Object.entries(state.hc.sleepT||{}).filter(([d])=>d>addDays(k,-n) && d<=k).map(([,t])=>{ const s=new Date(t.s), e=new Date(t.e); let m=s.getHours()*60+s.getMinutes(); if(m<720) m+=1440; return [m, e.getHours()*60+e.getMinutes()]; });
+  const g=el("div","wstats"); const c=(nm,v,cls)=>{ const d=el("div","ws"+(cls?" "+cls:"")); d.append(el("span","label",nm), el("b","num",v)); return d; };
+  const inGoal=have.filter(v=>v>=goal-30).length;
+  g.append(c("Ziel", have.length? inGoal+" von "+have.length : "-", have.length? (inGoal/have.length>=0.6?"ok":"bad"):""));
+  if(tm.length>=3){ const mean=tm.reduce((s,x)=>s+x[0],0)/tm.length, sd=Math.sqrt(tm.reduce((s,x)=>s+(x[0]-mean)**2,0)/tm.length), wm=tm.reduce((s,x)=>s+x[1],0)/tm.length;
+    g.append(c("Bett Ø", minTxt(Math.round(mean/5)*5)), c("Auf Ø", minTxt(Math.round(wm/5)*5)), c("Streuung", "± "+Math.round(sd)+" Min.", sd<=45?"ok":"bad")); }
+  box.append(g);
+  box.append(el("div","note","Grün: Ziel erreicht (bis 30 Min. drunter zählt). Streuung: wie stark deine Bettzeit von Tag zu Tag abweicht, bei Schichtarbeit sind unter 45 Min. schon richtig gut."));
+}
+
+// Koffein im Tagesablauf
+function cafSub(){
+  const now=new Date(), lv=cafLevel(now), today=calToday(), had=state.caf.some(c=>keyOf(new Date(c.t))===today);
+  if(lv<10) return had ? "Koffein ist fast raus" : "Heute noch kein Koffein";
+  let t=new Date(now); for(let i=0;i<96 && cafLevel(t)>=50;i++) t=new Date(t.getTime()+15*60000);
+  return "Jetzt ca. "+Math.round(lv/5)*5+" mg im Körper"+(lv>=50?" · unter 50 mg ab "+hm(t)+" Uhr":"");
+}
+
+// Tabs neu ordnen
+function layoutV63(){
+  const q=(sel,root)=>(root||document).querySelector(sel), cardOf=id=>{ const e=$(id); return e && e.closest(".card"); };
+  // Schlafrechner nach Woche unter die Schichten
+  const slc=cardOf("slOut"), wk=$("p-woche"), wk1=wk && wk.querySelector(".card"); if(slc && wk1) wk1.after(slc);
+  // Von der Uhr weg von Heute (Inhalte jetzt bei Körper)
+  const vit=$("vitCard"); if(vit){ const hold=el("div"); hold.hidden=true; hold.id="vitHold"; hold.append(vit); document.body.append(hold); }
+  // Körper: Waage, Analyse, Schlaf, Schritte, Puls, Maße, Fotos, Health Connect
+  const kp=$("p-koerper"); if(!kp) return;
+  const wc=cardOf("wChart"), bc=$("bcCard"), sc=el("div","card"); sc.id="sleepCard"; sc.innerHTML='<h3><svg class="hi"><use href="#i-clock"/></svg>Schlaf</h3><div id="sleepCardBody"></div>';
+  const order=[wc && wc.previousElementSibling && wc.previousElementSibling.classList.contains("card") && !wc.previousElementSibling.id ? wc.previousElementSibling : null, wc, bc, sc, $("stepCard"), $("heartCard"), cardOf("measTable"), cardOf("reviewOpen2"), $("hcCard")].filter(Boolean);
+  let anchor=order[0]; order.slice(1).forEach(c=>{ anchor.after(c); anchor=c; });
+}
+
 // ---------- Start
 (async function(){
+  try{ layoutV63(); }catch(e){ console.error(e); }
   await load();
   render();
   if(!P().setup) openOnboarding();
