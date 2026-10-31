@@ -763,6 +763,10 @@ body[data-tab="training"]::before{filter:hue-rotate(140deg)}body[data-tab="essen
 .altBox{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 6px}
 .altBox button{border:0;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;background:color-mix(in srgb,var(--accent) 14%,var(--bg));color:var(--ink)}
 .ff .l{cursor:pointer}
+.shiftPlan{display:flex;flex-direction:column;gap:4px;margin:4px 0}
+.shiftPlan .spr{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;align-items:center;padding:8px 10px;border-radius:12px;background:var(--bg);font-size:14px}
+.shiftPlan .spr b{font-size:13px}.shiftPlan .spr.now{box-shadow:inset 0 0 0 1.5px var(--line)}
+.shiftPlan .spr.tgt{background:color-mix(in srgb,var(--accent) 16%,var(--bg));font-weight:700}
 
 :root{--mzb:color-mix(in srgb,var(--ink) 9%,var(--panel));--mz0:color-mix(in srgb,var(--ink) 20%,var(--panel))}
 .sheet{z-index:96}.toast{z-index:160}
@@ -1664,7 +1668,7 @@ function shiftHelpInfo(k){
   return null;
 }
 function renderShiftHelp(k){
-  const box=$("shiftHelp"); box.innerHTML=""; const x=shiftHelpInfo(k); box.hidden=!x; if(!x) return;
+  const box=$("shiftHelp"); box.innerHTML=""; const hasPlan=renderShiftPlan(k, box); const x=shiftHelpInfo(k); box.hidden=!x && !hasPlan; if(!x) return; if(hasPlan) box.append(el("div","cat","Für heute Abend"));
   const h=el("div","between"); h.append(el("h3",null,"Schichtwechsel"), el("span","pill","🌙")); box.append(h, el("div","label",x.t));
   const ul=el("ul","list"); x.l.forEach(t=>ul.append(el("li","item nt",t))); box.append(ul); if(x.warn) box.append(el("div","note",x.warn));
 }
@@ -5228,6 +5232,35 @@ function themePicker(p){
   p.append(el("div","note","OLED ist echtes Schwarz: auf OLED Handys spart das Akku, weil schwarze Pixel aus sind."));
   const s=el("div","swatches"); ACCENTS.forEach(([v,t,c])=>{ const b=el("button"); b.style.background=c; b.setAttribute("aria-label","Farbe "+t); b.title=t; b.setAttribute("aria-pressed",(P().accent||"")===v?"true":"false"); b.addEventListener("click",()=>{ P().accent=v; persist(); applyTheme(); s.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false")); render(); toast(v?"Farbe: "+t:"Bunt: jede Seite ihre eigene Farbe"); }); s.append(b); });
   p.append(el("div","note","Farbe: Bunt heißt jede Seite hat ihre eigene Farbe, sonst überall dieselbe."), s);
+}
+
+
+// ===================== v2.0.60: Schichtwechsel sanft über mehrere Tage
+function shiftPlan(k){
+  const sh0=state.shift[k]; if(sh0==="nacht") return null; const goal=(P().sleepGoal||8)*60;
+  const base=toMin(wakeFor(k, sh0||"frei")); let c=null;
+  for(let i=1;i<=5;i++){ const d=addDays(k,i), s=state.shift[d]; if(!s) continue; if(s==="nacht") return null; const w=toMin(wakeFor(d,s)); if(base-w>=60){ c={d,s,w}; break; } if(s==="frueh"||s==="spaet") break; }
+  if(!c) return null;
+  const days=[]; for(let d=k; d<c.d; d=addDays(d,1)){ const s=state.shift[d]; days.push({d,s,free:!s||s==="frei"||s==="urlaub"}); }
+  const free=days.filter(x=>x.free); if(!free.length) return null;
+  const diff=base-c.w, n=free.length+1, step=Math.min(90, Math.ceil(diff/n/15)*15);
+  let cur=base; const rows=[];
+  days.forEach(x=>{ if(x.free && x.d!==k){ cur=Math.max(c.w, cur-step); rows.push({d:x.d, w:cur, free:true}); } else rows.push({d:x.d, w:toMin(wakeFor(x.d,x.s||"frei")), free:x.free, today:x.d===k}); });
+  rows.push({d:c.d, w:c.w, target:true, s:c.s});
+  rows.forEach((r,i)=>{ const nx=rows[i+1]; r.bed = nx ? nx.w-goal-15 : null; });
+  const lastFree=rows.filter(r=>r.free && !r.today).pop(), jump = lastFree ? lastFree.w-c.w : diff;
+  return {c, rows, diff, step, jump};
+}
+function renderShiftPlan(k, box){
+  const pl=shiftPlan(k); if(!pl) return false;
+  const nm=SHIFT_NAMES[pl.c.s]; const h=el("div","between"); h.append(el("h3",null,"🌅 Sanft umstellen auf "+nm), el("span","pill",(pl.diff/60>=1?String(Math.round(pl.diff/60*10)/10).replace(".",","):"<1")+" Std. früher")); box.append(h);
+  box.append(el("div","note","Statt am letzten Tag "+fmtMin(pl.diff)+" auf einmal: jeden freien Tag ca. "+pl.step+" Min. früher aufstehen und ins Bett. Morgens direkt helles Licht, abends Licht dimmen."));
+  const t=el("div","shiftPlan"); pl.rows.forEach(r=>{ const row=el("div","spr"+(r.target?" tgt":"")+(r.today?" now":"")); const dl=parseKey(r.d).toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"numeric"});
+    row.append(el("b",null,r.today?"Heute":dl), el("span",null,"⏰ "+minTxt(r.w)), el("span",null,r.bed!=null?"🛏️ "+minTxt(r.bed):r.target?"🏭 "+nm:"")); t.append(row); }); box.append(t);
+  if(pl.jump>=120) box.append(el("div","note","Es bleiben noch "+fmtMin(pl.jump)+" Sprung am letzten Abend. Mehr freie Tage davor machen es leichter."));
+  const done=pl.rows.filter(r=>r.free && !r.today).every(r=>state.wake[r.d]===minTxt(r.w));
+  const b=el("button","btn small"+(done?" ghost":""),done?"✓ Übernommen, Tagesablauf passt sich an":"So übernehmen"); b.addEventListener("click",()=>{ state.wakeMan=state.wakeMan||{}; pl.rows.filter(r=>r.free && !r.today).forEach(r=>{ state.wake[r.d]=minTxt(r.w); state.wakeMan[r.d]=true; }); persist(); render(); toast("Aufstehzeiten übernommen, Erinnerungen stellen sich darauf ein"); }); box.append(b);
+  return true;
 }
 
 // ---------- Start
