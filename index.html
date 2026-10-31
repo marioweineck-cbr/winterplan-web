@@ -786,6 +786,7 @@ body[data-tab="training"]::before{filter:hue-rotate(140deg)}body[data-tab="essen
 #sleepCard .statgrid{margin-top:4px}
 #sleepCard .statgrid>div{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
 #sleepCard .wstats{grid-template-columns:1fr 1fr}
+.rhead .pill.rmine{font-size:11px;padding:1px 7px;margin-left:6px;vertical-align:middle;font-weight:600}
 
 :root{--mzb:color-mix(in srgb,var(--ink) 9%,var(--panel));--mz0:color-mix(in srgb,var(--ink) 20%,var(--panel))}
 .sheet{z-index:96}.toast{z-index:160}
@@ -2183,7 +2184,12 @@ const ING={
   "Backpulver":[5,0,1.2,0],"Ingwer":[3,0,0.6,0],"Speisestärke":[11,0,2.8,0],"Mais":[230,7,40,3],"Gehackte Tomaten":[90,4.5,14,0.8],"Kidneybohnen":[250,18,35,1.5],"Gewürzgurken":[60,2,10,0.5],"Knoblauch":[4,0.2,1,0],"Leinsamen geschrotet":[530,18,2,42],"Fix Carbonara":[140,4,22,4],"Schlagsahne":[292,2.5,3,30],"Speckwürfel":[290,15,0.5,25],"Dinkelmehl Type 630":[343,12.6,69,1.5],"Sahneprotein (Whey und Kasein)":[370,75,6,5],"Erythrit":[0,0,0,0],"Flavor Powder":[267,0,53,0],"Fanta Zero":[1,0,0.1,0],"Rapsöl":[828,0,0,92],"Frischkäse 0,2 % (Exquisa Fitline)":[65,12,4,0.2],"Brauner Zucker":[16,0,4,0],"Zimt":[0,0,0,0],"Chiasamen":[486, 17, 8, 31],"Kartoffeln":[75, 2, 15.5, 0.1],"Olivenöl":[884, 0, 0, 100],"Backkakao":[350, 20, 11, 21],"Thunfisch im eigenen Saft":[110, 26, 0, 1],"Lachsfilet":[200, 20, 0, 13],"Rote Linsen":[340, 24, 50, 1.5],"Haferdrink":[45,1,6.5,1.5]
 };
 const PER100={g:1,ml:1};
-function ingMacro(n,a,u){ const v=ING[n] || (state.myIng||{})[n]; if(!v) return [0,0,0,0]; const f = PER100[u] ? a/100 : (u==="EL"&&n==="Tomatenmark" ? a*0.15 : a); return v.map(x=>x*f); }
+function ingMacro(n,a,u){ const v=ING[n] || (state.myIng||{})[n]; if(!v) return [0,0,0,0]; let f;
+  if(PER100[u]) f=a/100;
+  else if((u==="EL"||u==="TL") && (n==="Tomatenmark" || v[0]>150 || !ING[n])) f=a*(u==="TL"?5:/öl\b|öl$/i.test(n)?10:15)/100; // Wert je 100 g, Löffel in Gramm
+  else f=a;
+  return v.map(x=>x*f); }
+function fixMyRecipes(){ (state.myRecipes||[]).forEach(r=>{ if(r.fix64 || !r.z || !r.z.some(([a,u,n])=>(u==="EL"||u==="TL") && (ING[n]||(state.myIng||{})[n]))) return; const T=sumIng(r.z.map(([a,u,n])=>({a,u,n}))), n=Math.max(1,r.por||1); r.kcal=Math.round(T[0]/n); r.p=Math.round(T[1]/n); r.c=Math.round(T[2]/n); r.f=Math.round(T[3]/n); r.fix64=true; }); }
 // Baukasten Einträge mit ihren Zutaten (eine Portion)
 const QUICK_SRC={"Protein Porridge":["porr",1],"Bolognese Box":["bolo",1],"Teriyaki Box":["teri",1],"Chili Box":["chili",1],"Curry Box":["curry",1],"Gyros Bowl":["gyros",1],"Paprika Pfanne":["paprika",1],"Burger Bowl":["burger",1],"Protein Lasagne":["lasagne",1],"Pizza Wrap":["wrap",1],"Quark mit Obst":["quark",1],"2 Protein Waffeln":["waff",2],
   "Snack vor dem Training":[[[1,"Stk","Banane"],[250,"g","Skyr"]]],"Whey Shake":[[[30,"g","Whey"],[300,"ml","Wasser"]]],"Obst und Schoki":[[[1,"Stk","Obst (Banane oder Apfel)"],[20,"g","Dunkle Schokolade"]]]};
@@ -3071,7 +3077,8 @@ async function openRecipeImport(text, srcUrl){
       const ingTxt=(zi>=0?all.slice(0,zi):all), stepTxt=zi>=0?all.slice(zi+1).filter(Boolean):[];
       const lines=ingTxt.filter(x=>/^[\s•\-–*·]*[\d½¼¾]/.test(x) || /\d+\s*(g|ml)\b/i.test(x)).map(parseLine).filter(Boolean).map(L=>Object.assign(L,{matches:matchFood(L.n)||null, a:L.a!=null?L.a:1, u:L.u||"Stk"}));
       if(!lines.length){ out.append(el("div","alert bad","Keine Zutaten mit Mengen gefunden. Kopier die Beschreibung mit den Zutaten hier rein.")); return; }
-      const title=(all.find(x=>x && !/^[\s•\-–*·]*[\d½¼¾]/.test(x) && !/zutaten|http|#/i.test(x))||"Neues Rezept").replace(/[#@].*$/,"").replace(/[^\p{L}\p{N} ,.!&-]/gu,"").trim().slice(0,50)||"Neues Rezept";
+      const zt=all.findIndex(x=>/^\W*zutaten/i.test(x)), cand=(zt>0?all.slice(0,zt).reverse():all);
+      const title=(cand.find(x=>x && x.length>=4 && !/^[\s•\-–*·]*[\d½¼¾]/.test(x) && !/zutaten|http|#|nach geschmack|^\W*(salz|pfeffer|öl|etwas|gewürze?|kräuter|wasser)\b/i.test(x))||"Neues Rezept").replace(/[#@].*$/,"").replace(/[^\p{L}\p{N} ,.!&-]/gu,"").trim().slice(0,50)||"Neues Rezept";
       const [ln,iN]=field("Name","text",title); out.append(ln);
       const g=el("div","grid2"); const [lp,iP]=field("Portionen oder Stücke","number",/blech|kuchen|brownie|muffin/i.test(t)?20:/(\d+)\s*(portionen|personen|boxen)/i.test(t)?t.match(/(\d+)\s*(portionen|personen|boxen)/i)[1]:1); const lu=el("label","f","Art"), su=el("select"); [["por","Portionen"],["Stück","Stücke"],["box","Meal Prep Boxen"]].forEach(([v,l])=>{ const o=el("option",null,l); o.value=v; su.append(o); }); su.value=/blech|kuchen|brownie|muffin/i.test(t)?"Stück":"por"; lu.append(su); g.append(lp,lu); out.append(g);
       const tot=el("div","alert ok"); out.append(tot); const list=el("div"); out.append(list);
@@ -3296,7 +3303,7 @@ function renderRecipes(){
   sq.addEventListener("input",()=>{ recQ=sq.value; renderRecipes(); const n=$("recipes").querySelector('input[type="search"]'); if(n){ n.focus(); n.setSelectionRange(n.value.length,n.value.length); } }); box.append(sq);
   const q=normTxt(recQ), list=allRecipes().filter(r=>!q || normTxt(r.n+" "+r.z.map(z=>z[2]).join(" ")).includes(q)); if(!list.length) box.append(el("div","note","Kein Rezept gefunden."));
   list.forEach(r=>{
-    const d=el("details","recipe"); if(openRec.has(r.id)) d.open=true; d.addEventListener("toggle",()=>{ if(d.open) openRec.add(r.id); else openRec.delete(r.id); }); const s=el("summary"); const t=el("div","rhead"); t.append(el("span","remo",foodEmoji(r.n))); const tt=el("div"); t.append(tt); tt.append(el("span",null,r.n));
+    const d=el("details","recipe"); if(openRec.has(r.id)) d.open=true; d.addEventListener("toggle",()=>{ if(d.open) openRec.add(r.id); else openRec.delete(r.id); }); const s=el("summary"); const t=el("div","rhead"); t.append(el("span","remo",foodEmoji(r.n))); const tt=el("div"); t.append(tt); const rn=el("span",null,r.n); tt.append(rn); if(r.mine) rn.append(el("span","pill rmine","eigenes"));
     { const pn=(state.recipePor||{})[r.id]; const m = r.unit && pn ? (()=>{ const t=sumIng(r.z.map(([a,u,n])=>({a:a/pn,u,n}))); return {kcal:Math.round(t[0]),p:Math.round(t[1]),c:Math.round(t[2]),f:Math.round(t[3])}; })() : r;
       tt.append(el("div","macros",(r.box? r.por+" Boxen, je Box: " : r.unit? (pn||r.por)+" "+r.unit+"e, je "+r.unit+": " : "1 Portion: ")+macroTxt(m))); } s.append(t); d.append(s);
     const tb=el("table"), body=el("tbody"); r.z.forEach(([a,u,n])=>{ const tr=el("tr"); tr.append(el("td","num",fmtAmt(a)+" "+u), el("td",null,n)); body.append(tr); }); tb.append(body); d.append(tb);
@@ -3305,7 +3312,7 @@ function renderRecipes(){
     const add=el("button","btn small ghost","Auf die Einkaufsliste"); add.addEventListener("click",()=>{ state.cart.plan[r.id]=(state.cart.plan[r.id]||0)+1; persist(); toast(r.n+" auf der Einkaufsliste"); });
     const eat=el("button","btn small ghost","Essen eintragen"); eat.addEventListener("click",()=>openFoodItem(activeDay(),{n:r.n,kcal:r.kcal,p:r.p,c:r.c,f:r.f,rid:r.id}));
     row.append(add,eat);
-    if(r.mine){ const ed=el("button","btn small ghost","Bearbeiten"); ed.onclick=()=>openRecipeForm(r); row.append(ed); s.querySelector("span").textContent=r.n+" (eigenes)"; }
+    if(r.mine){ const ed=el("button","btn small ghost","Bearbeiten"); ed.onclick=()=>openRecipeForm(r); row.append(ed); }
     d.append(row); box.append(d);
   });
   if(openRec.size) requestAnimationFrame(()=>window.scrollTo(0,y));
@@ -5497,6 +5504,7 @@ function layoutV63(){
 (async function(){
   try{ layoutV63(); }catch(e){ console.error(e); }
   await load();
+  try{ fixMyRecipes(); }catch(e){}
   render();
   if(!P().setup) openOnboarding();
   if(LN){
