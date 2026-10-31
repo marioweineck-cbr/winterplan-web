@@ -768,6 +768,16 @@ body[data-tab="training"]::before{filter:hue-rotate(140deg)}body[data-tab="essen
 .shiftPlan .spl b{font-size:13px;color:var(--muted);letter-spacing:.02em}
 .shiftPlan .spv{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:14px;font-weight:600}
 .shiftPlan .spr.tgt{background:color-mix(in srgb,var(--accent) 16%,var(--bg))}
+.wstats{display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;gap:6px;margin:6px 0 2px}
+.wstats .ws{background:var(--bg);border-radius:12px;padding:7px 8px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.wstats .ws .label{font-size:10.5px;line-height:1.2}
+.wstats .ws b{font-size:14px}
+.wstats .ws.ok b{color:var(--done)} .wstats .ws.bad b{color:var(--warn,#e0603a)}
+.slPlan{margin-top:6px;display:flex;flex-direction:column;gap:6px}
+.slPlan select{width:100%}
+.wstats .ws b{white-space:nowrap;font-size:13px}
+.wstats .ws .label{letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slPlan .grid2{grid-template-columns:1.7fr 1fr}
 
 :root{--mzb:color-mix(in srgb,var(--ink) 9%,var(--panel));--mz0:color-mix(in srgb,var(--ink) 20%,var(--panel))}
 .sheet{z-index:96}.toast{z-index:160}
@@ -881,7 +891,7 @@ html[data-accent] nav.tabs button{--tc:var(--acc)}
     </div>
     <div class="card">
       <details>
-        <summary>Schlafrechner <span class="note">wann ins Bett, wann essen</span></summary>
+        <summary>Schlafrechner <span class="note">wann ins Bett, wann essen, umstellen</span></summary>
         <div class="seg" id="slMode" style="margin-top:6px"><button data-v="wake" aria-pressed="true">Ich stehe auf um</button><button data-v="bed" aria-pressed="false">Ich gehe ins Bett um</button></div>
         <div class="grid2" style="margin-top:6px">
           <label class="f"><span id="slLab">Morgen aufstehen um</span><input type="time" id="slWake"></label>
@@ -1971,6 +1981,7 @@ function renderSleepCalc(){
   const mkT=rows=>{ const t0=el("table"), tb=el("tbody"); rows.forEach(([n,m])=>{ const tr=el("tr"); tr.append(el("td",null,n), el("td","r num",minTxt(m))); tb.append(tr); }); t0.append(tb); return t0; };
   out.append(el("div","cat","Vor dem Schlafen"), mkT([["Letzter Kaffee oder Monster",bed-8*60],["Letztes großes Essen",bed-150],["Licht dimmen, Handy weg",bed-60],["Supplements vor dem Schlafen",bed-45]]),
              el("div","cat","Essenszeiten danach"), mkT([["Frühstück",w+30],["Mittag",w+300],["Snack",w+450],["Abendessen",w+630]]));
+  renderSleepPlan(out);
 }
 function openShiftCal(m0){
   const sel=new Set(); let mo=m0||0;
@@ -3781,6 +3792,7 @@ function renderGewicht(k){
   if(plateauInfo()){ const a=el("div","alert bad"); a.append(document.createTextNode("Plateau: Dein Wochenschnitt bewegt sich seit 2 Wochen kaum. Zeit für einen kleinen Schritt: 150 kcal weniger oder 2.000 Schritte mehr am Tag. ")); const b=el("button","btn small","Ziel um 150 kcal senken"); b.addEventListener("click",()=>setKcal((P().kcal||2400)-150)); a.append(b); hint.append(a); }
   drawChart(entries);
   $("chartNote").textContent = (P().alpha ? "Grau: Verlauf aus Alpha Progression und der Waage. " : "")+"Orange: ab Start."+(P().target ? " Grüne Linie: Ziel "+String(P().target).replace(".",",")+" kg." : "");
+  $("chartNote").textContent=wRangeNote();
   const wl=$("wList"); wl.innerHTML="";
   if(!entries.length) wl.textContent="Noch kein Eintrag.";
   else { const ul=el("ul","list wlist");
@@ -3796,7 +3808,7 @@ function renderGewicht(k){
   const f=state.hc.fat, hasBc=bcEntries().length>0; $("fatLine").hidden=!f||hasBc; if(f) $("fatLine").textContent="Körperfett laut Waage: "+String(f.v).replace(".",",")+" % ("+fmtDate(f.d)+")";
   renderBodyComp();
 }
-function drawChart(entries){
+function drawChartAll(entries){
   const svg=$("wChart"), W=340, H=170, L=36, R=10, T=12, B=24, NS="http://www.w3.org/2000/svg"; svg.innerHTML="";
   const mk=(n,a)=>{ const e=document.createElementNS(NS,n); for(const k in a) e.setAttribute(k,a[k]); svg.appendChild(e); return e; };
   const old = (P().alpha && state.alphaData && state.alphaData.weights) || [];
@@ -5236,43 +5248,77 @@ function themePicker(p){
 }
 
 
-// ===================== v2.0.60: Schichtwechsel sanft über mehrere Nächte
+// ===================== v2.0.60/62: Umstellen sanft über mehrere Nächte (Schichtwechsel und Schlafrechner)
 function wakeOf(d){ const s=state.shift[d]; return toMin(wakeFor(d, s||"frei")); }
 function durTxt(m){ const h=Math.floor(m/60), r=m%60; return (h?h+" Std.":"")+(h&&r?" ":"")+(r?r+" Min.":""); }
+function firstWakeDay(){ const now=new Date(), today=calToday(); return atTime(today, minTxt(wakeOf(today))) > now ? today : addDays(today,1); }
+// D: erster Aufwachtag im Plan, base: Aufstehzeit davor, c: Ziel {d,w,s}
+function planNights(D, base, c, needFree){
+  const goal=(P().sleepGoal||8)*60, now=new Date();
+  const days=[]; for(let d=D; d<c.d; d=addDays(d,1)){ const s=state.shift[d]; days.push({d, free:!s||s==="frei"||s==="urlaub"}); }
+  const nFree=days.filter(x=>x.free).length; if(needFree && !nFree) return null;
+  const diff=base-c.w, sg=diff>=0?1:-1;
+  // Schon nach der eigentlichen Bettzeit und noch wach? Dann heute Nacht ca. 7 Std. schlafen, Rest gleichmäßig verteilen
+  const nowM=Math.floor((now-atTime(D,"00:00"))/60000); let start=null;
+  if(days.length && days[0].free && sg>0){ const plan0=base-Math.ceil(diff/(nFree+1)/15)*15; if(plan0-goal-15<nowM){ start=Math.ceil((nowM+15+7*60)/15)*15; if(start>base+60) start=base+60; } }
+  const wakes=[]; let cur=base, left=nFree+1;
+  days.forEach((x,i)=>{ if(x.free){ if(i===0 && start!=null){ cur=start; wakes.push({d:x.d,w:cur,set:true,late:true}); left--; return; } const st=Math.ceil(Math.abs(cur-c.w)/left/15)*15; cur = cur>c.w ? Math.max(c.w,cur-st) : Math.min(c.w,cur+st); left--; wakes.push({d:x.d,w:cur,set:true}); } else { cur=wakeOf(x.d); wakes.push({d:x.d, w:cur}); } });
+  wakes.push({d:c.d, w:c.w, target:true, s:c.s});
+  const nights=wakes.map(W=>{ const P0=addDays(W.d,-1); const b=W.w-goal-15, b7=W.w-7*60-15; const dt=m=>{ let day=W.d, x=m; if(x<0){ x+=1440; day=P0; } return atTime(day, minTxt(x)); };
+    return {from:P0, to:W.d, wake:W.w, bed:((b%1440)+1440)%1440, bed7:((b7%1440)+1440)%1440, past:dt(b)<now||W.late, late:!!W.late, target:W.target, set:W.set, s:W.s}; });
+  let mx=0; for(let i=1;i<wakes.length;i++) mx=Math.max(mx, Math.abs(wakes[i-1].w-wakes[i].w));
+  return {c, nights, wakes, diff, jump:mx, base};
+}
 function shiftPlan(){
-  const goal=(P().sleepGoal||8)*60, now=new Date(), today=calToday();
-  let D = atTime(today, minTxt(wakeOf(today))) > now ? today : addDays(today,1);
-  const prev=addDays(D,-1); if(state.shift[prev]==="nacht") return null;
+  const D=firstWakeDay(), prev=addDays(D,-1); if(state.shift[prev]==="nacht") return null;
   const base=wakeOf(prev); let c=null;
   for(let i=0;i<=5;i++){ const d=addDays(D,i), s=state.shift[d]; if(!s) continue; if(s==="nacht") return null; const w=wakeOf(d); if(base-w>=60){ c={d,s,w}; break; } if(s==="frueh"||s==="spaet") break; }
   if(!c) return null;
-  const days=[]; for(let d=D; d<c.d; d=addDays(d,1)){ const s=state.shift[d]; days.push({d, free:!s||s==="frei"||s==="urlaub"}); }
-  const nFree=days.filter(x=>x.free).length; if(!nFree) return null;
-  // Schon nach der eigentlichen Bettzeit und noch wach? Dann heute Nacht ca. 7 Std. schlafen, Rest gleichmäßig verteilen
-  const nowM=Math.floor((now-atTime(D,"00:00"))/60000); let start=null;
-  if(days[0].free){ const plan0=base-Math.ceil((base-c.w)/(nFree+1)/15)*15; if(plan0-goal-15<nowM){ start=Math.ceil((nowM+15+7*60)/15)*15; if(start>base+60) start=base+60; } }
-  const wakes=[]; let cur=base, left=nFree+1, step;
-  days.forEach((x,i)=>{ if(x.free){ if(i===0 && start!=null){ cur=start; wakes.push({d:x.d,w:cur,set:true,late:true}); left--; return; } step=Math.ceil((cur-c.w)/left/15)*15; cur=Math.max(c.w,cur-step); left--; wakes.push({d:x.d,w:cur,set:true}); } else wakes.push({d:x.d, w:wakeOf(x.d)}); });
-  const diff=base-c.w; step=Math.ceil(diff/(nFree+1)/15)*15;
-  wakes.push({d:c.d, w:c.w, target:true, s:c.s});
-  const nights=wakes.map(W=>{ const P0=addDays(W.d,-1); let b=W.w-goal-15, b7=W.w-7*60-15; const dt=m=>{ let day=W.d, x=m; if(x<0){ x+=1440; day=P0; } return atTime(day, minTxt(x)); };
-    const bedAt=dt(b); return {from:P0, to:W.d, wake:W.w, bed:((b%1440)+1440)%1440, bed7:((b7%1440)+1440)%1440, past:bedAt<now||W.late, late:!!W.late, target:W.target, set:W.set, s:W.s}; });
-  const lastSet=wakes.filter(x=>x.set).pop(); let mx=0; for(let i=1;i<wakes.length;i++) mx=Math.max(mx, wakes[i-1].w-wakes[i].w);
-  return {c, nights, wakes, diff, step, jump: mx, base};
+  return planNights(D, base, c, true);
+}
+function planRowsEl(pl, label){
+  const wd=d=>parseKey(d).toLocaleDateString("de-DE",{weekday:"short"}).replace(".",""), today=calToday();
+  const t=el("div","shiftPlan"); pl.nights.forEach((n,i)=>{ const row=el("div","spr"+(n.target?" tgt":""));
+    const lab=el("div","spl"); lab.append(el("b",null,(i===0&&(n.to===today||n.to===addDays(today,1))?"Heute Nacht · ":"")+wd(n.from)+" → "+wd(n.to)+" "+parseKey(n.to).getDate()+"."+(parseKey(n.to).getMonth()+1)+"."));
+    const bed = n.past ? "jetzt" : minTxt(n.bed)+(Math.abs(n.bed7-n.bed)>=30?", spätestens "+minTxt(n.bed7):"");
+    const d=el("div","spv"); d.append(el("span",null,"🛏️ ins Bett "+bed), el("span",null,"⏰ aufstehen "+minTxt(n.wake)+(n.target&&label?" · "+label:""))); row.append(lab,d); t.append(row); });
+  return t;
+}
+function planApplyBtn(pl, withTarget){
+  const sets=pl.wakes.filter(x=>x.set||(withTarget&&x.target)), done=sets.length && sets.every(x=>state.wake[x.d]===minTxt(x.w));
+  const b=el("button","btn small"+(done?" ghost":""),done?"✓ Übernommen, Tagesablauf passt sich an":"So übernehmen"); b.addEventListener("click",()=>{ state.wakeMan=state.wakeMan||{}; sets.forEach(x=>{ state.wake[x.d]=minTxt(x.w); state.wakeMan[x.d]=true; }); persist(); render(); toast("Aufstehzeiten übernommen, Erinnerungen stellen sich darauf ein"); });
+  return b;
 }
 function renderShiftPlan(k, box){
-  const pl=shiftPlan(); if(!pl) return false; const nm=SHIFT_NAMES[pl.c.s], wd=d=>parseKey(d).toLocaleDateString("de-DE",{weekday:"short"}).replace(".","");
+  const pl=shiftPlan(); if(!pl) return false; const nm=SHIFT_NAMES[pl.c.s];
   const h=el("div","between"); h.append(el("h3",null,"🌅 Sanft umstellen auf "+nm), el("span","pill",String(Math.round(pl.diff/60*10)/10).replace(".",",")+" Std. früher")); box.append(h);
   box.append(el("div","note","Von "+minTxt(pl.base)+" auf "+minTxt(pl.c.w)+" Uhr, verteilt aufs ganze Wochenende bis zur "+nm+". Morgens direkt helles Licht, kein Mittagsschlaf, abends Licht dimmen."+(pl.nights[0].late?" Du bist noch wach: heute Nacht reichen ca. 7 Std., dann wirst du morgen Abend früher müde.":"")));
-  const t=el("div","shiftPlan"); pl.nights.forEach((n,i)=>{ const row=el("div","spr"+(n.target?" tgt":""));
-    const lab=el("div","spl"); lab.append(el("b",null,(i===0?"Heute Nacht · ":"")+wd(n.from)+" → "+wd(n.to)+" "+parseKey(n.to).getDate()+"."+(parseKey(n.to).getMonth()+1)+"."));
-    const bed = n.past ? "jetzt" : minTxt(n.bed)+(Math.abs(n.bed7-n.bed)>=30?", spätestens "+minTxt(n.bed7):"");
-    row.append(lab, (()=>{ const d=el("div","spv"); d.append(el("span",null,"🛏️ ins Bett "+bed), el("span",null,"⏰ aufstehen "+minTxt(n.wake)+(n.target?" · "+nm:""))); return d; })()); t.append(row); });
-  box.append(t);
+  box.append(planRowsEl(pl, nm));
   if(pl.jump>=120) box.append(el("div","note","Größter Sprung "+durTxt(pl.jump).replace(/\.$/,"")+". Sanfter geht es übers Wochenende nicht, ab dem zweiten Arbeitstag wird es leichter."));
-  const sets=pl.wakes.filter(x=>x.set), done=sets.every(x=>state.wake[x.d]===minTxt(x.w));
-  const b=el("button","btn small"+(done?" ghost":""),done?"✓ Übernommen, Tagesablauf passt sich an":"So übernehmen"); b.addEventListener("click",()=>{ state.wakeMan=state.wakeMan||{}; sets.forEach(x=>{ state.wake[x.d]=minTxt(x.w); state.wakeMan[x.d]=true; }); persist(); render(); toast("Aufstehzeiten übernommen, Erinnerungen stellen sich darauf ein"); }); box.append(b);
+  box.append(planApplyBtn(pl,false));
   return true;
+}
+// Schlafrechner: Zieltag und Aufstehzeit wählen, die Nächte davor (max. 4) werden gestaffelt
+let slPlanDay=null, slPlanWake=null;
+function renderSleepPlan(out){
+  const D0=firstWakeDay(); const opts=[]; for(let i=0;i<8;i++) opts.push(addDays(D0,i));
+  if(!slPlanDay || slPlanDay<D0){ slPlanDay = opts.find((d,i)=>i>0 && state.shift[d]==="frueh") || opts.find(d=>parseKey(d).getDay()===1 && d>D0) || opts[1]; slPlanWake=null; }
+  if(!slPlanWake) slPlanWake=minTxt(wakeOf(slPlanDay));
+  const wrap=el("div","slPlan"); wrap.append(el("div","cat","🗓️ Auf einen Tag hin umstellen"));
+  const g=el("div","grid2"); const l1=el("label","f"); l1.append(document.createTextNode("Ich muss aufstehen am")); const sel=el("select");
+  opts.forEach(d=>{ const o=el("option",null,parseKey(d).toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"numeric"})+(state.shift[d]&&state.shift[d]!=="frei"?" · "+SHIFT_NAMES[state.shift[d]]:"")); o.value=d; if(d===slPlanDay) o.selected=true; sel.append(o); }); l1.append(sel);
+  const l2=el("label","f"); l2.append(document.createTextNode("um")); const ti=el("input"); ti.type="time"; ti.value=slPlanWake; l2.append(ti); g.append(l1,l2); wrap.append(g);
+  const res=el("div"); wrap.append(res);
+  const draw=()=>{ res.innerHTML=""; const T=slPlanDay, tw=toMin(slPlanWake); if(tw==null) return;
+    let start = addDays(T,-3) > D0 ? addDays(T,-3) : D0; for(let d=start; d<T; d=addDays(d,1)){ const s=state.shift[d]; if(s && s!=="frei" && s!=="urlaub") start=addDays(d,1); } const base=wakeOf(addDays(start,-1));
+    const pl=planNights(start, base, {d:T, w:tw, s:state.shift[T]}, false); if(!pl) return;
+    const df=pl.base-tw; res.append(el("div","note", Math.abs(df)<30 ? "Kaum Unterschied zu deinem Rhythmus ("+minTxt(pl.base)+" Uhr), einfach so schlafen gehen." : "Von "+minTxt(pl.base)+" auf "+minTxt(tw)+" Uhr, "+durTxt(Math.abs(df))+(df>0?" früher":" später")+", gestaffelt über "+pl.nights.length+" Nächte."+(pl.nights[0].late?" Du bist noch wach: heute Nacht reichen ca. 7 Std.":"")));
+    res.append(planRowsEl(pl, null));
+    if(pl.jump>=120) res.append(el("div","note","Größter Sprung "+durTxt(pl.jump).replace(/\.$/,"")+". Mehr Nächte bis zum Tag machen es sanfter."));
+    res.append(planApplyBtn(pl,true)); };
+  sel.addEventListener("change",()=>{ slPlanDay=sel.value; slPlanWake=minTxt(wakeOf(slPlanDay)); ti.value=slPlanWake; draw(); });
+  ti.addEventListener("input",()=>{ slPlanWake=ti.value; draw(); });
+  draw(); out.append(wrap);
 }
 
 
@@ -5286,6 +5332,58 @@ function mealSubTxt(k, key, skp){
   const list=dayFood(k); const got=list.filter(f=>f.m===key||f.slot===key);
   if(got.length){ const kc=got.reduce((a,f)=>a+(+f.kcal||0),0); return got.map(f=>String(f.n||f.name||"Eintrag").replace(/^Frühstück: /,"")).join(", ")+" · "+de(Math.round(kc))+" kcal"; }
   return "Vorschlag: "+m.name.replace(/^Frühstück: /,"")+" · "+m.kcal+" kcal · P "+m.p;
+}
+
+
+// ===================== v2.0.62: Gewicht als Woche, Monat, Jahr oder Alles
+const WR={w:["Woche",7],m:["Monat",30],j:["Jahr",365],a:["Alles",0]};
+let wRange=(()=>{ try{ return localStorage.getItem("wa_wrange")||"m"; }catch(e){ return "m"; } })(), wLastEntries=[];
+function wRangeUI(){
+  let seg=$("wRange"); const svg=$("wChart");
+  if(!seg){ seg=el("div","seg"); seg.id="wRange"; seg.style.margin="10px 0 4px"; Object.keys(WR).forEach(k=>{ const b=el("button",null,WR[k][0]); b.dataset.v=k; b.addEventListener("click",()=>{ wRange=k; try{ localStorage.setItem("wa_wrange",k); }catch(e){} drawChart(wLastEntries); $("chartNote").textContent=wRangeNote(); }); seg.append(b); }); svg.parentNode.insertBefore(seg, svg); }
+  seg.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.v===wRange?"true":"false"));
+  let st=$("wStats"); if(!st){ st=el("div","wstats"); st.id="wStats"; svg.parentNode.insertBefore(st, svg.nextSibling); }
+  return st;
+}
+function wRangeNote(){
+  if(wRange==="a") return (P().alpha ? "Grau: Verlauf aus Alpha Progression und der Waage. " : "")+"Farbige Linie: ab Start."+(P().target ? " Grüne Linie: Ziel "+String(P().target).replace(".",",")+" kg." : "");
+  return wRange==="w" ? "Jeder Punkt ein Tag. Schwankungen von 1 kg sind normal (Wasser, Salz, Essen)." : "Punkte: Messungen. Linie: Schnitt über 7 Tage, der zählt.";
+}
+function trend7(pts){ return pts.map(([d,v])=>{ const a=pts.filter(([e])=>e<=d && e>addDays(d,-7)); return [d, a.reduce((s,x)=>s+x[1],0)/a.length]; }); }
+function drawChart(entries){
+  wLastEntries=entries; const st=wRangeUI(); st.innerHTML="";
+  const full=entries.filter(e=>e[1]>0);
+  if(wRange==="a"){ drawChartAll(entries); const s0=startKey(); wStatsFill(st, full.filter(([d])=>d>=s0), "Seit Start"); return; }
+  const days=WR[wRange][1], end=calToday(), x0=addDays(end,-(days-1));
+  const pts=full.filter(([d])=>d>=x0 && d<=end);
+  wStatsFill(st, pts, wRange==="w"?"Diese Woche":wRange==="m"?"30 Tage":"12 Monate");
+  const svg=$("wChart"), W=340, H=170, L=36, R=10, T=14, B=24, NS="http://www.w3.org/2000/svg"; svg.innerHTML="";
+  const mk=(n,a)=>{ const e=document.createElementNS(NS,n); for(const k in a) e.setAttribute(k,a[k]); svg.appendChild(e); return e; };
+  if(!pts.length){ mk("text",{x:W/2,y:H/2,"text-anchor":"middle","font-size":12,fill:"var(--muted)"}).textContent="Keine Messungen in diesem Zeitraum"; return; }
+  const tr = wRange==="w" ? pts : trend7(full).filter(([d])=>d>=x0 && d<=end);
+  const tgt=Number(P().target)||null; let lo=Math.min(...pts.map(e=>e[1])), hi=Math.max(...pts.map(e=>e[1]));
+  const pad=Math.max(0.4,(hi-lo)*0.15); lo=Math.floor((lo-pad)*2)/2; hi=Math.ceil((hi+pad)*2)/2;
+  const span=Math.max(1,dayDiff(x0,end)), X=d=>L+(dayDiff(x0,d)/span)*(W-L-R), Y=v=>T+(hi-v)/(hi-lo)*(H-T-B);
+  const rng=hi-lo, stepY = rng>16?4: rng>8?2: rng>3?1:0.5;
+  for(let v=Math.ceil(lo/stepY)*stepY; v<=hi+1e-9; v+=stepY){ mk("line",{x1:L,x2:W-R,y1:Y(v),y2:Y(v),stroke:"var(--line)","stroke-width":1}); mk("text",{x:L-6,y:Y(v)+4,"text-anchor":"end","font-size":10,fill:"var(--muted)"}).textContent=String(Math.round(v*10)/10).replace(".",","); }
+  const lab=(k,t)=>mk("text",{x:X(k),y:H-7,"text-anchor":"middle","font-size":10,fill:"var(--muted)"}).textContent=t;
+  if(wRange==="w"){ for(let i=0;i<7;i++){ const k=addDays(x0,i); lab(k, parseKey(k).toLocaleDateString("de-DE",{weekday:"short"}).replace(".","").slice(0,2)); } }
+  else if(wRange==="m"){ for(let i=0;i<=days;i+=7){ const k=addDays(x0,Math.min(i,days-1)); const d=parseKey(k); lab(k, d.getDate()+"."+(d.getMonth()+1)+"."); } }
+  else { const months=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"]; const d=parseKey(x0); d.setDate(1); d.setMonth(d.getMonth()+1); let n=0; while(keyOf(d)<=end){ if(n%2===0) lab(keyOf(d), months[d.getMonth()]+(d.getMonth()===0?" "+String(d.getFullYear()).slice(2):"")); d.setMonth(d.getMonth()+1); n++; } }
+  if(tgt && tgt>=lo && tgt<=hi){ mk("line",{x1:L,x2:W-R,y1:Y(tgt),y2:Y(tgt),stroke:"var(--done)","stroke-width":1.5,"stroke-dasharray":"4 3"}); mk("text",{x:W-R-4,y:Y(tgt)-4,"text-anchor":"end","font-size":10,fill:"var(--done)"}).textContent="Ziel"; }
+  if(wRange!=="w") pts.forEach(([d,v])=>mk("circle",{cx:X(d),cy:Y(v),r:wRange==="j"?1.6:2.4,fill:"var(--muted)","fill-opacity":0.55}));
+  if(tr.length>1) mk("path",{d:tr.map(([d,v],i)=>(i?"L":"M")+X(d).toFixed(1)+" "+Y(v).toFixed(1)).join(" "),fill:"none",stroke:"var(--accent)","stroke-width":2.5,"stroke-linejoin":"round","stroke-linecap":"round",pathLength:1,class:"draw"});
+  if(wRange==="w") pts.forEach(([d,v],i)=>{ mk("circle",{cx:X(d),cy:Y(v),r:i===pts.length-1?4.5:3.2,fill:"var(--accent)"}); mk("text",{x:X(d),y:Y(v)-8,"text-anchor":"middle","font-size":9.5,"font-weight":700,fill:"var(--ink)"}).textContent=String(Math.round(v*10)/10).replace(".",","); });
+  else { const l=tr[tr.length-1]; mk("circle",{cx:X(l[0]),cy:Y(l[1]),r:4,fill:"var(--accent)"}); }
+}
+function wStatsFill(st, pts, lbl){
+  if(pts.length<2){ st.hidden=true; return; } st.hidden=false;
+  const vs=pts.map(e=>e[1]), f=x=>String(Math.round(x*10)/10).replace(".",",");
+  const head=pts.slice(0,Math.min(3,Math.ceil(pts.length/3))), tail=pts.slice(-Math.min(3,Math.ceil(pts.length/3)));
+  const avg=a=>a.reduce((s,x)=>s+x[1],0)/a.length, ch=Math.round((avg(tail)-avg(head))*10)/10, goal=gKind();
+  const good = goal==="cut" ? ch<0 : goal==="bulk" ? ch>0 : Math.abs(ch)<0.5;
+  const c=(n,v,cls)=>{ const d=el("div","ws"+(cls?" "+cls:"")); d.append(el("span","label",n), el("b","num",v)); return d; };
+  st.append(c(lbl,(ch>0?"+":ch<0?"−":"±")+f(Math.abs(ch))+" kg", Math.abs(ch)>=0.1?(good?"ok":"bad"):""), c("Schnitt",f(vs.reduce((a,b)=>a+b,0)/vs.length)+" kg"), c("Tief",f(Math.min(...vs))+" kg"), c("Hoch",f(Math.max(...vs))+" kg"));
 }
 
 // ---------- Start
