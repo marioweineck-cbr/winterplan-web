@@ -763,10 +763,11 @@ body[data-tab="training"]::before{filter:hue-rotate(140deg)}body[data-tab="essen
 .altBox{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 6px}
 .altBox button{border:0;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;background:color-mix(in srgb,var(--accent) 14%,var(--bg));color:var(--ink)}
 .ff .l{cursor:pointer}
-.shiftPlan{display:flex;flex-direction:column;gap:4px;margin:4px 0}
-.shiftPlan .spr{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;align-items:center;padding:8px 10px;border-radius:12px;background:var(--bg);font-size:14px}
-.shiftPlan .spr b{font-size:13px}.shiftPlan .spr.now{box-shadow:inset 0 0 0 1.5px var(--line)}
-.shiftPlan .spr.tgt{background:color-mix(in srgb,var(--accent) 16%,var(--bg));font-weight:700}
+.shiftPlan{display:flex;flex-direction:column;gap:6px;margin:4px 0}
+.shiftPlan .spr{padding:9px 12px;border-radius:14px;background:var(--bg);display:flex;flex-direction:column;gap:3px}
+.shiftPlan .spl b{font-size:13px;color:var(--muted);letter-spacing:.02em}
+.shiftPlan .spv{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:14px;font-weight:600}
+.shiftPlan .spr.tgt{background:color-mix(in srgb,var(--accent) 16%,var(--bg))}
 
 :root{--mzb:color-mix(in srgb,var(--ink) 9%,var(--panel));--mz0:color-mix(in srgb,var(--ink) 20%,var(--panel))}
 .sheet{z-index:96}.toast{z-index:160}
@@ -5235,31 +5236,42 @@ function themePicker(p){
 }
 
 
-// ===================== v2.0.60: Schichtwechsel sanft über mehrere Tage
-function shiftPlan(k){
-  const sh0=state.shift[k]; if(sh0==="nacht") return null; const goal=(P().sleepGoal||8)*60;
-  const base=toMin(wakeFor(k, sh0||"frei")); let c=null;
-  for(let i=1;i<=5;i++){ const d=addDays(k,i), s=state.shift[d]; if(!s) continue; if(s==="nacht") return null; const w=toMin(wakeFor(d,s)); if(base-w>=60){ c={d,s,w}; break; } if(s==="frueh"||s==="spaet") break; }
+// ===================== v2.0.60: Schichtwechsel sanft über mehrere Nächte
+function wakeOf(d){ const s=state.shift[d]; return toMin(wakeFor(d, s||"frei")); }
+function durTxt(m){ const h=Math.floor(m/60), r=m%60; return (h?h+" Std.":"")+(h&&r?" ":"")+(r?r+" Min.":""); }
+function shiftPlan(){
+  const goal=(P().sleepGoal||8)*60, now=new Date(), today=calToday();
+  let D = atTime(today, minTxt(wakeOf(today))) > now ? today : addDays(today,1);
+  const prev=addDays(D,-1); if(state.shift[prev]==="nacht") return null;
+  const base=wakeOf(prev); let c=null;
+  for(let i=0;i<=5;i++){ const d=addDays(D,i), s=state.shift[d]; if(!s) continue; if(s==="nacht") return null; const w=wakeOf(d); if(base-w>=60){ c={d,s,w}; break; } if(s==="frueh"||s==="spaet") break; }
   if(!c) return null;
-  const days=[]; for(let d=k; d<c.d; d=addDays(d,1)){ const s=state.shift[d]; days.push({d,s,free:!s||s==="frei"||s==="urlaub"}); }
-  const free=days.filter(x=>x.free); if(!free.length) return null;
-  const diff=base-c.w, n=free.length+1, step=Math.min(90, Math.ceil(diff/n/15)*15);
-  let cur=base; const rows=[];
-  days.forEach(x=>{ if(x.free && x.d!==k){ cur=Math.max(c.w, cur-step); rows.push({d:x.d, w:cur, free:true}); } else rows.push({d:x.d, w:toMin(wakeFor(x.d,x.s||"frei")), free:x.free, today:x.d===k}); });
-  rows.push({d:c.d, w:c.w, target:true, s:c.s});
-  rows.forEach((r,i)=>{ const nx=rows[i+1]; r.bed = nx ? nx.w-goal-15 : null; });
-  const lastFree=rows.filter(r=>r.free && !r.today).pop(), jump = lastFree ? lastFree.w-c.w : diff;
-  return {c, rows, diff, step, jump};
+  const days=[]; for(let d=D; d<c.d; d=addDays(d,1)){ const s=state.shift[d]; days.push({d, free:!s||s==="frei"||s==="urlaub"}); }
+  const nFree=days.filter(x=>x.free).length; if(!nFree) return null;
+  // Schon nach der eigentlichen Bettzeit und noch wach? Dann heute Nacht ca. 7 Std. schlafen, Rest gleichmäßig verteilen
+  const nowM=Math.floor((now-atTime(D,"00:00"))/60000); let start=null;
+  if(days[0].free){ const plan0=base-Math.ceil((base-c.w)/(nFree+1)/15)*15; if(plan0-goal-15<nowM){ start=Math.ceil((nowM+15+7*60)/15)*15; if(start>base+60) start=base+60; } }
+  const wakes=[]; let cur=base, left=nFree+1, step;
+  days.forEach((x,i)=>{ if(x.free){ if(i===0 && start!=null){ cur=start; wakes.push({d:x.d,w:cur,set:true,late:true}); left--; return; } step=Math.ceil((cur-c.w)/left/15)*15; cur=Math.max(c.w,cur-step); left--; wakes.push({d:x.d,w:cur,set:true}); } else wakes.push({d:x.d, w:wakeOf(x.d)}); });
+  const diff=base-c.w; step=Math.ceil(diff/(nFree+1)/15)*15;
+  wakes.push({d:c.d, w:c.w, target:true, s:c.s});
+  const nights=wakes.map(W=>{ const P0=addDays(W.d,-1); let b=W.w-goal-15, b7=W.w-7*60-15; const dt=m=>{ let day=W.d, x=m; if(x<0){ x+=1440; day=P0; } return atTime(day, minTxt(x)); };
+    const bedAt=dt(b); return {from:P0, to:W.d, wake:W.w, bed:((b%1440)+1440)%1440, bed7:((b7%1440)+1440)%1440, past:bedAt<now||W.late, late:!!W.late, target:W.target, set:W.set, s:W.s}; });
+  const lastSet=wakes.filter(x=>x.set).pop(); let mx=0; for(let i=1;i<wakes.length;i++) mx=Math.max(mx, wakes[i-1].w-wakes[i].w);
+  return {c, nights, wakes, diff, step, jump: mx, base};
 }
 function renderShiftPlan(k, box){
-  const pl=shiftPlan(k); if(!pl) return false;
-  const nm=SHIFT_NAMES[pl.c.s]; const h=el("div","between"); h.append(el("h3",null,"🌅 Sanft umstellen auf "+nm), el("span","pill",(pl.diff/60>=1?String(Math.round(pl.diff/60*10)/10).replace(".",","):"<1")+" Std. früher")); box.append(h);
-  box.append(el("div","note","Statt am letzten Tag "+fmtMin(pl.diff)+" auf einmal: jeden freien Tag ca. "+pl.step+" Min. früher aufstehen und ins Bett. Morgens direkt helles Licht, abends Licht dimmen."));
-  const t=el("div","shiftPlan"); pl.rows.forEach(r=>{ const row=el("div","spr"+(r.target?" tgt":"")+(r.today?" now":"")); const dl=parseKey(r.d).toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"numeric"});
-    row.append(el("b",null,r.today?"Heute":dl), el("span",null,"⏰ "+minTxt(r.w)), el("span",null,r.bed!=null?"🛏️ "+minTxt(r.bed):r.target?"🏭 "+nm:"")); t.append(row); }); box.append(t);
-  if(pl.jump>=120) box.append(el("div","note","Es bleiben noch "+fmtMin(pl.jump)+" Sprung am letzten Abend. Mehr freie Tage davor machen es leichter."));
-  const done=pl.rows.filter(r=>r.free && !r.today).every(r=>state.wake[r.d]===minTxt(r.w));
-  const b=el("button","btn small"+(done?" ghost":""),done?"✓ Übernommen, Tagesablauf passt sich an":"So übernehmen"); b.addEventListener("click",()=>{ state.wakeMan=state.wakeMan||{}; pl.rows.filter(r=>r.free && !r.today).forEach(r=>{ state.wake[r.d]=minTxt(r.w); state.wakeMan[r.d]=true; }); persist(); render(); toast("Aufstehzeiten übernommen, Erinnerungen stellen sich darauf ein"); }); box.append(b);
+  const pl=shiftPlan(); if(!pl) return false; const nm=SHIFT_NAMES[pl.c.s], wd=d=>parseKey(d).toLocaleDateString("de-DE",{weekday:"short"}).replace(".","");
+  const h=el("div","between"); h.append(el("h3",null,"🌅 Sanft umstellen auf "+nm), el("span","pill",String(Math.round(pl.diff/60*10)/10).replace(".",",")+" Std. früher")); box.append(h);
+  box.append(el("div","note","Von "+minTxt(pl.base)+" auf "+minTxt(pl.c.w)+" Uhr, verteilt aufs ganze Wochenende bis zur "+nm+". Morgens direkt helles Licht, kein Mittagsschlaf, abends Licht dimmen."+(pl.nights[0].late?" Du bist noch wach: heute Nacht reichen ca. 7 Std., dann wirst du morgen Abend früher müde.":"")));
+  const t=el("div","shiftPlan"); pl.nights.forEach((n,i)=>{ const row=el("div","spr"+(n.target?" tgt":""));
+    const lab=el("div","spl"); lab.append(el("b",null,(i===0?"Heute Nacht · ":"")+wd(n.from)+" → "+wd(n.to)+" "+parseKey(n.to).getDate()+"."+(parseKey(n.to).getMonth()+1)+"."));
+    const bed = n.past ? "jetzt" : minTxt(n.bed)+(Math.abs(n.bed7-n.bed)>=30?", spätestens "+minTxt(n.bed7):"");
+    row.append(lab, (()=>{ const d=el("div","spv"); d.append(el("span",null,"🛏️ ins Bett "+bed), el("span",null,"⏰ aufstehen "+minTxt(n.wake)+(n.target?" · "+nm:""))); return d; })()); t.append(row); });
+  box.append(t);
+  if(pl.jump>=120) box.append(el("div","note","Größter Sprung "+durTxt(pl.jump).replace(/\.$/,"")+". Sanfter geht es übers Wochenende nicht, ab dem zweiten Arbeitstag wird es leichter."));
+  const sets=pl.wakes.filter(x=>x.set), done=sets.every(x=>state.wake[x.d]===minTxt(x.w));
+  const b=el("button","btn small"+(done?" ghost":""),done?"✓ Übernommen, Tagesablauf passt sich an":"So übernehmen"); b.addEventListener("click",()=>{ state.wakeMan=state.wakeMan||{}; sets.forEach(x=>{ state.wake[x.d]=minTxt(x.w); state.wakeMan[x.d]=true; }); persist(); render(); toast("Aufstehzeiten übernommen, Erinnerungen stellen sich darauf ein"); }); box.append(b);
   return true;
 }
 
