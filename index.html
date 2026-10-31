@@ -1847,7 +1847,7 @@ function renderHeute(k, ph){
       const li=el("li","item"+(on?" isdone":"")+(skp?" skipped":""));
       if(!on && !next){ next=it; li.classList.add("isnext"); }
       const tx=el("div","txt"); if(/^supp/.test(it.key) && it.label.indexOf(": ")>0){ tx.append(el("span",null,it.label.split(": ")[0])); tx.append(suppRowsEl(it.label,k)); } else tx.append(el("span",null,it.label));
-      if(isMeal){ const m=MEALS[it.key]; tx.append(el("div","sub", skp ? "übersprungen · "+m.kcal+" kcal gespart" : m.kcal+" kcal · P "+m.p+" · K "+m.c+" · F "+m.f)); }
+      if(isMeal){ const m=MEALS[it.key]; tx.append(el("div","sub", mealSubTxt(k,it.key,skp))); }
       else if(skp) tx.append(el("div","sub","übersprungen"));
       if(it.key==="gym" && sh!=="urlaub") tx.append(el("div","sub", nextSlot()==="P" ? "Laut Reihenfolge Pause" : "Einheit "+nextSlot()));
       if(it.key==="steps" && state.hc.on){ const st=state.hc.steps[k]; tx.append(el("div","sub", st!=null ? "Uhr: "+de(st)+" Schritte, wird automatisch abgehakt" : "wird automatisch abgehakt, sobald die Uhr "+de(STEP_GOAL)+" meldet")); }
@@ -5273,6 +5273,19 @@ function renderShiftPlan(k, box){
   const sets=pl.wakes.filter(x=>x.set), done=sets.every(x=>state.wake[x.d]===minTxt(x.w));
   const b=el("button","btn small"+(done?" ghost":""),done?"✓ Übernommen, Tagesablauf passt sich an":"So übernehmen"); b.addEventListener("click",()=>{ state.wakeMan=state.wakeMan||{}; sets.forEach(x=>{ state.wake[x.d]=minTxt(x.w); state.wakeMan[x.d]=true; }); persist(); render(); toast("Aufstehzeiten übernommen, Erinnerungen stellen sich darauf ein"); }); box.append(b);
   return true;
+}
+
+
+// ===================== v2.0.61: Tagesablauf zeigt nur Mahlzeit (Frühstück, Mittag, Abendbrot), Gericht darunter
+const MEAL_LBL={fr:"Frühstück", b1:"Mittag", b2:"Abendbrot", ab:"Snack am Abend", sn:"Snack"};
+const MEAL_HINT={frueh:{b1:"in der Pause", b2:"gut 1 Std. vor dem Gym"}, spaet:{b1:"vor der Schicht", b2:"in der Pause"}, nacht:{b1:"vor der Schicht", b2:"in der Pause"}};
+Object.keys(TPL).forEach(sh=>TPL[sh].forEach(r=>{ const L=MEAL_LBL[r[2]]; if(L) r[1]=L+((MEAL_HINT[sh]||{})[r[2]]?", "+MEAL_HINT[sh][r[2]]:""); }));
+function mealKeySlot(key){ return key==="fr"?"fr":key==="b1"?"mi":key==="b2"?"ab":"sn"; }
+function mealSubTxt(k, key, skp){
+  const m=MEALS[key]; if(skp) return "übersprungen · "+m.kcal+" kcal gespart";
+  const list=dayFood(k); const got=list.filter(f=>f.m===key||f.slot===key);
+  if(got.length){ const kc=got.reduce((a,f)=>a+(+f.kcal||0),0); return got.map(f=>String(f.n||f.name||"Eintrag").replace(/^Frühstück: /,"")).join(", ")+" · "+de(Math.round(kc))+" kcal"; }
+  return "Vorschlag: "+m.name.replace(/^Frühstück: /,"")+" · "+m.kcal+" kcal · P "+m.p;
 }
 
 // ---------- Start
